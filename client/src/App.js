@@ -1,8 +1,25 @@
-import React from 'react'
+import React, {useState} from 'react'
 import './App.css'
-import { useState } from 'react'
 
 export default function App() {
+  const [userData, setUserData] = useState({
+    username: '',
+    fullName: {
+      firstName: '',
+      lastName: '',
+    },
+    email : '',
+    dateOfBirth: '',
+    password: '',
+    address: {
+      line1: '',
+      line2: '',
+      city: '',
+      province: '',
+    },
+    admin: false,
+    profilePicture: ''
+  })
   const [currentUser, setCurrentUser] = useState(null)
   return (
     <div>App</div>
