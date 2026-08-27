@@ -126,7 +126,17 @@ userSchema.virtual('fullNameString').get(function () {
     return `${firstName} ${lastName}`.trim(); 
 });
 
-// Virtual field to return address as a single string
+// Virtual field returning the address formatted as a single readable string
+userSchema.virtual('userAddress').get(function () {
+    return [
+        this.address?.line1,
+        this.address?.line2,
+        this.address?.city,
+        this.address?.province,
+    ]
+        .filter(Boolean)
+        .join(', ');
+});
 
 //export the userSchema
 module.exports = mongoose.model('User', userSchema)
