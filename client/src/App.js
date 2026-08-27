@@ -63,7 +63,7 @@ export default function App() {
           <>
             <Route exact path='/' element={
               <ProtectedUserRoute currentUser={currentUser}>
-                <Dashboard/>
+                <Dashboard currentUser={currentUser}/>
               </ProtectedUserRoute>
             }/>
             <Route path='/travelLog' element={

@@ -1,0 +1,20 @@
+#main-header{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#heading-col{
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+    justify-content: center;
+}
+#appHeading{
+    font-family: "Alkatra", system-ui;
+    color: #591616;
+    margin: 0px;
+    padding: 0px;
+}
