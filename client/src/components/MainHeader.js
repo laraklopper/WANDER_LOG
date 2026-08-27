@@ -1,5 +1,6 @@
 import React from 'react'
 import '../css/componentCss/Header.css'
+import '../css/componentCss/Navbar.css'
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Stack from 'react-bootstrap/Stack';
@@ -17,10 +18,10 @@ export default function MainHeader({mainHeading}) {
         <nav id='navigation'>
           <ul id='mainhead-navbar'>
             <li className='link-item'>
-              <NavLink to='/'>LOGIN</NavLink>
+              <NavLink to='/' className='refLink'>LOGIN</NavLink>
             </li>
             <li className='link-item'>
-              <NavLink to='/reg'>REGISTRATION</NavLink>
+              <NavLink to='/reg' className='refLink'>REGISTRATION</NavLink>
             </li>
           </ul>
         </nav>
