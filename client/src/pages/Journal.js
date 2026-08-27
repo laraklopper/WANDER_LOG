@@ -1,8 +1,7 @@
 import React from 'react'
 import '../css/pagesCss/PageSetup.css'
-
-export default function JournalPage() {
+export default function Journal() {
   return (
-    <div>JournalPage</div>
+    <div>Journal</div>
   )
 }
