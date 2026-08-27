@@ -21,7 +21,11 @@ export default function App() {
     profilePicture: ''
   })
   const [currentUser, setCurrentUser] = useState(null)
+  const [loggedIn, setLoggedIn] = useState
   return (
-    <div>App</div>
+    <>
+
+    </>
+   
   )
 }
