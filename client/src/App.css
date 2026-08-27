@@ -1,0 +1,24 @@
+#html, #body{
+    overflow: visible;
+ margin: 0px 0px 0px 0px;
+padding: 0px 0px 0px 0px;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-color: #51585E;
+  border-color: #51585E ;
+}
+#root {
+   background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: visible;
+  background-color: #51585E;
+  margin: 0px 0px;
+  padding: 0px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
