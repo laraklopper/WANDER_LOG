@@ -3,8 +3,19 @@ import './App.css'
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import { Routes, Route } from 'react-router-dom'
 // IMPORT ICONS FROM LUCIDE-REACT
 import { Bug, GlobeOff } from 'lucide-react';
+import ProtectedUserRoute from './protectedRoutes/ProtectedUserRoute'
+import ProtectedAdminRoute from './protectedRoutes/ProtectedAdminRoute'
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard'
+import TravelLog from './pages/TravelLog';
+import Budget from './pages/Budget';
+import Journal from './pages/Journal';
+import Profile from './pages/Profile';
+import Users from './pages/Users';
 
 export default function App() {
   const [userData, setUserData] = useState({
@@ -47,9 +58,58 @@ export default function App() {
           </Col>
           <Col xs={0} md id='errorCol2'/>
         </Row>
+        <Routes>
+        {loggedIn ? (
+          <>
+            <Route exact path='/' element={
+              <ProtectedUserRoute currentUser={currentUser}>
+                <Dashboard/>
+              </ProtectedUserRoute>
+            }/>
+            <Route path='/travelLog' element={
+              <ProtectedUserRoute currentUser={currentUser}>
+                <TravelLog currentUser={currentUser}/>
+              </ProtectedUserRoute>
+            }/>
+            <Route path='/journal' element={
+              <ProtectedUserRoute currentUser={currentUser}>
+                <Journal currentUser={currentUser}/>
+              </ProtectedUserRoute>
+            }/>
+            <Route path='/budget' element={
+              <ProtectedUserRoute currentUser={currentUser}>
+                <Budget currentUser={currentUser}/>
+              </ProtectedUserRoute>
+            }/>
+            <Route path='/profile' element={
+              <ProtectedUserRoute currentUser={currentUser}>
+                <Profile currentUser={currentUser}/>
+              </ProtectedUserRoute>
+            }/>
+            <Route path='/users' element={
+              <ProtectedAdminRoute currentUser={currentUser}>
+                <Users currentUser={currentUser}/>
+              </ProtectedAdminRoute>
+            }/>
+          </>
+        ):(
+          <>
+            <Route exact path='/' element={
+              <Login/>
+            }/>
+            <Route path='/reg' element={
+              <Register/>
+            }/>
+          </>
+        )}
+        {/* FALL BACK ROUTE: Response 404 PAGE NOT FOUND */}
+        <Route path='*' element={
+          <span id='pageNotFound'>
+           <h2 id='pageNotFound-text'>404: Page Not Found</h2><GlobeOff fontSize={42} fontWeight={800} color='#470D09'/>
+          </span>
+        }/>
+        </Routes>
       </Container>
-
     </>
-   
   )
 }
