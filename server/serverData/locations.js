@@ -1,0 +1,13 @@
+const provinces = [
+  { code: "EC", name: "Eastern Cape" },
+  { code: "FS", name: "Free State" },
+  { code: "GT", name: "Gauteng" },
+  { code: "KZN", name: "KwaZulu-Natal" },
+  { code: "LP", name: "Limpopo" },
+  { code: "MP", name: "Mpumalanga" },
+  { code: "NW", name: "North West" },
+  { code: "NC", name: "Northern Cape" },
+  { code: "WC", name: "Western Cape" },
+];
+
+module.exports = {provinces}

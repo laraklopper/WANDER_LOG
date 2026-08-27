@@ -1,5 +1,6 @@
 // userSchema.js
 const mongoose = require('mongoose');
+const { provinces } = require('../serverData/locations');
 
 //Regular expressions
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -19,10 +20,18 @@ const userSchema = new mongoose.Schema({
         // Field for firstName
         firstName: {
             type: String,
+            required: [true,'first Name is required'],
+            trim: true,
+            minlength: [2, 'First name must be at least 2 characters long'],
+            maxlength: [50, 'First name cannot exceed 50 characters'],
         },
         // Field for lastName
         lastName: {
             type: String,
+            required: [true, 'Last Name is required'],
+            trim: 'true',
+            minlength: [2, 'Last name must be at least 2 characters long'],
+            maxlength: [50, 'Last name cannot exceed 50 characters'],
         },
     },
     // Field for user email(allow email address for any country)
@@ -78,7 +87,7 @@ const userSchema = new mongoose.Schema({
             type: String,
             required: true,
             trim: true,
-            // enum,
+            enum: provinces,
             minlength: [2, 'Province or region name must be at least 2 characters long'],
             maxlength: [50, 'Province name cannot exceed 50 characters']
         },
