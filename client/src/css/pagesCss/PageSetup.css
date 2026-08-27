@@ -6,3 +6,19 @@
     margin: 0px;
     padding: 0px;
 }
+/* ========================= 
+Accessibility helpers 
+ ARIA : Accessible Rich Internet Applications
+ https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA
+/* ========================= */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
