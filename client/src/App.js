@@ -41,7 +41,7 @@ export default function App() {
   const [error, setError] = useState(null)
   return (
     <>
-      <Container>
+      <Container id='appContainer'>
         <Row>
           <Col xs={0} md id='errorCol1'/>
           <Col xs={12} md={8} id='global-error-col'>

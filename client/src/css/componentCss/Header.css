@@ -5,6 +5,7 @@
     width: 100%;
     margin: 0px;
     padding: 0px;
+    background-color: #B6C6D4;
 }
 #heading-col{
     margin: 0px;
@@ -12,9 +13,58 @@
     display: flex;
     justify-content: center;
 }
+#heading-col1,
+#heading-col2{
+    margin: 0px;
+    padding: 0px;
+}
+#heading-stack{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#headerBlock1,
+#headerBlock2{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+
+}
 #appHeading{
     font-family: "Alkatra", system-ui;
     color: #591616;
+    margin: 0px;
+    padding: 0px;
+    letter-spacing: 2px;
+    text-decoration: underline;
+}
+#pageHeading{
+    font-family: "Fira Sans", sans-serif;
+    display: flex;
+    margin: 0px;
+    padding: 0px;
+    letter-spacing: 2px;
+    text-decoration: underline;
+}
+#header-row1{
+    display: flex;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#header-row2{
+    display: flex;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#header-row3{
+    display: flex;
+    width: 100%;
     margin: 0px;
     padding: 0px;
 }

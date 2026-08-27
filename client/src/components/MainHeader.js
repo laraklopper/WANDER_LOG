@@ -33,10 +33,10 @@ export default function MainHeader({mainHeading}) {
         <Col id='heading-col1'/>
         <Col xs={6} id='heading-col'>
           <Stack gap={3} id='heading-stack'>
-            <div className="p-2">
+            <div className="p-2" id='headerBlock1'>
               <h1 id='appHeading'>WANDER LOG</h1>
             </div>
-            <div className="p-2">
+            <div className="p-2" id='headerBlock2'>
               <h2 id='pageHeading'>{mainHeading}</h2>
             </div>
           </Stack>
