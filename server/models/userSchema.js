@@ -113,6 +113,12 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: null,
     },
+    // Field for number of journal entries
+    // Not required on registration
+    entries: [{//Journal entries
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Entry',
+    }]
 },{
     timestamps: true,
     toJSON: {virtuals: true},
