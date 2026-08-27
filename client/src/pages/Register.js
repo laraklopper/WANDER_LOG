@@ -1,5 +1,6 @@
 import React from 'react'
 import '../css/pagesCss/PageSetup.css'
+import '../css/pagesCss/LoggedOut.css'
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import MainHeader from '../components/MainHeader'
@@ -11,14 +12,14 @@ export default function Register() {
       <MainHeader mainHeading={'REGISTER'}/>
       <section id='regis-section1'>
    <Row id='register-row'>
-      <Col/>
-        <Col xs={12} md={8}>
+   <Col/>
+        <Col md={10}>
           <div id='regis-form-panal'>
             <RegistrationForm/>
           </div>
           
         </Col>
-        <Col/>
+    <Col/>
       </Row>
       </section>
    

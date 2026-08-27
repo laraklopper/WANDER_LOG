@@ -1,0 +1,50 @@
+#formHeadingBlock{
+    display: flex;
+    justify-content: center;
+    margin: 0px;
+    padding: 0px;
+}
+#formHeading{
+  color: #000000;
+  font-family: "Roboto", sans-serif;
+  font-weight: 700;
+  margin: 0px;
+  padding: 0px;
+}
+.formSectionHeading{
+  text-align: center;
+}
+.input-div{
+  margin: 0px;
+  padding: 0px;
+  display: flex;
+  gap: 5px;
+  align-items: baseline;
+}
+.text-input-div{
+      display: flex;
+    align-items: baseline;
+    justify-content: center;
+    margin: 0px;
+    padding: 0px;
+}
+.input {
+  text-align: center;
+  border: solid black 2px;
+  border-radius: 5px;
+  padding: 5px;
+  width: 180px;
+  font-family: "Ubuntu Mono", monospace;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* TEXT */
+#requiredInfo{
+    display: flex;
+    gap: 10px;
+    font-family: "Open Sans", sans-serif;
+    align-items: center;
+    margin: 0px;
+    padding: 0px;
+}

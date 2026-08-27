@@ -1,0 +1,17 @@
+#regis-section1{
+    background-color: azure;
+    width: 100%;
+    margin: 10px 0px;
+    padding: 10px 0px;
+}
+#regis-form-panal{
+    width: 100%;
+    background-color: #9E9E9E;
+    margin: 0px;
+    padding: 10px;
+}
+#register-row{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}

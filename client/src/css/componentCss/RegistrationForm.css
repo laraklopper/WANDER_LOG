@@ -1,0 +1,99 @@
+#registration-form{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0px;
+    padding: 10px 5px;
+    width: 100%;
+    background-color: #A8AEB3;
+}
+/* ====================
+LAYOUT
+==========*/
+
+.regis-label{
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+  margin: 0px;
+  letter-spacing: 1px;
+  padding: 0px;
+}
+/* ==============
+LAYOUT
+===============*/
+#regis-input-div{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #BFBFBF;
+    margin: 0px;
+    padding: 10px;
+    width: 90%;
+    gap: 10px;
+}
+/* GROUP 1 */
+#regis-group1{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin: 0px;
+    padding: 5px;
+}
+
+/* BOOTSTRAP */
+/* STACK 1 */
+#regis-stack1{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+
+#regis-fullName-input-block{
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    
+}
+/* STACK 2 */
+#regis-email-block{
+    display: flex;
+    align-items: baseline;
+}
+/* STACK 3 */
+#regis-dateOfBirth-block{
+    display: flex;
+    align-items: baseline;
+    margin: 0px;
+    gap: 10px;
+}
+/* GROUP 2: ADDRESS */
+#regis-group2{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin: 0px;
+    padding: 5px;
+}
+.address-input-div{
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    width: 100%;
+}
+#regis-address-block1{
+    display: flex;
+}
+
+#regis-group3{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin: 0px;
+    padding: 5px;
+}
