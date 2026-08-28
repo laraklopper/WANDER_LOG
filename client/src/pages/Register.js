@@ -12,14 +12,16 @@ export default function Register() {
       <MainHeader mainHeading={'REGISTER'}/>
       <section id='regis-section1'>
    <Row id='register-row'>
-   <Col/>
-        <Col md={10}>
+        <Col md={12}>
           <div id='regis-form-panal'>
-            <RegistrationForm/>
+            <div>
+             <RegistrationForm/> 
+            </div>
+            
           </div>
           
         </Col>
-    <Col/>
+  
       </Row>
       </section>
    

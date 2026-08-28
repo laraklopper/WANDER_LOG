@@ -101,7 +101,7 @@ export default function RegistrationForm() {
         <h5 className='formSectionHeading'>ADDRESS</h5>
       </div>
       <div className="p-2" id='regis-address-block1'>
-      <div id='text-input-div'>
+      <div className='text-input-div'>
 <label className='regis-label'>STREET ADDRESS:</label>
         <div className='input-div'>
             
@@ -132,13 +132,14 @@ export default function RegistrationForm() {
                 
             </div>
             <div className='input-div'>
-            <label>PROVINCE:</label>
+            <label className='regis-label'>PROVINCE:</label>
             <select 
             className='input'
             >
                 <option>SELECT</option>
             </select>
-
+<small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
+                
             </div>
         </div>
 

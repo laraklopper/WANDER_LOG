@@ -1,3 +1,6 @@
+/* RegistrationForm.css
+RegistrationForm.js: POST request to /users/register
+*/
 #registration-form{
     display: flex;
     flex-direction: column;
@@ -8,16 +11,9 @@
     background-color: #A8AEB3;
 }
 /* ====================
-LAYOUT
+INPUT
 ==========*/
 
-.regis-label{
-    font-family: "Fira Mono", monospace;
-    font-weight: 700;
-  margin: 0px;
-  letter-spacing: 1px;
-  padding: 0px;
-}
 /* ==============
 LAYOUT
 ===============*/
@@ -84,10 +80,14 @@ LAYOUT
     align-items: baseline;
     width: 100%;
 }
-#regis-address-block1{
-    display: flex;
+#regis-address-block1,
+#regis-address-block2{
+       display: flex;
+    justify-content: center;
+    margin: 0px;
+    padding: 0px;
 }
-
+/* GROUP 3 : ADMIN + PROFILE PICTURE + PASSWORD*/
 #regis-group3{
     display: flex;
     flex-direction: column;
@@ -96,4 +96,29 @@ LAYOUT
     width: 100%;
     margin: 0px;
     padding: 5px;
+}
+/* =====================
+INPUT = LAYBELS
+================*/
+.regis-label{
+ font-family: "Fira Mono", monospace;
+ font-weight: 700;
+  margin: 0px;
+  letter-spacing: 1px;
+  padding: 0px;
+}
+.regisSelect{
+    text-align: center;
+    border: solid black 2px;
+    border-radius: 5px;
+    padding: 5px;
+    width: 150px;
+    font-family: "Roboto Mono", monospace;
+    font-size: 16px;
+    font-weight: 700;
+}
+/* BUTTONS */
+#showPasswordBtn{
+    width: 200px;
+    height: 40px;
 }
