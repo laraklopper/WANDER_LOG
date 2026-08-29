@@ -2,6 +2,7 @@ import React from 'react'
 import '../css/componentCss/RegistrationForm.css'
 import '../css/componentCss/FormSetup.css'
 import Stack from 'react-bootstrap/Stack';
+import Button from 'react-bootstrap/Button';
 import { Asterisk } from 'lucide-react';
 export default function RegistrationForm() {
   return (
@@ -160,14 +161,56 @@ export default function RegistrationForm() {
               </Stack>
               <Stack direction="horizontal" gap={3} id='regis-stack6'>
                 <div className="p-2">
-                  
+                  <label className='regis-label'>PROFILE PICTURE:</label>
                 </div>
                 <div className="p-2 ms-auto"></div>
                 <div className="p-2"></div>
               </Stack>
+              <Stack direction="horizontal" gap={3} id='regis-stack7'>
+                <div className="p-2">
+                  
+                  <div>
+                  <label className='regis-label'>PASSWORD:</label>
+                    <input
+                      className='input'
+                      type='password'
+                      // name=''
+                      // value={}
+                      // onChange={}
+                    />
+                  </div>
+                  {/* ERROR MESSAGE */}
+                 {/* <div></div> */}
+                </div>
+                <div className="p-2 ms-auto">
+                  {/* SHOW PASSWORD MESSAGE */}
+                </div>
+                <div className="p-2">
+                    <Button
+                  variant='warning'
+                  >
+                    SHOW PASSWORD
+                  </Button>
+                </div>
+              </Stack>
             </div>
             {/* =======END OF INPUT============ */}
-
+        </div>
+        <div id='regis-group4'>
+          <Stack direction="horizontal" gap={3} id='regis-stack8'>
+       {/* REQUIRED INFO */}
+                <div className="p-2" id='requiredInfo'>
+                    <p className='infoMsg' aria-live='polite' aria-hidden='true'>
+                        <small><Asterisk color="#C22419" fontWeight={700} size={12} aria-hidden='true' focusable='false' /> Indicates required information</small>
+                    </p>
+                </div>
+      <div className="p-2 ms-auto">
+        <Button variant='light' id='regis-Btn'>REGISTER</Button>
+      </div>
+      <div className="p-2">
+        <Button>CLEAR FORM</Button>
+      </div>
+    </Stack>
         </div>
     </form>
   )

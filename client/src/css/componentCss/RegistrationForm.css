@@ -126,3 +126,15 @@ INPUT = LAYBELS
     width: 200px;
     height: 40px;
 }
+#regis-group4{
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+#regis-stack8{
+    width: 90%;
+     margin: 0px;
+    padding: 0px;
+}
