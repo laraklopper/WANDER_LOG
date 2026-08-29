@@ -5,11 +5,12 @@ import Stack from 'react-bootstrap/Stack';
 import { Asterisk } from 'lucide-react';
 export default function RegistrationForm() {
   return (
-    <form id='registration-form'>
+    <form id='registration-form' method='POST'>
         <p className='visually-hidden' id='formTitle'>REGISTRATION FORM</p>
         <div id='formHeadingBlock'>
             <h3 id='formHeading'>SIGN UP</h3>
         </div>
+        {/* =============INPUT================== */}
         <div id='regis-input-div'>
             <div id='regis-group1'>
             {/* STACK1 */}
@@ -51,8 +52,6 @@ export default function RegistrationForm() {
                     className='input'
                     id='regisLastName'
                     placeholder='LAST NAME'
-
-
                     />
                     <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
             </div>
@@ -96,7 +95,7 @@ export default function RegistrationForm() {
     </Stack>
             </div>
             <div id='regis-group2'>
-            <Stack gap={3}>
+            <Stack gap={3} id='regis-stack4'>
       <div className="p-2">
         <h5 className='formSectionHeading'>ADDRESS</h5>
       </div>
@@ -111,7 +110,6 @@ export default function RegistrationForm() {
              <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
         </div>
          <div className='input-div'>
-            
             <textarea
                 rows={3}
                 placeholder='ADDITIONAL ADDRESS DETAILS'
@@ -119,7 +117,6 @@ export default function RegistrationForm() {
              <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
         </div>
       </div>
-      
       </div>
       <div className="p-2" id='regis-address-block2'>
         <div className='address-input-div'>
@@ -147,6 +144,20 @@ export default function RegistrationForm() {
     </Stack>
 
             </div>
+            {/* GROUP 3 */}
+            <div id='regis-group3'>
+               <Stack direction="horizontal" gap={3} id='regis-stack5'>
+                <div className="p-2"></div>
+                <div className="p-2 ms-auto"></div>
+                <div className="p-2"></div>
+              </Stack>
+              <Stack direction="horizontal" gap={3} id='regis-stack6'>
+                <div className="p-2"></div>
+                <div className="p-2 ms-auto"></div>
+                <div className="p-2"></div>
+              </Stack>
+            </div>
+            {/* =======END OF INPUT============ */}
 
         </div>
     </form>

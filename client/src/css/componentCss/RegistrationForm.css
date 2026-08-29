@@ -36,6 +36,7 @@ LAYOUT
     width: 100%;
     margin: 0px;
     padding: 5px;
+    border: solid 1px;
 }
 
 /* BOOTSTRAP */
@@ -44,6 +45,7 @@ LAYOUT
     width: 100%;
     margin: 0px;
     padding: 0px;
+    
 }
 
 #regis-fullName-input-block{
@@ -73,6 +75,7 @@ LAYOUT
     width: 100%;
     margin: 0px;
     padding: 5px;
+    border: solid 1px;
 }
 .address-input-div{
     display: flex;
@@ -96,6 +99,7 @@ LAYOUT
     width: 100%;
     margin: 0px;
     padding: 5px;
+    border: solid 1px;
 }
 /* =====================
 INPUT = LAYBELS
