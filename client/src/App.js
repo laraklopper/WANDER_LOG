@@ -95,7 +95,13 @@ export default function App() {
         ):(
           <>
             <Route exact path='/' element={
-              <Login/>
+              <Login
+                userData={userData}
+                setUserData={setUserData}
+                setError={setError}
+                loggedIn={loggedIn}
+                setLoggedIn={setLoggedIn}
+              />
             }/>
             <Route path='/reg' element={
               <Register/>
