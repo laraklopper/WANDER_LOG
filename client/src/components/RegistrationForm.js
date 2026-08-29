@@ -147,12 +147,21 @@ export default function RegistrationForm() {
             {/* GROUP 3 */}
             <div id='regis-group3'>
                <Stack direction="horizontal" gap={3} id='regis-stack5'>
-                <div className="p-2"></div>
+                <div className="p-2">
+                  <div>
+                    <label className='regis-label'>REGISTER AS ADMIN:</label>
+                    <input
+                      type='checkbox'
+                    />
+                  </div>
+                </div>
                 <div className="p-2 ms-auto"></div>
                 <div className="p-2"></div>
               </Stack>
               <Stack direction="horizontal" gap={3} id='regis-stack6'>
-                <div className="p-2"></div>
+                <div className="p-2">
+                  
+                </div>
                 <div className="p-2 ms-auto"></div>
                 <div className="p-2"></div>
               </Stack>
