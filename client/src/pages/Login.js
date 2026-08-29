@@ -1,5 +1,6 @@
 import React from 'react'
 import '../css/pagesCss/PageSetup.css'
+import '../css/pagesCss/LoggedOut.css'
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import MainHeader from '../components/MainHeader'
@@ -17,20 +18,20 @@ export default function Login(
     <div id='pageContainer'>
       <MainHeader mainHeading={'LOGIN'}/>
       <section id='loginSection'>
-        <div id='login-form-panal'>
+     
   <Row id='login-row'>
-        <Col/>
-        <Col xs={6}>
-          <div>
+        <Col id='login-col1'/>
+        <Col xs={6} id='login-col'>
+          <div id='login-form-panal'>
             <LoginForm
               userData={userData}
               setUserData={setUserData}
             />
           </div>
         </Col>
-        <Col/>
+        <Col id='login-col2'/>
       </Row>
-        </div>
+       
        
       </section>
     </div>

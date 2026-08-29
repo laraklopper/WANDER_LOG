@@ -116,14 +116,14 @@ export default function LoginForm(
     </Stack>
     {/* PASSWORD */}
      <Stack gap={3} id='login-stack2'>
-      <div className="p-2">
+      <div className="p-2" id='login-pswd-block1'>
         <label className='login-label'>PASSWORD:</label>
         <input
             className='input'
             required
             type={showPswd ? 'text': 'password'}
             autoComplete='password'
-            placeholder='password'
+            placeholder='PASSWORD'
             name='password'
             value={userData.password}
             // EVENT HANDLERS
@@ -146,7 +146,7 @@ export default function LoginForm(
             inputMode="text"
         />
       </div>
-      <div className="p-2">
+      <div className="p-2" id='login-pswd-block2'>
         <Button 
         variant='warning' 
         type='button'
@@ -161,10 +161,10 @@ export default function LoginForm(
         >
             {showPswd ? <>
                 Hide Password
-                <EyeOff size={20}/>
+                <EyeOff size={20} fontWeight={700} aria-hidden='true' focusable='false'/>
                 </> : <>
                 Show Password
-                <Eye size={20}/>
+                <Eye size={20} fontWeight={700} aria-hidden='true' focusable='false'/>
                 </>}
         </Button>
       </div>
@@ -183,6 +183,15 @@ export default function LoginForm(
             </div>
         )}
     </Stack>  
+        </div>
+        <div id='login-btn-block'>
+            <Button
+                variant='light'
+                id='loginBtn'
+                type='submit'
+                >
+                    LOGIN
+                </Button>
         </div>
     </form>
   )

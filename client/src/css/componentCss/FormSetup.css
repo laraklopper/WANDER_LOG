@@ -49,3 +49,22 @@
     padding: 0px;
 }
 /* BUTTON */
+#showPswdBtn{
+  display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0px;
+    padding: 0px;
+    width: 180px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    color: #000;
+    border: solid 2px #323A42;
+    text-transform: uppercase;
+    gap: 5px;
+}
+#showPswdBtn:hover{
+  color: #E8F0F6;
+    background-color: #323A42;
+}

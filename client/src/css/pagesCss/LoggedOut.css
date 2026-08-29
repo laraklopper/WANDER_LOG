@@ -1,3 +1,36 @@
+#loginSection{
+     background-color: azure;
+    width: 100%;
+    margin: 10px 0px;
+    padding: 10px 0px;
+    display: flex;
+    justify-content: center;
+}
+#login-form-panal{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #9E9E9E;
+    margin: 0px;
+    padding: 10px;
+    width: 100%;
+}
+#login-row{
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+}
+#login-col{
+    display: flex;
+    margin: 0px;
+    padding: 0px;
+    justify-content: center;
+}
+#login-col1,
+#login-col2{
+    margin: 0px;
+    padding: 0px;
+}
 #regis-section1{
     background-color: azure;
     width: 100%;
