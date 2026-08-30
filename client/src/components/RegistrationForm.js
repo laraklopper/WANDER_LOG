@@ -31,8 +31,8 @@ export default function RegistrationForm({
                 placeholder='USERNAME'
                 required
                 type='text'
-                // name=''
-                // value={}
+                name='username'
+                value={newUserData.usename}
                 // onChange={}
             />
             <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
@@ -48,6 +48,8 @@ export default function RegistrationForm({
                     className='input'
                     id='regisFirstName'
                     placeholder='FIRST NAME'
+                    name='fullName.firstName'
+                    
                 />
 <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
             </div>
