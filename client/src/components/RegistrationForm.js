@@ -4,7 +4,10 @@ import '../css/componentCss/FormSetup.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
 import { Asterisk } from 'lucide-react';
-export default function RegistrationForm() {
+export default function RegistrationForm({
+  newUserData,
+  setNewUserData
+}) {
   const [passwordMsg, setPasswordMsg] = useState(false)
   return (
     <form id='registration-form' method='POST'>
