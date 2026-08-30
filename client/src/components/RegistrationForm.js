@@ -1,10 +1,11 @@
-import React from 'react'
+import React, { useState } from 'react'
 import '../css/componentCss/RegistrationForm.css'
 import '../css/componentCss/FormSetup.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
 import { Asterisk } from 'lucide-react';
 export default function RegistrationForm() {
+  const [passwordMsg, setPasswordMsg] = useState(false)
   return (
     <form id='registration-form' method='POST'>
         <p className='visually-hidden' id='formTitle'>REGISTRATION FORM</p>
@@ -169,15 +170,26 @@ export default function RegistrationForm() {
               <Stack direction="horizontal" gap={3} id='regis-stack7'>
                 <div className="p-2">
                   
-                  <div>
+                  <div className='input-group'>
                   <label className='regis-label'>PASSWORD:</label>
+                  <div className='input-div'>
                     <input
                       className='input'
                       type='password'
+                      placeholder='PASSWORD'
                       // name=''
                       // value={}
                       // onChange={}
+                      onFocus={() => setPasswordMsg(true)}
+                      onBlur={() => setPasswordMsg(false)}
                     />
+                  </div>
+                    
+                    {passwordMsg && (
+                      <span>
+                        <p>WE WILL NEVER SHARE YOUR PASSWORD</p>
+                      </span>
+                    )}
                   </div>
                   {/* ERROR MESSAGE */}
                  {/* <div></div> */}
