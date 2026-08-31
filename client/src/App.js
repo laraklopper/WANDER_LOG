@@ -139,7 +139,6 @@ export default function App() {
               </span>
               }
             </div>
-
           </Col>
           <Col xs={0} md id='errorCol2'/>
         </Row>
@@ -148,32 +147,32 @@ export default function App() {
           <>
             <Route exact path='/' element={
               <ProtectedUserRoute currentUser={currentUser}>
-                <Dashboard currentUser={currentUser}/>
+                <Dashboard currentUser={currentUser} logout={logout}/>
               </ProtectedUserRoute>
             }/>
             <Route path='/travelLog' element={
               <ProtectedUserRoute currentUser={currentUser}>
-                <TravelLog currentUser={currentUser}/>
+                <TravelLog currentUser={currentUser} logout={logout}/>
               </ProtectedUserRoute>
             }/>
             <Route path='/journal' element={
               <ProtectedUserRoute currentUser={currentUser}>
-                <Journal currentUser={currentUser}/>
+                <Journal currentUser={currentUser} logout={logout}/>
               </ProtectedUserRoute>
             }/>
             <Route path='/budget' element={
               <ProtectedUserRoute currentUser={currentUser}>
-                <Budget currentUser={currentUser}/>
+                <Budget currentUser={currentUser} logout={logout}/>
               </ProtectedUserRoute>
             }/>
             <Route path='/profile' element={
               <ProtectedUserRoute currentUser={currentUser}>
-                <Profile currentUser={currentUser}/>
+                <Profile currentUser={currentUser} logout={logout}/>
               </ProtectedUserRoute>
             }/>
             <Route path='/users' element={
               <ProtectedAdminRoute currentUser={currentUser}>
-                <Users currentUser={currentUser}/>
+                <Users currentUser={currentUser} logout={logout}/>
               </ProtectedAdminRoute>
             }/>
           </>
