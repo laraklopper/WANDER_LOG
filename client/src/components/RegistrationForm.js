@@ -176,6 +176,8 @@ export default function RegistrationForm({
              <label className='regis-label'>CITY/TOWN:</label>
              <input
                 className='input'
+                required
+                placeholder='CITY/TOWN'
                 name='address.city'
                 value={newUserData.address.city}
              />
@@ -201,7 +203,7 @@ export default function RegistrationForm({
       </div>
     </Stack>
             </div>
-            {/* GROUP 3 */}
+            {/* GROUP 3: Admin, Profile Picture, password */}
             <div id='regis-group3'>
             {/* STACK 5 */}
                <Stack direction="horizontal" gap={3} id='regis-stack5'>
