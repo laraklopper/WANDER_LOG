@@ -1,10 +1,12 @@
 import React from 'react'
 import '../css/pagesCss/PageSetup.css'
 import Header from '../components/Header'
-export default function Budget({currentUser}) {
+import Footer from '../components/Footer'
+export default function Budget({currentUser, logout}) {
   return (
     <div>
       <Header currentUser={currentUser} heading={'BUDGET'}/>
+      <Footer logout={logout}/>
     </div>
   )
 }
