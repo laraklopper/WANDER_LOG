@@ -5,7 +5,8 @@ require('dotenv').config()
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
-const User = require('../models/userSchema')
+const User = require('../models/userSchema');
+const { checkPassword } = require('./middleware');
 const router = express.Router()
 
 /* Read once at module load. ensureJwtSecret() has already run in app.js by this
@@ -84,7 +85,7 @@ router.post('/login', loginLimiter, async (req, res) => {
 })
 
 //Route to send a POST request to the register endpoint
-router.post('/register', registerLimiter, async (req, res) => {
+router.post('/register', registerLimiter , checkPassword, async (req, res) => {
     try {
         const {
             username,
@@ -142,8 +143,7 @@ router.post('/register', registerLimiter, async (req, res) => {
             admin,
             password,
             confirmPassword,
-            // Kept null rather than an empty string when the optional field is blank
-            profilePicture: profilePicture || null,
+            profilePicture: profilePicture || null,// Kept null rather than an empty string when the optional field is blank
         });
 
         const savedUser = await newUser.save()

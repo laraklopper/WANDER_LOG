@@ -3,15 +3,15 @@
 file using the dotenv package*/
 require('dotenv').config();
 const express = require('express');
-const User = require('../models/userSchema')
-const { authenticate, requireAdmin } = require('../middleware/auth');
+const User = require('../models/userSchema');
+const { checkJwtToken } = require('./middleware');
 const router = express.Router()
 
 /* Route to GET the currently logged in user.
 This is the endpoint the React app calls after login, and on every reload, to
 turn the stored token back into a user object. authenticate has already loaded
 the account, so no second lookup is needed */
-router.get('/me', authenticate, async (req, res) => {
+router.get('/me', checkJwtToken, async (req, res) => {
     try {
         return res.status(200).json(req.user.toPublicJSON());
     } catch (error) {
@@ -20,10 +20,8 @@ router.get('/me', authenticate, async (req, res) => {
     }
 });
 
-/* Route to GET all users.
-Admin only: the list exposes every account on the system, so it sits behind
-authenticate (valid session) and requireAdmin (elevated role) */
-router.get('/findUsers', authenticate, requireAdmin, async (req, res) => {
+/* Route to GET all users*/
+router.get('/findUsers', checkJwtToken, async (req, res) => {
     try {
         const { username } = req.query;// Extract the username from the query parameters
         // If a username is provided, use it to filter users, otherwise return all users
