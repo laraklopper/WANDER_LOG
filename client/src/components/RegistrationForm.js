@@ -4,7 +4,7 @@ import '../css/componentCss/FormSetup.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
 import { Asterisk, Eye, EyeOff } from 'lucide-react';
-
+import { provinces } from '../data/locations';
 
 export default function RegistrationForm({
   newUserData,
@@ -190,10 +190,14 @@ export default function RegistrationForm({
             className='input'
             required
             name='address.province'
-            value={newUserData.address.province}
+            value={newUserData.address?.province || ''}
+            onChange={handleInputChange}
             >
-                <option>SELECT</option>
+                <option value=''>SELECT</option>
                 {/* MAP ALL PROVINCES WITH SELECT AS THE PLACEHOLDER */}
+                {provinces.map(p => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
             </select>
 <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
                 
