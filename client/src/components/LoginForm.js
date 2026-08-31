@@ -7,7 +7,8 @@ import { Eye, EyeOff, Bug} from 'lucide-react';
 export default function LoginForm(
     {
         userData,
-        setUserData
+        setUserData, 
+        submitLogin
     }
 ) {
     const [showPswd, setShowpswd] = useState(false)
@@ -33,6 +34,10 @@ export default function LoginForm(
     const showPasswordError = touched.password && passwordEmpty;// Show password error only after field was touched
 
     //============================================
+    const handleLogin = (e) => {
+        e.preventDefault();
+        submitLogin();
+    }
 
     //Function to handle Input change in the Login Form
     const handleLoginInput =(event) =>{
@@ -58,7 +63,7 @@ export default function LoginForm(
   return (
     <form id='login-form' 
     method='POST'
-    // onSubmit={}
+    onSubmit={handleLogin}
     aria-labelledby={formTitleId} >
     <p className='visually-hidden' id={formTitleId}>LOGIN FORM</p>
         <div id='formHeadingBlock'>
