@@ -46,8 +46,59 @@
   font-size: 16px;
   font-weight: 700;
 }
+/* Fields flagged by the touched based validation */
+.input[aria-invalid="true"],
+.address-text-input[aria-invalid="true"]{
+  border-color: #C22419;
+}
 
 /* TEXT */
+/* Hints shown next to optional or constrained fields */
+.infoText{
+  display: block;
+  font-family: "Open Sans", sans-serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #323A42;
+  margin: 0px;
+  padding: 0px;
+}
+.infoMsg{
+  font-family: "Open Sans", sans-serif;
+  margin: 0px;
+  padding: 0px;
+}
+/* MESSAGES */
+.formErrorBlock{
+  display: flex;
+  justify-content: center;
+  width: 90%;
+  margin: 0px;
+  padding: 5px 0px;
+}
+.formErrorMessage{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  margin: 0px;
+  padding: 0px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: "Open Sans", sans-serif;
+  letter-spacing: 1px;
+  text-align: center;
+  color: #C22419;
+}
+.formHelpMessage{
+  margin: 0px;
+  padding: 0px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: "Open Sans", sans-serif;
+  letter-spacing: 1px;
+  color: #323A42;
+}
 #requiredInfo{
     display: flex;
     gap: 10px;
