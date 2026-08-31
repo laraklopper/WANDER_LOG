@@ -4,15 +4,13 @@ import '../css/pagesCss/LoggedOut.css'
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import MainHeader from '../components/MainHeader'
-import RegistrationForm from '../components/RegistrationForm'; 
+import RegistrationForm from '../components/RegistrationForm';
 import { useNavigate } from 'react-router-dom';
+import { ENDPOINTS, errorMessage, parseJson } from '../api/config';
 
-
-// Empty form shape, shared with the page that owns the sta
-
-export default function Register({setError}) {
-  const [newUserData, setNewUserData] = useState({
-     username: '',
+// Empty form shape, used for the initial state and by the clear button
+const EMPTY_FORM = {
+  username: '',
   fullName: {
     firstName: '',
     lastName: '',
@@ -29,14 +27,27 @@ export default function Register({setError}) {
   profilePicture: '',
   password: '',
   confirmPassword: ''
-  })
+};
+
+export default function Register({setError}) {
+  const [newUserData, setNewUserData] = useState(EMPTY_FORM)
+  // Blocks a second submit while the first request is in flight
+  const [submitting, setSubmitting] = useState(false)
+  /* Field keyed messages returned by the server when Mongoose validation fails,
+  for example { 'address.province': 'X is not a valid South African province' }.
+  Passed to the form so each message can be shown against its own input */
+  const [fieldErrors, setFieldErrors] = useState({})
 
   const navigate = useNavigate()
   const addUser = useCallback(async () => {
-    try {
-      setError?.(null)
+    if (submitting) return;
 
-      const response = await fetch('http://localhost:3001/auth/register', {
+    try {
+      setSubmitting(true)
+      setError?.(null)
+      setFieldErrors({})
+
+      const response = await fetch(ENDPOINTS.register, {
         method: 'POST',
         mode: 'cors',
         headers: {
@@ -49,7 +60,9 @@ export default function Register({setError}) {
           dateOfBirth: newUserData.dateOfBirth,
           address: newUserData.address,
           admin : newUserData.admin,
-          profilePicture: newUserData.profilePicture,
+          /* Optional field. Sent as null when blank, because the schema types it
+          as a String defaulting to null and '' would be stored as an empty URL */
+          profilePicture: newUserData.profilePicture || null,
           password: newUserData.password,
           // Sent so the schema can re-check the match on the server
           confirmPassword: newUserData.confirmPassword
@@ -57,23 +70,33 @@ export default function Register({setError}) {
         })
       })
 
-       const data = await response.json().catch(() => ({}));
+       const data = await parseJson(response);
 
        if (response.ok) {
         setError?.(null)
-        alert('Registration Successful')
+        setFieldErrors({})
+        /* The account is created and the API already returned a token, but the
+        user is sent to the login page to sign in with the details they chose,
+        which confirms the credentials work. The form is cleared first so the
+        password is not left sitting in React state */
+        setNewUserData(EMPTY_FORM)
+        alert('Registration successful. Please log in with your new details.')
         navigate('/')
        } else {
-          const message = data.message || 'Registration failed.';
-           setError?.(message);
-      console.error(`Registration failed: ${message}`);
+          const message = errorMessage(response, data, 'Registration failed.');
+          // Present on a 400 from Mongoose validation, absent on a 409 or a 500
+          if (data.errors) setFieldErrors(data.errors);
+          setError?.(message);
+          console.error(`[ERROR: Register.js] Registration failed with status ${response.status}: ${message}`);
        }
     } catch (error) {
-    alert('Registration failed. Please try again.');
-    setError?.(`Registration failed: ${error.message}`);
-    console.error(`Registration failed: ${error.message}`);
+      // Only a network level failure reaches here, a 4xx or 5xx is handled above
+      setError?.('Could not reach the server. Please check your connection and try again.');
+      console.error(`[ERROR: Register.js] Registration request failed: ${error.message}`);
+    } finally {
+      setSubmitting(false)
     }
-  },[setError, navigate, newUserData])
+  },[submitting, setError, navigate, newUserData])
   return (
     <div id='pageContainer'>
       <MainHeader mainHeading={'REGISTER'}/>
@@ -86,7 +109,10 @@ export default function Register({setError}) {
               newUserData={newUserData}
               setNewUserData={setNewUserData}
               addUser={addUser}
-             /> 
+              submitting={submitting}
+              fieldErrors={fieldErrors}
+              emptyForm={EMPTY_FORM}
+             />
             </div>
             
           </div>

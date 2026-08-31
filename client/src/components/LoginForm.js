@@ -7,8 +7,10 @@ import { Eye, EyeOff, Bug} from 'lucide-react';
 export default function LoginForm(
     {
         userData,
-        setUserData, 
-        submitLogin
+        setUserData,
+        submitLogin,
+        // True while the login request is in flight, set by the Login page
+        submitting = false
     }
 ) {
     const [showPswd, setShowpswd] = useState(false)
@@ -25,7 +27,7 @@ export default function LoginForm(
         [userData.username]
     )
     const passwordEmpty = useMemo(
-        () => !String (userData.password || '').trim(), 
+        () => !String (userData.password || '').trim(),
         [userData.password]
     )
 
@@ -36,6 +38,16 @@ export default function LoginForm(
     //============================================
     const handleLogin = (e) => {
         e.preventDefault();
+
+        /* The required attribute on both inputs normally stops an empty submit
+        before this runs, so this is the fallback for a browser that skips native
+        validation. Marking the fields touched reveals the error messages */
+        if (usernameEmpty || passwordEmpty) {
+            setTouched({ username: true, password: true })
+            console.warn('[WARN: LoginForm.js]: Username and password are required')
+            return
+        }
+
         submitLogin();
     }
 
@@ -59,6 +71,11 @@ export default function LoginForm(
     // error IDs (for aria-describedby)
     const usernameErrorId = 'loginUsernameError';
     const passwordErrorId = 'loginPasswordError';
+
+    /* Joins the IDs that are currently rendered into a single aria-describedby.
+    The separator must be a space: several IDs run together as one string would
+    not match any element, so the screen reader would announce nothing */
+    const describedBy = (...ids) => ids.filter(Boolean).join(' ') || undefined;
     //========================================================
   return (
     <form id='login-form' 
@@ -83,7 +100,8 @@ export default function LoginForm(
             autoComplete='username'
             
             name='username'
-            value={userData.username}
+            value={userData.username || ''}
+            disabled={submitting}
             // EVENT HANDlERS:
             onChange={handleLoginInput}
             onFocus={() => setUserNameMsg(true)}
@@ -94,14 +112,13 @@ export default function LoginForm(
             // ARIA ATTRIBUTES:
             aria-label='username'
             aria-required='true'
-            aria-invalid={usernameEmpty ? 'true': 'false'}
-            aria-describedby={[
-                userNameMsg ? usernameHelpId :null,
-                usernameEmpty ? usernameErrorId: null,
-            ]
-                .filter(Boolean)
-                .join('')
-            }
+            /* Only flagged invalid once the field has been touched, so an
+            untouched empty form is not announced as being in error */
+            aria-invalid={showUsernameError ? 'true': 'false'}
+            aria-describedby={describedBy(
+                userNameMsg && usernameHelpId,
+                showUsernameError && usernameErrorId
+            )}
             inputMode="text"
         />
       </div>
@@ -122,15 +139,20 @@ export default function LoginForm(
     {/* PASSWORD */}
      <Stack gap={3} id='login-stack2'>
       <div className="p-2" id='login-pswd-block1'>
-        <label className='login-label'>PASSWORD:</label>
+        <label className='login-label' htmlFor='loginPassword'>PASSWORD:</label>
         <input
             className='input'
+            id='loginPassword'
             required
             type={showPswd ? 'text': 'password'}
-            autoComplete='password'
+            /* current-password, not password: it tells the browser and password
+            managers to offer the saved password for this site rather than
+            treating the field as a new one */
+            autoComplete='current-password'
             placeholder='PASSWORD'
             name='password'
-            value={userData.password}
+            value={userData.password || ''}
+            disabled={submitting}
             // EVENT HANDLERS
             onChange={handleLoginInput}
             onFocus={() => setShowPswdMsg(true)}
@@ -141,28 +163,27 @@ export default function LoginForm(
             // ARIA ATTRIBUTES:
             aria-label='password'
             aria-required='true'
-            aria-invalid={passwordEmpty ? 'true' : 'false'}
-            aria-describedby={[
-            showPswdMsg ? passwordHelpId : null,
-            passwordEmpty ? passwordErrorId : null,
-            ]
-            .filter(Boolean)
-            .join('')}
+            aria-invalid={showPasswordError ? 'true' : 'false'}
+            aria-describedby={describedBy(
+                showPswdMsg && passwordHelpId,
+                showPasswordError && passwordErrorId
+            )}
             inputMode="text"
         />
       </div>
       <div className="p-2" id='login-pswd-block2'>
-        <Button 
-        variant='warning' 
+        <Button
+        variant='warning'
         type='button'
         id='showPswdBtn'
         onClick={() => setShowpswd(!showPswd)}
         // ARIA ATTRIBUTES:
         aria-label={showPswd ? 'Hide Password': 'Show Password'}
         aria-pressed={showPswd}
-        aria-expanded={showPswd}
+        /* aria-controls points at the password input, which now carries the
+        matching id. aria-expanded is not used: the button toggles the
+        visibility of a value, it does not expand a region */
         aria-controls='loginPassword'
-        aria-describedby={passwordHelpId}
         >
             {showPswd ? <>
                 Hide Password
@@ -194,8 +215,11 @@ export default function LoginForm(
                 variant='light'
                 id='loginBtn'
                 type='submit'
+                // Disabled while the request runs, so it cannot be submitted twice
+                disabled={submitting}
+                aria-busy={submitting}
                 >
-                    LOGIN
+                    {submitting ? 'LOGGING IN...' : 'LOGIN'}
                 </Button>
         </div>
     </form>

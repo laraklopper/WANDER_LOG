@@ -10,10 +10,30 @@ import { provinces } from '../data/locations';
 // rejects the same addresses the API would reject.
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/* The empty form used by the clear button when the page does not supply one.
+Kept in sync with EMPTY_FORM in pages/Register.js, which is passed in as a prop */
+const BLANK_FORM = {
+  username: '',
+  fullName: { firstName: '', lastName: '' },
+  email: '',
+  dateOfBirth: '',
+  address: { line1: '', line2: '', city: '', province: '' },
+  admin: false,
+  profilePicture: '',
+  password: '',
+  confirmPassword: '',
+};
+
 export default function RegistrationForm({
   newUserData,
   setNewUserData,
-  addUser
+  addUser,
+  // True while the registration request is in flight, set by the Register page
+  submitting = false,
+  /* Field keyed messages from the server, for rules the browser cannot check,
+  such as a username already being taken or a province not being recognised */
+  fieldErrors = {},
+  emptyForm = BLANK_FORM
 }) {
   const [showPswd, setShowPswd] = useState(false)
   const [passwordMsg, setPasswordMsg] = useState(false)
@@ -148,6 +168,8 @@ export default function RegistrationForm({
   validation on each input, which blocks submit before this runs. */
   const handleRegistration = (e) => {
     e.preventDefault()
+    // Ignored while a request is already running, so the form cannot double post
+    if (submitting) return
     markAllTouched()
 
     if (dateOfBirthTooYoung) {
@@ -210,21 +232,8 @@ export default function RegistrationForm({
             "Are you sure you want to clear the form?"
         );
         if (!confirmClear) return;
-        setNewUserData({
-            username: '',
-            fullName: { firstName: '', lastName: '' },
-            email: '',
-            dateOfBirth: '',
-            address: {
-              line1: '',
-              line2: '',
-              city : '',
-              province: '' },
-            admin: false,
-            profilePicture: '',
-            password: '',
-            confirmPassword: '',
-        });
+        // Reset to the same empty shape the page initialised the form with
+        setNewUserData(emptyForm);
         setTouched({
             username: false,
             firstName: false,
@@ -262,8 +271,16 @@ export default function RegistrationForm({
     const profilePictureHelpId = 'registrationProfilePictureHelp';// ID used for the optional profile picture hint
     const formErrorId = 'registrationFormError';// ID used for the form level error message
 
+    const serverErrorId = 'registrationServerErrors';// ID used for the block listing the server's field errors
+
     // Joins the IDs that are currently rendered into a single aria-describedby value
     const describedBy = (...ids) => ids.filter(Boolean).join(' ') || undefined;
+
+    /* The server returns its errors keyed by schema path, so a nested field
+    arrives as 'address.province' or 'fullName.firstName'. Listed as entries for
+    rendering, and looked up by path to mark the matching input invalid */
+    const serverErrors = Object.entries(fieldErrors || {});
+    const hasServerError = (path) => Boolean(fieldErrors?.[path]);
 
 //==============JSX RENDERING==================
     return (
@@ -297,8 +314,11 @@ export default function RegistrationForm({
                 onBlur={() => markTouched('username')}
                 // ARIA ATTRIBUTES:
                 aria-required='true'
-                aria-invalid={showUsernameError ? 'true' : 'false'}
-                aria-describedby={describedBy(showUsernameError && usernameErrorId)}
+                aria-invalid={showUsernameError || hasServerError('username') ? 'true' : 'false'}
+                aria-describedby={describedBy(
+                    showUsernameError && usernameErrorId,
+                    hasServerError('username') && serverErrorId
+                )}
             />
             <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
         </div>
@@ -381,10 +401,11 @@ export default function RegistrationForm({
                         onBlur={() => markTouched('email')}
                         // ARIA ATTRIBUTES:
                         aria-required='true'
-                        aria-invalid={showEmailError || showEmailFormatError ? 'true' : 'false'}
+                        aria-invalid={showEmailError || showEmailFormatError || hasServerError('email') ? 'true' : 'false'}
                         aria-describedby={describedBy(
                             showEmailError && emailErrorId,
-                            showEmailFormatError && emailFormatErrorId
+                            showEmailFormatError && emailFormatErrorId,
+                            hasServerError('email') && serverErrorId
                         )}
                     />
  <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
@@ -423,11 +444,12 @@ export default function RegistrationForm({
             onBlur={() => markTouched('dateOfBirth')}
             // ARIA ATTRIBUTES:
             aria-required='true'
-            aria-invalid={showDateOfBirthError || showDateOfBirthAgeError ? 'true' : 'false'}
+            aria-invalid={showDateOfBirthError || showDateOfBirthAgeError || hasServerError('dateOfBirth') ? 'true' : 'false'}
             aria-describedby={describedBy(
                 dateOfBirthAgeHintId,
                 showDateOfBirthError && dateOfBirthErrorId,
-                showDateOfBirthAgeError && dateOfBirthAgeErrorId
+                showDateOfBirthAgeError && dateOfBirthAgeErrorId,
+                hasServerError('dateOfBirth') && serverErrorId
             )}
         />
           <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
@@ -540,8 +562,11 @@ export default function RegistrationForm({
             onBlur={() => markTouched('province')}
             // ARIA ATTRIBUTES:
             aria-required='true'
-            aria-invalid={showProvinceError ? 'true' : 'false'}
-            aria-describedby={describedBy(showProvinceError && provinceErrorId)}
+            aria-invalid={showProvinceError || hasServerError('address.province') ? 'true' : 'false'}
+            aria-describedby={describedBy(
+                showProvinceError && provinceErrorId,
+                hasServerError('address.province') && serverErrorId
+            )}
             >
                 <option value=''>SELECT</option>
                 {/* MAP ALL PROVINCES WITH SELECT AS THE PLACEHOLDER */}
@@ -734,6 +759,19 @@ export default function RegistrationForm({
             </p>
           </div>
         )}
+        {/* SERVER SIDE FIELD ERRORS, returned when the API rejects the submission.
+        These are rules the browser cannot check on its own, such as a username
+        already being taken, so they can only be reported after a round trip */}
+        {serverErrors.length > 0 && (
+          <div id={serverErrorId} className='formErrorBlock' role='alert' aria-live='assertive'>
+            {serverErrors.map(([field, message]) => (
+              <p key={field} className='formErrorMessage'>
+                <Bug size={20} fontWeight={900} aria-hidden='true' focusable='false' />
+                {message}
+              </p>
+            ))}
+          </div>
+        )}
         <div id='regis-group4'>
           <Stack direction="horizontal" gap={3} id='regis-stack8'>
        {/* REQUIRED INFO */}
@@ -747,14 +785,21 @@ export default function RegistrationForm({
           variant='light'
           id='regis-Btn'
           type='submit'
-          aria-describedby={formError ? formErrorId : undefined}
-        >REGISTER</Button>
+          // Disabled while the request runs, so the form cannot be submitted twice
+          disabled={submitting}
+          aria-busy={submitting}
+          aria-describedby={describedBy(
+            formError && formErrorId,
+            serverErrors.length > 0 && serverErrorId
+          )}
+        >{submitting ? 'REGISTERING...' : 'REGISTER'}</Button>
       </div>
       <div className="p-2">
         <Button
         variant='danger'
         id='clearFormBtn'
         type='button'
+        disabled={submitting}
         onClick={handleClear}
         >CLEAR FORM</Button>
       </div>
