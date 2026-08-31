@@ -3,12 +3,42 @@ import '../css/componentCss/RegistrationForm.css'
 import '../css/componentCss/FormSetup.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
-import { Asterisk } from 'lucide-react';
+import { Asterisk, Eye, EyeOff } from 'lucide-react';
+
+
 export default function RegistrationForm({
   newUserData,
   setNewUserData
 }) {
+  const [showPswd, setShowPswd] = useState(false)
   const [passwordMsg, setPasswordMsg] = useState(false)
+
+      const handleInputChange = (event) => {
+      const { name, value, type, checked } = event.target;
+      const val = type === 'checkbox' ? checked : value;
+
+      if (name.startsWith('fullName.')) {
+        const [, field] = name.split('.');
+        setNewUserData((prev) => ({
+          ...prev,
+          contactNumber: { ...prev.contactNumber, [field]: val }
+        }));
+        return;
+      }
+      if (name.startsWith('address.')) {
+        const [, field] = name.split('.');
+        setNewUserData((prev) => ({
+          ...prev,
+          address: { ...prev.address, [field]: val }
+        }));
+        return;
+      }
+      setNewUserData((prev) => ({
+        ...prev,
+        [name]: val,
+      }));
+    };
+
   return (
     <form id='registration-form' method='POST'>
         <p className='visually-hidden' id='formTitle'>REGISTRATION FORM</p>
@@ -33,7 +63,7 @@ export default function RegistrationForm({
                 type='text'
                 name='username'
                 value={newUserData.usename}
-                // onChange={}
+                onChange={handleInputChange}
             />
             <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
         </div>
@@ -49,6 +79,8 @@ export default function RegistrationForm({
                     id='regisFirstName'
                     placeholder='FIRST NAME'
                     name='fullName.firstName'
+                    value={newUserData.fullName.firstName}
+                    onChange={handleInputChange}
                     
                 />
 <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
@@ -59,6 +91,9 @@ export default function RegistrationForm({
                     className='input'
                     id='regisLastName'
                     placeholder='LAST NAME'
+                    name='fullName.lastName'
+                    value={newUserData.fullName.lastName}
+                    onChange={handleInputChange}
                     />
                     <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
             </div>
@@ -113,15 +148,25 @@ export default function RegistrationForm({
             
             <textarea
                 rows={3}
+                className='address-text-input'
+                required
+                placeholder='STREET ADDRESS'
+                name='address.line1'
+                value={newUserData.address.line1}
+                onChange={handleInputChange}
             />
              <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
         </div>
          <div className='input-div'>
             <textarea
                 rows={3}
+                className='address-text-input'
                 placeholder='ADDITIONAL ADDRESS DETAILS'
+                name='address.line2'
+                value={newUserData.address.line2}
+                onChange={handleInputChange}
+                aria-required='false'
             />
-             <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
         </div>
       </div>
       </div>
@@ -131,6 +176,8 @@ export default function RegistrationForm({
              <label className='regis-label'>CITY/TOWN:</label>
              <input
                 className='input'
+                name='address.city'
+                value={newUserData.address.city}
              />
              <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
                 
@@ -139,8 +186,12 @@ export default function RegistrationForm({
             <label className='regis-label'>PROVINCE:</label>
             <select 
             className='input'
+            required
+            name='address.province'
+            value={newUserData.address.province}
             >
                 <option>SELECT</option>
+                {/* MAP ALL PROVINCES WITH SELECT AS THE PLACEHOLDER */}
             </select>
 <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
                 
@@ -149,10 +200,10 @@ export default function RegistrationForm({
 
       </div>
     </Stack>
-
             </div>
             {/* GROUP 3 */}
             <div id='regis-group3'>
+            {/* STACK 5 */}
                <Stack direction="horizontal" gap={3} id='regis-stack5'>
                 <div className="p-2">
                   <div>
@@ -165,48 +216,75 @@ export default function RegistrationForm({
                 <div className="p-2 ms-auto"></div>
                 <div className="p-2"></div>
               </Stack>
+              {/* STACK 6 */}
               <Stack direction="horizontal" gap={3} id='regis-stack6'>
                 <div className="p-2">
+                {/* optional */}
                   <label className='regis-label'>PROFILE PICTURE:</label>
+                  <input
+                    className='input'
+                    // name=''
+                    // value={}
+                    // onChange={}
+                  />
                 </div>
                 <div className="p-2 ms-auto"></div>
                 <div className="p-2"></div>
               </Stack>
+              {/* STACK 7 */}
               <Stack direction="horizontal" gap={3} id='regis-stack7'>
+              {/* PASSWORD */}
                 <div className="p-2">
-                  
                   <div className='input-group'>
-                  <label className='regis-label'>PASSWORD:</label>
+                  <label className='regis-label' htmlFor='regisPasswordInput'>PASSWORD:</label>
                   <div className='input-div'>
                     <input
                       className='input'
-                      type='password'
+                      id='regisPasswordInput'
+                      type={showPswd ? 'text': 'password'}
+                      required
                       placeholder='PASSWORD'
-                      // name=''
-                      // value={}
-                      // onChange={}
+                      name='password'
+                      value={newUserData.password}
+                      onChange={handleInputChange}
                       onFocus={() => setPasswordMsg(true)}
                       onBlur={() => setPasswordMsg(false)}
                     />
+                    <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
                   </div>
-                    
-                    {passwordMsg && (
-                      <span>
-                        <p>WE WILL NEVER SHARE YOUR PASSWORD</p>
-                      </span>
-                    )}
+                  
                   </div>
                   {/* ERROR MESSAGE */}
                  {/* <div></div> */}
                 </div>
-                <div className="p-2 ms-auto">
-                  {/* SHOW PASSWORD MESSAGE */}
-                </div>
-                <div className="p-2">
+                {/* ----PASSWORD MESSAGE---------- */}
+                    {passwordMsg && (
+                        <div className=" ms-auto">            
+                        <p>WE WILL NEVER SHARE YOUR PASSWORD</p>
+                      </div>
+                    )}
+              
+                <div className="p-2 ms-auto" >
                     <Button
-                  variant='warning'
+                      variant='warning'
+                      id='showPasswordBtn'
+                      type='button'
+                      onClick={() => setShowPswd ((s) => !s)}
+                      aria-label={showPswd ? 'Hide Password': 'Show Password'}
+                      aria-pressed={showPswd}
+                      aria-expanded={showPswd}
                   >
-                    SHOW PASSWORD
+                    {showPswd ? (
+                      <>
+                      Hide Password
+                        <EyeOff fontWeight={700} aria-hidden='true' focusable='false'/>
+                      </>
+                    ) : (
+                      <>
+                      Show Password
+                        <Eye fontWeight={700} aria-hidden='true' focusable='false'/>
+                      </>
+                    ) }
                   </Button>
                 </div>
               </Stack>
@@ -225,7 +303,10 @@ export default function RegistrationForm({
         <Button variant='light' id='regis-Btn'>REGISTER</Button>
       </div>
       <div className="p-2">
-        <Button>CLEAR FORM</Button>
+        <Button
+        variant='danger'
+        id='clearFormBtn'
+        >CLEAR FORM</Button>
       </div>
     </Stack>
         </div>

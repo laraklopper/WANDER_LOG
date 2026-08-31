@@ -138,3 +138,25 @@ INPUT = LAYBELS
      margin: 0px;
     padding: 0px;
 }
+/* INPUT */
+.address-text-input{
+    width: 250px;
+    border: solid 2px;
+    border-radius: 5px;
+    overflow-y: scroll;
+    margin: 0px;
+    padding: 5px;
+
+}
+#regis-Btn{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 180px;
+    height: 40px;
+    font-weight: 700;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    color: #000;
+    border: solid 2px #323A42;
+}
