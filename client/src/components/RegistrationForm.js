@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import '../css/componentCss/RegistrationForm.css'
 import '../css/componentCss/FormSetup.css'
 import Stack from 'react-bootstrap/Stack';
@@ -6,34 +6,98 @@ import Button from 'react-bootstrap/Button';
 import { Asterisk, Eye, EyeOff } from 'lucide-react';
 import { provinces } from '../data/locations';
 
-// Empty form shape, shared with the page that owns the state
-export const emptyNewUserData = {
-  username: '',
-  fullName: {
-    firstName: '',
-    lastName: '',
-  },
-  email: '',
-  dateOfBirth: '',
-  address: {
-    line1: '',
-    line2: '',
-    city: '',
-    province: '',
-  },
-  admin: false,
-  profilePicture: '',
-  password: '',
-};
+
 
 export default function RegistrationForm({
   newUserData,
   setNewUserData,
-  onSubmit
+  addUser
 }) {
   const [showPswd, setShowPswd] = useState(false)
   const [passwordMsg, setPasswordMsg] = useState(false)
+    const [touched, setTouched] = useState({
+        username: false,     // Tracks if username field was touched
+        firstName: false,    // Tracks if first name field was touched
+        lastName: false,     // Tracks if last name field was touched
+        email: false,        // Tracks if email field was touched
+        dateOfBirth: false,  // Tracks if date of birth field was touched
+        line1: false,     // Tracks if addressLine1 was touched
+        city: false,// Tracks if address.city was touched
+        province: false,// Tracks if address.province was touched
+        password: false,     // Tracks if password field was touched
+    })
 
+   //========== EMPTY FIELD VALIDATION ====================
+    // Checks if username is empty
+    const usernameEmpty = useMemo(
+        () => !String(newUserData.username || '').trim(), [newUserData.username]
+    )
+    // Checks if email is empty
+    const emailEmpty = useMemo(
+        () => !String(newUserData.email || '').trim(),[newUserData.email]
+    );
+    // Checks if first name is empty
+    const firstNameEmpty = useMemo(
+        () => !String(newUserData.fullName?.firstName || '').trim(),[newUserData.fullName?.firstName]
+    );
+    // Checks if last name is empty
+    const lastNameEmpty = useMemo(
+        () => !String(newUserData.fullName?.lastName || '').trim(), [newUserData.fullName?.lastName]
+    );
+     // Checks if date of birth is empty
+    const dateOfBirthEmpty = useMemo(
+        () => !String(newUserData.dateOfBirth || '').trim(),[newUserData.dateOfBirth]
+    );
+    const line1Empty = useMemo(
+       () => !String(newUserData.address?.line1 || '').trim(), [newUserData.address?.line1]
+    )
+    const cityEmpty = useMemo(
+       () => !String(newUserData.address?.city || '').trim(), [newUserData.address?.city]
+    )
+
+    const provinceEmpty = useMemo(
+      () => !String(newUserData.address?.province || '').trim(), [newUserData.address?.province]
+    )
+   
+    const passwordEmpty = useMemo(
+      () => !String(newUserData.password || '').trim(),[newUserData.password]
+    )
+
+       //========== AGE VALIDATION ====================
+       const minAge = newUserData.admin === true ? 21 : 18;
+    // Checks whether the selected date of birth makes the user too young
+    const dateOfBirthTooYoung = useMemo(() => {
+        if (!newUserData.dateOfBirth) return false;// If no date of birth was selected, do not check age yet
+        const dob = new Date(newUserData.dateOfBirth);// Convert the selected date of birth into a Date object
+        const now = new Date();// Get the current date
+        let age = now.getFullYear() - dob.getFullYear();// Calculate age based on year difference
+        const m = now.getMonth() - dob.getMonth();// Calculate month difference
+        // If the user's birthday has not happened yet this year,
+        if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) {
+            age--;// subtract 1 from the calculated age
+        }
+        return age < minAge;// Return true if the user is younger than the required minimum age
+    }, [newUserData.dateOfBirth, minAge]);
+    const showUsernameError = touched.username && usernameEmpty;
+    const showFirstNameError = touched.firstName && firstNameEmpty;
+    const showLastNameError = touched.lastName && lastNameEmpty;
+    const showEmailError = touched.email && emailEmpty;
+    const showDateOfBirthError = touched.dateOfBirth && dateOfBirthEmpty;
+     const showDateOfBirthAgeError =
+        touched.dateOfBirth && !dateOfBirthEmpty && dateOfBirthTooYoung;
+    const showLine1Error = touched.line1 && line1Empty;
+    const showCityError = touched.city && cityEmpty;
+    const showProvinceError = touched.province && provinceEmpty
+    const showPasswordError = touched.password && passwordEmpty;
+    
+
+    
+ 
+  const handleRegistration = (e) => {
+    e.preventDefault()
+    console.log('[INFO: RegistrationForm.js]: Registering new user');
+    addUser?.()
+  }
   // Date of birth can never be in the future
   const today = new Date().toISOString().split('T')[0]
 
@@ -63,17 +127,53 @@ export default function RegistrationForm({
     }));
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    if (onSubmit) onSubmit(newUserData);
-  };
 
   const handleClear = () => {
-    setNewUserData(emptyNewUserData);
-  };
+    const confirmClear = window.confirm(// Ask the user to confirm before clearing all input fields
+            "Are you sure you want to clear the form?"
+        );
+        if (!confirmClear) return;
+        setNewUserData({
+            username: '',
+            fullName: { firstName: '', lastName: '' },
+            email: '',
+            dateOfBirth: '',
+            address: { 
+              line1: '', 
+              line2: '', 
+              city : '', 
+              province: '' },
+            admin: false,
+            profilePicture: '',
+            password: '',
+        });
+        setTouched({
+            username: false,
+            firstName: false,
+            lastName: false,
+            email: false,
+            dateOfBirth: false,
+            line1: false,
+            city: false,
+            province: false,
+            password: false,
+        });
+  }
 
-  return (
-    <form id='registration-form' onSubmit={handleSubmit} noValidate={false}>
+   // ========= IDs USED BY aria-labelledby / aria-describedby =========
+    const usernameErrorId = 'registrationUsernameError';// ID used for username error message
+    const emailErrorId = 'registrationEmailError';// ID used for email error message
+    const passwordHelpId = 'registrationPasswordHelp';// ID used for password help text
+    const passwordErrorId = 'registrationPasswordError';// ID used for password error message
+    const firstNameErrorId = 'registrationFirstNameError';// ID used for first name error message
+    const lastNameErrorId = 'registrationLastNameError';// ID used for last name error message
+    const dateOfBirthErrorId = 'registrationDateOfBirthError';// ID used for date of birth required error
+    const dateOfBirthAgeHintId = 'registrationDateOfBirthAgeHint';// ID used for date of birth age hint
+    const dateOfBirthAgeErrorId = 'registrationDateOfBirthAgeError';// ID used for date of birth age error
+    const showLine1ErrorId = 'registrationAddressLine1Error';
+
+    return (
+    <form id='registration-form' method='POST' onSubmit={handleRegistration} aria-labelledby='formTitle'>
         <p className='visually-hidden' id='formTitle'>REGISTRATION FORM</p>
         <div id='formHeadingBlock'>
             <h3 id='formHeading'>SIGN UP</h3>
@@ -102,6 +202,9 @@ export default function RegistrationForm({
                 onChange={handleInputChange}
             />
             <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
+            {showUsernameError && (
+              <p id={usernameErrorId}>Username is required</p>
+            )}
         </div>
       </div>
       <div id='regis-fullname-label-block'>
@@ -142,6 +245,13 @@ export default function RegistrationForm({
                     />
                     <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
             </div>
+             {/* ERROR MESSAGES */}
+                  {showFirstNameError && (
+                      <p id={firstNameErrorId} className="visually-hidden" role="alert">First name is required.</p>
+                  )}
+                  {showLastNameError && (
+                      <p id={lastNameErrorId} className="visually-hidden" role="alert">Last name is required.</p>
+                  )}
             </div>
     </Stack>
   <Stack direction="horizontal" gap={3} id='regis-stack2'>
@@ -160,6 +270,13 @@ export default function RegistrationForm({
                         onChange={handleInputChange}
                     />
  <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
+  {/* ERROR MESSAGE */}
+                                {showEmailError && (
+                                    <p id={emailErrorId} className="visually-hidden" role="alert">
+                                        Email is required.
+                                    </p>
+                                )}
+                            
             </div>
       </div>
       <div className="p-2 ms-auto"></div>
@@ -185,7 +302,22 @@ export default function RegistrationForm({
 
       </div>
       <div className="p-2  ms-auto"></div>
-      <div className="p-2"></div>
+      <div className="p-2">
+          <small id={dateOfBirthAgeHintId} className='infoText'>
+                                    Must be at least {minAge} years old
+                                </small>
+                                {/* ERROR MESSAGES */}
+                                {showDateOfBirthError && (
+                                    <p id={dateOfBirthErrorId} className="visually-hidden" role="alert">
+                                        Date of birth is required.
+                                    </p>
+                                )}
+                                {showDateOfBirthAgeError && (
+                                    <p id={dateOfBirthAgeErrorId} className="visually-hidden" role="alert">
+                                        You must be at least {minAge} years old to register{newUserData.admin === true ? ' as an admin' : ''}.
+                                    </p>
+                                )}
+      </div>
     </Stack>
             </div>
             <div id='regis-group2'>
@@ -268,6 +400,11 @@ export default function RegistrationForm({
 <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
 
             </div>
+            {showLine1Error && (
+              <p id={showLine1ErrorId} className='visually-hidden'></p>
+            )}
+            {/* Address City error */}
+            {/* address province error */}
         </div>
 
       </div>
@@ -332,14 +469,20 @@ export default function RegistrationForm({
                       onChange={handleInputChange}
                       onFocus={() => setPasswordMsg(true)}
                       onBlur={() => setPasswordMsg(false)}
-                      aria-describedby='passwordMsg'
+                        // ARIA ATTRIBUTES:
+                                aria-label='Registration Password'
+                                aria-required='true'
+                                aria-invalid={passwordEmpty ? 'true' : 'false'}
+                                aria-describedby={showPasswordError ? passwordErrorId : passwordHelpId}
                     />
                     <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
                   </div>
 
                   </div>
                   {/* ERROR MESSAGE */}
-                 {/* <div></div> */}
+                   {showPasswordError && (
+                                <p id={passwordErrorId} className="visually-hidden" role="alert">Password is required.</p>
+                            )}
                 </div>
                 {/* ----PASSWORD MESSAGE---------- */}
                     {passwordMsg && (

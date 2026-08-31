@@ -105,7 +105,9 @@ export default function App() {
               />
             }/>
             <Route path='/reg' element={
-              <Register/>
+              <Register
+                setError={setError}
+              />
             }/>
           </>
         )}
