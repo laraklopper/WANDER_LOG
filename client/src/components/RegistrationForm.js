@@ -171,7 +171,10 @@ export default function RegistrationForm({
     const dateOfBirthAgeHintId = 'registrationDateOfBirthAgeHint';// ID used for date of birth age hint
     const dateOfBirthAgeErrorId = 'registrationDateOfBirthAgeError';// ID used for date of birth age error
     const showLine1ErrorId = 'registrationAddressLine1Error';
+    const showCityErrorId = 'registrationAddressCityError';
+const showProviceErrorId = 'registrationAddressProviceError';
 
+//==============JSX RENDERING==================
     return (
     <form id='registration-form' method='POST' onSubmit={handleRegistration} aria-labelledby='formTitle'>
         <p className='visually-hidden' id='formTitle'>REGISTRATION FORM</p>
@@ -203,7 +206,7 @@ export default function RegistrationForm({
             />
             <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
             {showUsernameError && (
-              <p id={usernameErrorId}>Username is required</p>
+              <p id={usernameErrorId} className='visually-hidden'>Username is required</p>
             )}
         </div>
       </div>
@@ -398,13 +401,18 @@ export default function RegistrationForm({
                 ))}
             </select>
 <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
-
             </div>
             {showLine1Error && (
-              <p id={showLine1ErrorId} className='visually-hidden'></p>
+              <p id={showLine1ErrorId} className='visually-hidden'>Street address is required</p>
             )}
             {/* Address City error */}
+              {showCityError && (
+              <p id={showCityErrorId} className='visually-hidden'>Address City is required</p>
+            )}
             {/* address province error */}
+              {showProvinceError && (
+              <p id={showProviceErrorId} className='visually-hidden'>Address Province is required.</p>
+            )}
         </div>
 
       </div>
