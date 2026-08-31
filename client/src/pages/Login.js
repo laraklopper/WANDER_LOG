@@ -5,7 +5,7 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import MainHeader from '../components/MainHeader'
 import LoginForm from '../components/LoginForm';
-import { ENDPOINTS, errorMessage, parseJson } from '../api/config';
+import { errorMessage } from '../api/config';
 export default function Login(
   {
     userData,
@@ -27,7 +27,7 @@ export default function Login(
       setSubmitting(true)
       setError(null);
 
-      const response = await fetch(ENDPOINTS.login, {
+      const response = await fetch('http://localhost:3001/auth/login', {
         method: 'POST',
         mode: 'cors',
         headers: {
@@ -39,7 +39,7 @@ export default function Login(
         })
       })
 
-      const data = await parseJson(response)
+       const data = await response.json().catch(() => ({}));
 
       if (response.ok) {
         localStorage.setItem('username', userData.username)
