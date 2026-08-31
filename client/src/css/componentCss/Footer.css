@@ -1,0 +1,56 @@
+/* Footer.css */
+#footer{
+    display: flex;
+    flex-direction: column;
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+}
+#footer-row1{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#footer-row2{
+    display: flex;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#footer-row3{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#footer-col1{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#footer-logout-col{
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin: 0px;
+    padding: 0px;
+}
+#footer-logout-col1{
+    margin: 0px;
+    padding: 0px;
+}
+#logoutBtn{
+     display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0px;
+    padding: 0px;
+    width: 180px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    color: #000;
+    letter-spacing: 2px;
+    border: solid 2px #323A42;
+    text-transform: uppercase;
+    gap: 5px;
+}
