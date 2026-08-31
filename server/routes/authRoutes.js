@@ -52,10 +52,14 @@ const signToken = (user) =>
         }
     );
 
-//Route to send a POST request to the login endpoint
+    
+/*──────────────────────────── POST ROUTES ──────────────────────────────
+    POST: Used to create a new resource/submit data to the database
+ ─────────────────────────────────────────────────────────────────────────*/
+// Send a POST request to the /auth/login route(login endpoint)
 router.post('/login', loginLimiter, async (req, res) => {
     try {
-        const { username, password } = req.body || {};
+        const { username, password } = req.body || {};//Extract the usersername and password from the request body
 
         // Conditional rendering to check that both credentials were sent
         if (!username || !password) {
