@@ -1,3 +1,4 @@
+// currConverterSchema.js
 const mongoose = require('mongoose');
 
 const CURRENCY_CODE_PATTERN = /^[A-Z]{3}$/;
