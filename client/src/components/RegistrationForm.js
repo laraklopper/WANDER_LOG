@@ -28,6 +28,7 @@ export default function RegistrationForm({
         city: false,// Tracks if address.city was touched
         province: false,// Tracks if address.province was touched
         password: false,     // Tracks if password field was touched
+        confirmPassword: false,// Tracks if confirm password field was touched
     })
 
     // Marks a single field as touched so its error message may be announced
@@ -46,6 +47,7 @@ export default function RegistrationForm({
             city: true,
             province: true,
             password: true,
+            confirmPassword: true,
         });
 
    //========== EMPTY FIELD VALIDATION ====================
@@ -83,6 +85,10 @@ export default function RegistrationForm({
     const passwordEmpty = useMemo(
       () => !String(newUserData.password || '').trim(),[newUserData.password]
     )
+    // Checks if the confirm password field is empty
+    const confirmPasswordEmpty = useMemo(
+      () => !String(newUserData.confirmPassword || '').trim(),[newUserData.confirmPassword]
+    )
 
        //========== FORMAT VALIDATION ====================
     /* type='email' only asks for "something@something", the server also
@@ -95,6 +101,15 @@ export default function RegistrationForm({
     const passwordTooShort = useMemo(
         () => !passwordEmpty && String(newUserData.password).trim().length < 8,
         [passwordEmpty, newUserData.password]
+    );
+    /* The browser cannot compare two fields, so the match is checked here.
+    Compared untrimmed, because the password is sent exactly as typed */
+    const passwordMismatch = useMemo(
+        () =>
+            !passwordEmpty &&
+            !confirmPasswordEmpty &&
+            String(newUserData.password) !== String(newUserData.confirmPassword),
+        [passwordEmpty, confirmPasswordEmpty, newUserData.password, newUserData.confirmPassword]
     );
 
        //========== AGE VALIDATION ====================
@@ -125,6 +140,8 @@ export default function RegistrationForm({
     const showProvinceError = touched.province && provinceEmpty
     const showPasswordError = touched.password && passwordEmpty;
     const showPasswordLengthError = touched.password && passwordTooShort;
+    const showConfirmPasswordError = touched.confirmPassword && confirmPasswordEmpty;
+    const showPasswordMismatchError = touched.confirmPassword && passwordMismatch;
 
   /* Only the rules the browser cannot enforce on its own are checked here.
   Empty, minLength and type constraints are still handled by the native
@@ -143,6 +160,12 @@ export default function RegistrationForm({
     if (emailInvalid) {
       setFormError('Please enter a valid email address, for example name@example.com.')
       document.getElementById('regisEmail')?.focus()
+      return
+    }
+    if (passwordMismatch) {
+      setFormError('Passwords do not match.')
+      console.warn('[WARN: RegistrationForm.js]: Passwords do not match')
+      document.getElementById('regisConfirmPasswordInput')?.focus()
       return
     }
 
@@ -200,6 +223,7 @@ export default function RegistrationForm({
             admin: false,
             profilePicture: '',
             password: '',
+            confirmPassword: '',
         });
         setTouched({
             username: false,
@@ -211,6 +235,7 @@ export default function RegistrationForm({
             city: false,
             province: false,
             password: false,
+            confirmPassword: false,
         });
         setFormError(null);
         setShowPswd(false);
@@ -223,6 +248,8 @@ export default function RegistrationForm({
     const passwordHelpId = 'registrationPasswordHelp';// ID used for password help text
     const passwordErrorId = 'registrationPasswordError';// ID used for password error message
     const passwordLengthErrorId = 'registrationPasswordLengthError';// ID used for short password error message
+    const confirmPasswordErrorId = 'registrationConfirmPasswordError';// ID used for confirm password required error
+    const passwordMismatchErrorId = 'registrationPasswordMismatchError';// ID used for the passwords do not match error
     const firstNameErrorId = 'registrationFirstNameError';// ID used for first name error message
     const lastNameErrorId = 'registrationLastNameError';// ID used for last name error message
     const dateOfBirthErrorId = 'registrationDateOfBirthError';// ID used for date of birth required error
@@ -617,6 +644,33 @@ export default function RegistrationForm({
                     />
                     <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
                   </div>
+                  {/* CONFIRM PASSWORD */}
+                  <label className='regis-label' htmlFor='regisConfirmPasswordInput'>CONFIRM PASSWORD:</label>
+                  <div className='input-div'>
+                    <input
+                      className='input'
+                      id='regisConfirmPasswordInput'
+                      type={showPswd ? 'text': 'password'}
+                      required
+                      minLength={8}
+                      maxLength={1024}
+                      autoComplete='new-password'
+                      placeholder='CONFIRM PASSWORD'
+                      name='confirmPassword'
+                      value={newUserData.confirmPassword || ''}
+                      onChange={handleInputChange}
+                      onBlur={() => markTouched('confirmPassword')}
+                        // ARIA ATTRIBUTES:
+                                aria-label='Confirm Registration Password'
+                                aria-required='true'
+                                aria-invalid={showConfirmPasswordError || showPasswordMismatchError ? 'true' : 'false'}
+                                aria-describedby={describedBy(
+                                    showConfirmPasswordError && confirmPasswordErrorId,
+                                    showPasswordMismatchError && passwordMismatchErrorId
+                                )}
+                    />
+                    <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
+                  </div>
 
                   </div>
                   {/* ERROR MESSAGES */}
@@ -625,6 +679,16 @@ export default function RegistrationForm({
                             )}
                    {showPasswordLengthError && (
                                 <p id={passwordLengthErrorId} className="visually-hidden" role="alert">Password must be at least 8 characters long.</p>
+                            )}
+                   {showConfirmPasswordError && (
+                                <p id={confirmPasswordErrorId} className="visually-hidden" role="alert">Please confirm your password.</p>
+                            )}
+                   {/* The browser cannot compare two fields, so this error is shown on screen too */}
+                   {showPasswordMismatchError && (
+                                <p id={passwordMismatchErrorId} className='formErrorMessage' role="alert">
+                                    <Bug size={16} fontWeight={900} aria-hidden='true' focusable='false' />
+                                    Passwords do not match
+                                </p>
                             )}
                 </div>
                 {/* ----PASSWORD MESSAGE---------- */}
@@ -640,9 +704,9 @@ export default function RegistrationForm({
                       id='showPasswordBtn'
                       type='button'
                       onClick={() => setShowPswd ((s) => !s)}
-                      aria-label={showPswd ? 'Hide Password': 'Show Password'}
+                      aria-label={showPswd ? 'Hide both password fields': 'Show both password fields'}
                       aria-pressed={showPswd}
-                      aria-controls='regisPasswordInput'
+                      aria-controls='regisPasswordInput regisConfirmPasswordInput'
                   >
                     {showPswd ? (
                       <>

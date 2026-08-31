@@ -27,7 +27,8 @@ export default function Register({setError}) {
   },
   admin: false,
   profilePicture: '',
-  password: ''
+  password: '',
+  confirmPassword: ''
   })
 
   const navigate = useNavigate()
@@ -49,7 +50,9 @@ export default function Register({setError}) {
           address: newUserData.address,
           admin : newUserData.admin,
           profilePicture: newUserData.profilePicture,
-          password: newUserData.password
+          password: newUserData.password,
+          // Sent so the schema can re-check the match on the server
+          confirmPassword: newUserData.confirmPassword
 
         })
       })

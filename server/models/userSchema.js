@@ -5,6 +5,10 @@ const { provinces } = require('../serverData/locations');
 //Regular expressions
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/* provinces is a list of { code, name } objects, but the address stores the
+province as a plain string, so the enum needs the names on their own */
+const provinceNames = provinces.map(({ name }) => name);
+
 // Define user Schema
 const userSchema = new mongoose.Schema({
     // Field for username(required for login)
@@ -85,9 +89,12 @@ const userSchema = new mongoose.Schema({
         // Field for province
         province: {
             type: String,
-            required: true,
+            required: [true, 'Province is required'],
             trim: true,
-            enum: provinces,
+            enum: {
+                values: provinceNames,
+                message: '{VALUE} is not a valid South African province',
+            },
             minlength: [2, 'Province or region name must be at least 2 characters long'],
             maxlength: [50, 'Province name cannot exceed 50 characters']
         },
@@ -100,7 +107,22 @@ const userSchema = new mongoose.Schema({
         trim: true,
         minlength: [8, 'Password must be at least 8 characters long'], 
         maxlength: [1024, 'Password cannot exceed 1024 characters'],
-        select: false,// prevent password from being returned in queries by default 
+        select: false,// prevent password from being returned in queries by default
+    },
+    /* Field used to confirm the password on registration.
+    This is never stored: the pre('save') hook below clears it once
+    validation has passed, so it only exists for the length of the request */
+    confirmPassword: {
+        type: String,
+        required: [true, 'Please confirm your password'],
+        select: false,// prevent confirmPassword from being returned in queries
+        validate: {
+            // `this` is the document being validated, so the two fields can be compared
+            validator: function (v) {
+                return v === this.password;
+            },
+            message: 'Passwords do not match',
+        },
     },
     // Role-based access control: true = admin privileges, false/undefined = regular user
     admin: {
@@ -123,6 +145,15 @@ const userSchema = new mongoose.Schema({
     timestamps: true,
     toJSON: {virtuals: true},
     toObject: {virtuals: true}
+});
+
+//===========MIDDLEWARE======================
+/* Runs after validation and before the document is written.
+By this point confirmPassword has already been compared to password,
+so it is dropped to keep it out of the database */
+userSchema.pre('save', function (next) {
+    this.confirmPassword = undefined;
+    next();
 });
 
 //===========VIRTUALS======================
