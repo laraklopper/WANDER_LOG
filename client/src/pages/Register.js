@@ -6,7 +6,7 @@ import Col from 'react-bootstrap/Col';
 import MainHeader from '../components/MainHeader'
 import RegistrationForm from '../components/RegistrationForm';
 import { useNavigate } from 'react-router-dom';
-import { ENDPOINTS, errorMessage, parseJson } from '../api/config';
+import { errorMessage} from '../api/config';
 
 // Empty form shape, used for the initial state and by the clear button
 const EMPTY_FORM = {
@@ -47,7 +47,7 @@ export default function Register({setError}) {
       setError?.(null)
       setFieldErrors({})
 
-      const response = await fetch(ENDPOINTS.register, {
+      const response = await fetch('http://localhost:3001/auth/register', {
         method: 'POST',
         mode: 'cors',
         headers: {
@@ -70,7 +70,7 @@ export default function Register({setError}) {
         })
       })
 
-       const data = await parseJson(response);
+       const data = await response.json().catch(() => ({}))
 
        if (response.ok) {
         setError?.(null)
@@ -81,7 +81,7 @@ export default function Register({setError}) {
         password is not left sitting in React state */
         setNewUserData(EMPTY_FORM)
         alert('Registration successful. Please log in with your new details.')
-        navigate('/')
+        navigate('/')//Navigate back to Login Page after successful registration
        } else {
           const message = errorMessage(response, data, 'Registration failed.');
           // Present on a 400 from Mongoose validation, absent on a 409 or a 500
