@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import '../css/componentCss/LoginForm.css'
 import '../css/componentCss/FormSetup.css'
 import Stack from 'react-bootstrap/Stack';
@@ -7,8 +7,7 @@ import { Eye, EyeOff, Bug} from 'lucide-react';
 export default function LoginForm(
     {
         userData,
-        setUserData,
-        setError
+        setUserData
     }
 ) {
     const [showPswd, setShowpswd] = useState(false)
@@ -20,13 +19,6 @@ export default function LoginForm(
     })
 
 
-    const submitLogin = useCallback(async () => {
-        try {
-            setError
-        } catch (error) {
-            
-        }
-    })
     const usernameEmpty = useMemo(
         () => !String (userData.username || '').trim(),
         [userData.username]
