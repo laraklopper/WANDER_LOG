@@ -589,7 +589,7 @@ export default function RegistrationForm({
               </Stack>
               {/* STACK 6 */}
               <Stack direction="horizontal" gap={3} id='regis-stack6'>
-                <div className="p-2">
+                <div className="p-2" id='regis-profilepic-block'>
                 {/* optional */}
                   <label className='regis-label' htmlFor='regisProfilePicture'>PROFILE PICTURE:</label>
                   <input
@@ -603,7 +603,7 @@ export default function RegistrationForm({
                     aria-required='false'
                     aria-describedby={profilePictureHelpId}
                   />
-                  <small id={profilePictureHelpId} className='infoText'>Optional, must be a full URL</small>
+                  <small id={profilePictureHelpId}>Optional, must be a full URL</small>
                 </div>
                 <div className="p-2 ms-auto"></div>
                 <div className="p-2"></div>
@@ -611,8 +611,8 @@ export default function RegistrationForm({
               {/* STACK 7 */}
               <Stack direction="horizontal" gap={3} id='regis-stack7'>
               {/* PASSWORD */}
-                <div className="p-2">
-                  <div className='input-group'>
+                <div className="p-2" id='regis-password-block'>
+                  <div id='regis-pswd-input-group'>
                   <label className='regis-label' htmlFor='regisPasswordInput'>PASSWORD:</label>
                   <div className='input-div'>
                     <input

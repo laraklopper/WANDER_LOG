@@ -33,10 +33,13 @@ LAYOUT
     flex-direction: column;
     align-items: center;
     gap: 10px;
+    background-color: #D6D6D6;
     width: 100%;
     margin: 0px;
     padding: 5px;
-    border: solid 1px;
+     border: solid #323A42 2px;
+    background-color: #D6D6D6;
+    border-radius: 8px;
 }
 
 /* BOOTSTRAP */
@@ -72,10 +75,12 @@ LAYOUT
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    width: 100%;
+    width: 80%;
     margin: 0px;
     padding: 5px;
-    border: solid 1px;
+    border: solid #323A42 2px;
+    background-color: #D6D6D6;
+    border-radius: 8px;
 }
 .address-input-div{
     display: flex;
@@ -99,7 +104,56 @@ LAYOUT
     width: 100%;
     margin: 0px;
     padding: 5px;
-    border: solid 1px;
+     border: solid #323A42 2px;
+    background-color: #D6D6D6;
+    border-radius: 8px;
+}
+/* STACK 6 */
+#regis-stack6{
+     display: flex;
+    align-items: baseline;
+    padding: 0px;
+    margin: 0px;
+    width: 100%;
+}
+#regis-profilepic-block{
+     display: flex;
+    align-items: baseline;
+    margin: 0px;
+    padding: 0px;
+    gap: 10px;
+}
+#registrationProfilePictureHelp{
+display: flex;
+    font-family: "Open Sans", sans-serif;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: #323A42;
+    margin: 0px;
+    padding: 0px;
+    text-transform: uppercase;
+}
+/* STACK 7 */
+#regis-stack7{
+    display: flex;
+    align-items: baseline;
+    padding: 0px;
+    margin: 0px;
+    width: 100%;
+}
+#regis-password-block{
+    display: flex;
+    align-items: baseline;
+    margin: 0px;
+    padding: 0px;
+}
+#regis-pswd-input-group{
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 10px;
+    margin: 0px;
+    padding: 0px;
 }
 /* =====================
 INPUT = LAYBELS
@@ -121,11 +175,8 @@ INPUT = LAYBELS
     font-size: 16px;
     font-weight: 700;
 }
-/* BUTTONS */
-#showPasswordBtn{
-    width: 200px;
-    height: 40px;
-}
+
+/* GROUP 4 */
 #regis-group4{
     margin: 0px;
     padding: 0px;

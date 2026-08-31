@@ -115,7 +115,7 @@
     align-items: center;
     margin: 0px;
     padding: 0px;
-    width: 180px;
+    width: 200px;
     height: 40px;
     font-family: "Fira Mono", monospace;
     font-weight: 700;
@@ -124,10 +124,6 @@
     border: solid 2px #323A42;
     text-transform: uppercase;
     gap: 5px;
-}
-#showPswdBtn:hover{
-  color: #E8F0F6;
-    background-color: #323A42;
 }
 #clearFormBtn{
     display: flex;
@@ -143,6 +139,8 @@
     padding: 0px;
     border: solid 2px #323A42;
 }
+#showPasswordBtn:hover,
+#showPswdBtn:hover,
 #clearFormBtn:hover{
     color: #E8F0F6;
     background-color: #323A42;    
