@@ -90,6 +90,7 @@ export default function Profile({currentUser, logout, setError}) {
               <div id='edit-pswd-div'>
                 <EditPasswordForm
                   currentUser={currentUser}
+                  setError={setError}
                 />
               </div>
               </Col>

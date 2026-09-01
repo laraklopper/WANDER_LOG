@@ -4,6 +4,7 @@ import '../css/componentCss/FormSetup.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
 import { Asterisk, Eye, EyeOff   } from 'lucide-react';
+
 export default function EditPasswordForm({currentUser, setError}) {
     //===========STATE VARIABLES===========
     const [showPswdMsg, setShowPswdMsg] = useState(false);
@@ -13,7 +14,7 @@ export default function EditPasswordForm({currentUser, setError}) {
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
-    const [loading, setLoading] = useState('')//Loading
+    const [loading, setLoading] = useState(false)//Loading
 
      const isStrongPassword =useCallback((pwd)=> {
         return /^(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$/ //Regex pattern to check for at least 8 characters and one special character
@@ -23,31 +24,52 @@ export default function EditPasswordForm({currentUser, setError}) {
     },[])
     const editPassword = useCallback(async (e) => {
         e.preventDefault();
-        setLoading(true)
+        // Blocks a second request while the first is still running
+        if (loading) return;
+
         setError?.(null)
+
+        /* Both checks run before the request so a password the server would
+        reject never leaves the browser. They also return before setLoading, so
+        the submit button is not left disabled on a validation failure */
         // Validate that the new password and confirm new password match
         if (newPassword !== confirmNewPassword) {
-          alert('New password and confirm new password do not match.');
+          const msg = 'New password and confirm new password do not match.';
+          setError?.(msg);
+          alert(msg);
           return;
         }
-    
+
+        if (!isStrongPassword(newPassword)) {
+          const msg = //Message for weak password
+            'New password must be at least 8 characters long and include at least one special character.';
+          setError?.(msg);// Set the error state to display the error in the UI
+          alert(msg);// Alert user of error
+          return;// Exit the function early
+        }
+
+        const token = localStorage.getItem('token')
+        /* The API shapes a user with toPublicJSON, which names the key userId,
+        so currentUser.id is always undefined */
+        const userId = currentUser?.userId;
+
+        // Without either of these the request can only come back as a 401 or a 404
+        if (!token || !userId) {
+          const msg = 'Your session has expired. Please log in again to change your password.';
+          setError?.(msg);
+          alert(msg);
+          return;
+        }
+
         try {
-          const token = localStorage.getItem('token')
+          setLoading(true)
 
-          if (!isStrongPassword(newPassword)) {
-                const msg = //Message for weak password
-                    'New password must be at least 8 characters long and include at least one special character.';
-                setError?.(msg);// Set the error state to display the error in the UI
-                alert(msg);// Alert user of error
-                return;// Exit the function early
-            }
-
-          const response = await fetch(`http:/localhost:3001/users/${currentUser.id}/editPassword`, {
+          const response = await fetch(`http://localhost:3001/users/${userId}/editPassword`, {
             method: 'PATCH',
             mode: 'cors',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization':`Bearer ${token}`
+              'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify({
               currentPassword,
@@ -55,26 +77,37 @@ export default function EditPasswordForm({currentUser, setError}) {
             }),
           });
 
+          const data = await response.json().catch(() => ({}));// Safely parse the JSON response (avoid crash if server returns non-JSON)
+
           if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to update password');
+            const errorMessage = data.message || 'Failed to change password.';//Default error message
+                setError?.(errorMessage);// Set the error state to display the error in the UI
+                alert(errorMessage);// Alert user of error
+                return;// Exit the function early
           }
-    
+
           alert('Password updated successfully!');
           // Clear the form fields after successful update
           setCurrentPassword('');
           setNewPassword('');
           setConfirmNewPassword('');
         } catch (error) {
-          console.error('Error updating password:', error);
-          setError('Error updating password:', error)
-          alert(`Error updating password: ${error.message}`);
+          // Only a network level failure reaches here, a 4xx or 5xx is handled above
+          const msg = 'Could not reach the server. Please check your connection and try again.';
+          console.error('[ERROR: EditPasswordForm.js] Password update request failed:', error.message);
+          setError?.(msg)
+          alert(msg);
+        } finally {
+          // Runs on every path out of the request, so the form is never stuck saving
+          setLoading(false)
         }
-      }, [currentUser.id, setError,isStrongPassword, currentPassword, newPassword, confirmNewPassword]);
+      }, [loading, currentUser, setError, isStrongPassword, currentPassword, newPassword, confirmNewPassword]);
 
       //=======================JSX RENDERING========================
   return (
-    <form id='edit-password-form' method='PATCH' onSubmit={editPassword} aria-label='Edit Password Form'>
+    /* No method attribute, a form element only accepts GET or POST and the
+    PATCH is sent by editPassword rather than by the browser */
+    <form id='edit-password-form' onSubmit={editPassword} aria-label='Edit Password Form'>
       <div id='formHeadingBlock'>
         <h3 id='formHeading'>Edit Password</h3>
       </div>
