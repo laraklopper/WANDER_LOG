@@ -1,8 +1,94 @@
+/* EDIT USER FORM */
+#edit-user-form{
+    display: flex;
+    flex-direction: column;
+}
+/* EDIT PASSWORD FORM */
 #edit-password-form{
     display: flex;
     flex-direction: column;
     width: 400px;
-    margin: 0px;
+    background-color: #A8AEB3;
+        margin: 0px;
     padding: 0px;
     align-items: center;
+}
+#edit-password-form-input{
+    width: 300px;
+    margin: 0px;
+    padding: 0px;
+    background-color: #BFBFBF;
+
+}
+/* CURRENT PASSWORD */
+#edit-password-stack1{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#currentPassword-div,
+#showCurrentPswdBtn-div{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0px;
+    padding: 5px 0px 0px 0px;
+}
+/* NEW PASSWORD */
+#newPassword-div,
+#showNewPswdBtn-div{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0px;
+    padding: 5px 0px 0px 0px;
+}
+/* CONFIRM PASSWORD */
+#confirmNewPassword-div,
+#showConfirmPswdBtn-div{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0px;
+    padding: 5px 0px 0px 0px;
+}
+/* EDIT PASSWORD BUTTONS */
+.editPswd-label{
+    color: #000000;
+    font-weight: 700;
+    margin: 0px;
+    padding: 0px;
+    font-family: "Fira Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+#showConfirmPswdBtn,
+#showNewPswdBtn,
+#showCurrentPswdBtn{
+    width: 250px;
+    height: 40px;
+    margin: 0px;
+    gap: 5px;
+    padding: 0px;
+    color: #000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: solid 2px #323A42;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    color: #000;
+    text-transform: uppercase;
+}
+#showConfirmPswdBtn:hover,
+#showNewPswdBtn:hover,  
+#showCurrentPswdBtn:hover{
+    background-color: #323A42;
+    color: #E8F0F6;
 }

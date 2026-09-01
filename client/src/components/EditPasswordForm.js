@@ -3,7 +3,7 @@ import '../css/componentCss/EditUserForms.css'
 import '../css/componentCss/FormSetup.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
-
+import { Asterisk, Bug, Eye, EyeOff   } from 'lucide-react';
 export default function EditPasswordForm() {
     //===========STATE VARIABLES===========
     const [showPswdMsg, setShowPswdMsg] = useState(false);
@@ -14,15 +14,15 @@ export default function EditPasswordForm() {
     const [newPassword, setNewPassword] = useState('');
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
   return (
-    <form id='editPasswordForm' aria-label='Edit Password Form'>
+    <form id='edit-password-form' aria-label='Edit Password Form'>
         <div id='formHeadingBlock'>
         <h3 id='formHeading'>Edit Password</h3>
         </div>
         <div id='edit-password-form-input'>
         <Stack gap={3} id='editPassword-Stack1'>
         {/* Current Password */}
-      <div className="p-2">
-        <label htmlFor="currentPassword" className="editPswd-label">Current Password</label>
+      <div id="currentPassword-div" >
+        <label htmlFor="currentPassword" className="editPswd-label">Current Password:</label>
         <div className="input-div">
             <input
                 type="password"
@@ -36,13 +36,21 @@ export default function EditPasswordForm() {
                 onBlur={() => setShowPswdMsg(false)}
                 // ARIA attributes
             />
+            <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
         </div>
       </div>
       {/* Show current password */}
-      <div className="p-2">
+      <div className="p-2" id='showCurrentPswdBtn-div'>
         <Button 
         variant='warning' id='showCurrentPswdBtn' type='button' onClick={() => setShowCurrentPswd(!showCurrentPswd)}>
-            {showCurrentPswd ? 'HIDE CURRENT PASSWORD' : 'SHOW CURRENT PASSWORD'}
+            {showCurrentPswd ? (
+              <>
+              Hide current password <EyeOff fontWeight={700} aria-hidden='true' focusable='false'/></>
+              ):(
+                <>
+                Show current password
+              <Eye fontWeight={700} aria-hidden='true' focusable='false'/>
+            </>)}
         </Button>
       </div>
       {/* Error message */}
@@ -50,7 +58,7 @@ export default function EditPasswordForm() {
     </Stack>
  <Stack gap={3} id='editPassword-Stack2'>
  {/* New Password */}
-      <div className="p-2">
+      <div id="newPassword-div">
         <label htmlFor="newPassword" className="editPswd-label">New Password</label>
         <div className="input-div">
             <input
@@ -65,10 +73,11 @@ export default function EditPasswordForm() {
                 onBlur={() => setShowPswdMsg(false)}
                 // ARIA attributes
             />
+            <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
         </div>
       </div>
         {/* Show new password */}
-      <div className="p-2">
+      <div id="showNewPswdBtn-div">
         <Button 
         variant='warning' 
         id='showNewPswdBtn' 
@@ -80,7 +89,15 @@ export default function EditPasswordForm() {
         aria-controls='newPassword'
         aria-expanded={showNewPswd}
     >
-            {showNewPswd ? 'HIDE NEW PASSWORD' : 'SHOW NEW PASSWORD'}
+    {showNewPswd ? (
+              <>
+              Hide new password <EyeOff fontWeight={700} aria-hidden='true' focusable='false'/></>
+              ):(
+                <>
+                Show new password
+              <Eye fontWeight={700} aria-hidden='true' focusable='false'/>
+            </>)}
+            
         </Button>
       </div>
       {/* Error message */}
@@ -88,7 +105,7 @@ export default function EditPasswordForm() {
     </Stack>
     <Stack gap={3} id='editPassword-Stack3'>
         {/* Confirm New Password */}
-      <div className="p-2">
+      <div id="confirmNewPassword-div">
         <label htmlFor="confirmNewPassword" className="editPswd-label">Confirm New Password</label>
         <div className="input-div">
             <input
@@ -102,11 +119,13 @@ export default function EditPasswordForm() {
                 onFocus={() => setShowPswdMsg(true)}
                 onBlur={() => setShowPswdMsg(false)}
                 // ARIA attributes
+                aria-label="Confirm new password"
             />
+            <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
         </div>
       </div>
       {/* Show confirm new password Button */}
-      <div className="p-2">
+      <div id="showConfirmPswdBtn-div">
         <Button 
         variant='warning' 
         id='showConfirmPswdBtn' 
@@ -118,7 +137,20 @@ export default function EditPasswordForm() {
         aria-controls='confirmNewPassword'
         aria-expanded={showConfirmNewPswd}
     >
-            {showConfirmNewPswd ? 'HIDE CONFIRM NEW PASSWORD' : 'SHOW CONFIRM NEW PASSWORD'}
+    
+            {showConfirmNewPswd ? (
+              <>
+'HIDE CONFIRM PASSWORD'
+<EyeOff fontWeight={700} aria-hidden='true' focusable='false'/>
+              </>
+            ):(
+              
+             <>
+SHOW CONFIRM PASSWORD
+<Eye fontWeight={700} aria-hidden='true' focusable='false'/>
+             </>
+            )
+             }
         </Button>
       </div>
       {/* Error message */}
