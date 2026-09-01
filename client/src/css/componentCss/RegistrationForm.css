@@ -10,10 +10,26 @@ RegistrationForm.js: POST request to /users/register
     width: 100%;
     background-color: #A8AEB3;
 }
-/* ====================
-INPUT
-==========*/
-
+/* =====================
+INPUT + LABELS
+================*/
+.regis-label{
+ font-family: "Fira Mono", monospace;
+ font-weight: 700;
+  margin: 0px;
+  letter-spacing: 1px;
+  padding: 0px;
+}
+.regisSelect{
+    text-align: center;
+    border: solid black 2px;
+    border-radius: 5px;
+    padding: 5px;
+    width: 150px;
+    font-family: "Roboto Mono", monospace;
+    font-size: 16px;
+    font-weight: 700;
+}
 /* ==============
 LAYOUT
 ===============*/
@@ -27,7 +43,7 @@ LAYOUT
     width: 90%;
     gap: 10px;
 }
-/* GROUP 1 */
+/* GROUP 1: PERSONAL INFORMATION: USERNAME, FULL NAME, EMAIL, DATE OF BIRTH */
 #regis-group1{
     display: flex;
     flex-direction: column;
@@ -42,9 +58,11 @@ LAYOUT
     border-radius: 8px;
 }
 
-/* BOOTSTRAP */
-/* STACK 1 */
+/* BOOTSTRAP LAYOUT */
+/* STACK 1: https://react-bootstrap.netlify.app/docs/layout/stack */
 #regis-stack1{
+    display: flex;
+    align-items: baseline;
     width: 100%;
     margin: 0px;
     padding: 0px;
@@ -57,12 +75,12 @@ LAYOUT
     gap: 10px;
     
 }
-/* STACK 2 */
+/* STACK 2: https://react-bootstrap.netlify.app/docs/layout/stack */
 #regis-email-block{
     display: flex;
     align-items: baseline;
 }
-/* STACK 3 */
+/* STACK 3: https://react-bootstrap.netlify.app/docs/layout/stack */
 #regis-dateOfBirth-block{
     display: flex;
     align-items: baseline;
@@ -88,12 +106,47 @@ LAYOUT
     align-items: baseline;
     width: 100%;
 }
+/* STACK 4: https://react-bootstrap.netlify.app/docs/layout/stack  */
+#regis-stack4{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#regis-address-heading-block{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 0px;
+    padding: 0px;
+}
+#regis-address-heading-span{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 0px;
+    padding: 0px;
+}
 #regis-address-block1,
 #regis-address-block2{
        display: flex;
     justify-content: center;
     margin: 0px;
     padding: 0px;
+}
+#regis-address-heading{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 0px;
+    padding: 0px;
+    text-transform: uppercase;
+    text-decoration: underline;
 }
 /* GROUP 3 : ADMIN + PROFILE PICTURE + PASSWORD*/
 #regis-group3{
@@ -108,7 +161,32 @@ LAYOUT
     background-color: #D6D6D6;
     border-radius: 8px;
 }
-/* STACK 6 */
+/* STACK 5: https://react-bootstrap.netlify.app/docs/layout/stack  */
+#regis-stack5{
+    display: flex;
+    align-items: baseline;
+    padding: 0px;
+    margin: 0px;
+    width: 100%;
+}
+#regis-admin-block{
+    display: flex;
+    align-items: baseline;
+    margin: 0px;
+    padding: 0px;
+}
+#regis-admin-text{
+    display: flex;
+    font-family: "Open Sans", sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #323A42;
+    margin: 0px;
+    padding: 0px;
+    text-transform: uppercase;
+}
+/* STACK 6: https://react-bootstrap.netlify.app/docs/layout/stack  */
 #regis-stack6{
      display: flex;
     align-items: baseline;
@@ -126,14 +204,15 @@ LAYOUT
 #registrationProfilePictureHelp{
 display: flex;
     font-family: "Open Sans", sans-serif;
-    font-size: 12px;
+    font-weight: 700;
+    font-size: 14px;
     letter-spacing: 2px;
     color: #323A42;
     margin: 0px;
     padding: 0px;
     text-transform: uppercase;
 }
-/* STACK 7 */
+/* STACK 7: https://react-bootstrap.netlify.app/docs/layout/stack  */
 #regis-stack7{
     display: flex;
     align-items: baseline;
@@ -155,28 +234,8 @@ display: flex;
     margin: 0px;
     padding: 0px;
 }
-/* =====================
-INPUT = LAYBELS
-================*/
-.regis-label{
- font-family: "Fira Mono", monospace;
- font-weight: 700;
-  margin: 0px;
-  letter-spacing: 1px;
-  padding: 0px;
-}
-.regisSelect{
-    text-align: center;
-    border: solid black 2px;
-    border-radius: 5px;
-    padding: 5px;
-    width: 150px;
-    font-family: "Roboto Mono", monospace;
-    font-size: 16px;
-    font-weight: 700;
-}
 
-/* GROUP 4 */
+/* GROUP 4: REQUIRED INPUT MESSAGES + BUTTONS */
 #regis-group4{
     margin: 0px;
     padding: 0px;
@@ -184,6 +243,7 @@ INPUT = LAYBELS
     display: flex;
     justify-content: center;
 }
+/* STACK 8: https://react-bootstrap.netlify.app/docs/layout/stack  */
 #regis-stack8{
     width: 90%;
      margin: 0px;

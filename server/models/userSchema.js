@@ -156,6 +156,7 @@ const userSchema = new mongoose.Schema({
             message: 'Passwords do not match',
         },
     },
+    // Field for user role, either admin or regular user admin users must be at least 21 years old, regular users must be at least 18 years old
     // Role-based access control: true = admin privileges, false/undefined = regular user
     admin: {
         type: Boolean,
@@ -183,10 +184,10 @@ const userSchema = new mongoose.Schema({
     response, so a route cannot leak them by returning the document directly */
     toJSON: {
         virtuals: true,
-        transform: (doc, ret) => {
-            delete ret.password;
-            delete ret.confirmPassword;
-            return ret;
+        transform: (doc, ret) => {// ret is the object that will be returned to the client
+            delete ret.password;// remove the password field from the returned object
+            delete ret.confirmPassword;// remove the confirmPassword field from the returned object
+            return ret;// return the modified object
         },
     },
     toObject: {virtuals: true}

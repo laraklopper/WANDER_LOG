@@ -3,7 +3,7 @@ import '../css/componentCss/RegistrationForm.css'
 import '../css/componentCss/FormSetup.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
-import { Asterisk, Bug, Eye, EyeOff } from 'lucide-react';
+import { Asterisk, Bug, Eye, EyeOff, MapPinHouse, FileUser   } from 'lucide-react';
 import { provinces } from '../data/locations';
 
 // Mirrors the email pattern used by the server (userSchema.js) so the client
@@ -291,10 +291,15 @@ export default function RegistrationForm({
         </div>
         {/* =============INPUT================== */}
         <div id='regis-input-div'>
-            <div id='regis-group1'>
+        {/* GROUP 1: USERNAME + FULL NAME + EMAIL + DATE OF BIRTH */}
+            <div id='regis-group1' aria-labelledby='regis-personal-info-heading'>
+            <span id='regis-personal-info-heading-span'>
+                <h5 className='formSectionHeading' id='regis-personal-info-heading'>PERSONAL INFORMATION</h5><FileUser fontSize={20}  aria-hidden='true' focusable='false' />
+            </span>
             {/* STACK1 */}
              <Stack direction="horizontal" gap={3} id='regis-stack1'>
       <div className="p-2">
+      {/* USERNAME INPUT: value={newUserData.username} */}
             <div className='input-div'>
             <label className='regis-label' htmlFor='regisUsernameInput'>
                 USERNAME:
@@ -322,14 +327,17 @@ export default function RegistrationForm({
             />
             <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
         </div>
+        {/* USERNAME ERROR MESSAGE */}
             {showUsernameError && (
               <p id={usernameErrorId} className='visually-hidden' role='alert'>Username is required.</p>
             )}
       </div>
+      {/* FULL NAME INPUT: firstName + lastName */}
       <div id='regis-fullname-label-block'>
         <label className='regis-label' htmlFor='regisFirstName'>FULL NAME:</label>
       </div>
       <div className="p-2" id='regis-fullName-input-block'>
+      {/* FIRST NAME: value={newUserData.fullName?.firstName || ''} */}
       <div className='input-div'>
                 <label htmlFor='regisFirstName' hidden>FIRST NAME:</label>
                 <input
@@ -352,6 +360,7 @@ export default function RegistrationForm({
                 />
 <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
             </div>
+            {/* LAST NAME: value={newUserData.fullName?.lastName || ''} */}
             <div className='input-div'>
                 <label htmlFor='regisLastName' hidden>LAST NAME</label>
                 <input
@@ -374,16 +383,18 @@ export default function RegistrationForm({
                     />
                     <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
             </div>
-             {/* ERROR MESSAGES */}
+             {/* FIRST NAME ERROR MESSAGES */}
                   {showFirstNameError && (
                       <p id={firstNameErrorId} className="visually-hidden" role="alert">First name is required.</p>
                   )}
+                  {/* LAST NAME ERROR MESSAGES */}
                   {showLastNameError && (
                       <p id={lastNameErrorId} className="visually-hidden" role="alert">Last name is required.</p>
                   )}
             </div>
     </Stack>
   <Stack direction="horizontal" gap={3} id='regis-stack2'>
+  {/* EMAIL INPUT: value={newUserData.email} */}
       <div className="p-2" id='regis-email-block'>
         <label className='regis-label' htmlFor='regisEmail'>EMAIL:</label>
             <div className='input-div'>
@@ -413,7 +424,7 @@ export default function RegistrationForm({
       </div>
       <div className="p-2 ms-auto"></div>
       <div className="p-2">
-        {/* ERROR MESSAGES */}
+        {/* EMAIL ERROR MESSAGES*/}
                                 {showEmailError && (
                                     <p id={emailErrorId} className="visually-hidden" role="alert">
                                         Email is required.
@@ -427,7 +438,9 @@ export default function RegistrationForm({
                                 )}
       </div>
     </Stack>
+    {/* STACK 3: DATE OF BIRTH */}
       <Stack direction="horizontal" gap={3} id='regis-stack3'>
+      {/* DATE OF BIRTH INPUT: value={newUserData.dateOfBirth} */}
       <div className="p-2" id='regis-dateOfBirth-block'>
         <label className='regis-label' htmlFor='regisDateOfBirth'>DATE OF BIRTH</label>
         <div className='input-div'>
@@ -458,10 +471,11 @@ export default function RegistrationForm({
       </div>
       <div className="p-2  ms-auto"></div>
       <div className="p-2">
+      {/* DATE OF BIRTH AGE HINT */}
           <small id={dateOfBirthAgeHintId} className='infoText'>
                                     Must be at least {minAge} years old
                                 </small>
-                                {/* ERROR MESSAGES */}
+                                {/* DATE OF BIRTH ERROR MESSAGES */}
                                 {showDateOfBirthError && (
                                     <p id={dateOfBirthErrorId} className="visually-hidden" role="alert">
                                         Date of birth is required.
@@ -477,13 +491,19 @@ export default function RegistrationForm({
       </div>
     </Stack>
             </div>
+            {/* GROUP 2: ADDRESS */}
             <div id='regis-group2'>
+            {/* STACK 4: ADDRESS */}
             <Stack gap={3} id='regis-stack4'>
-      <div className="p-2">
-        <h5 className='formSectionHeading'>ADDRESS</h5>
+      <div className="p-2" id='regis-address-heading-block'>
+      <span id='regis-address-heading-span'>
+        <h5 className='formSectionHeading' id='regis-address-heading'>ADDRESS</h5><MapPinHouse fontSize={20}  aria-hidden='true' focusable='false' />
+      </span>
       </div>
+      {/* ADDRESS: LINE 1 + OPTIONAL additional details */}
       <div className="p-2" id='regis-address-block1'>
       <div className='text-input-div'>
+      {/* STREET ADDRESS INPUT: value={newUserData.address?.line1 || ''} */}
 <label className='regis-label' htmlFor='regisAddressLine1'>STREET ADDRESS:</label>
         <div className='input-div'>
 
@@ -506,6 +526,7 @@ export default function RegistrationForm({
             />
              <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
         </div>
+        {/* ADDITIONAL ADDRESS DETAILS: value={newUserData.address?.line2 || ''} */}
          <div className='input-div'>
             <label htmlFor='regisAddressLine2' hidden>ADDITIONAL ADDRESS DETAILS</label>
             <textarea
@@ -524,8 +545,10 @@ export default function RegistrationForm({
         </div>
       </div>
       </div>
+      {/* ADDRESS: CITY/TOWN + PROVINCE */}
       <div className="p-2" id='regis-address-block2'>
         <div className='address-input-div'>
+        {/* CITY/TOWN INPUT: value={newUserData.address?.city || ''} */}
             <div className='input-div'>
              <label className='regis-label' htmlFor='regisCity'>CITY/TOWN:</label>
              <input
@@ -547,8 +570,8 @@ export default function RegistrationForm({
                 aria-describedby={describedBy(showCityError && cityErrorId)}
              />
              <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
-
             </div>
+            {/* PROVINCE INPUT: value={newUserData.address?.province || ''} */}
             <div className='input-div'>
             <label className='regis-label' htmlFor='regisProvince'>PROVINCE:</label>
             <select
@@ -585,19 +608,26 @@ export default function RegistrationForm({
         {showCityError && (
           <p id={cityErrorId} className='visually-hidden' role='alert'>City or town is required.</p>
         )}
-        {/* address province error */}
+        {/* Address province error */}
         {showProvinceError && (
           <p id={provinceErrorId} className='visually-hidden' role='alert'>Province is required.</p>
         )}
       </div>
     </Stack>
             </div>
-            {/* GROUP 3: Admin, Profile Picture, password */}
-            <div id='regis-group3'>
+            {/* GROUP 3: OPTIONAL ADMIN, OPTIONAL PROFILE PICTURE, PASSWORD */}
+            <div id='regis-group3' aria-describedby='regis-optionalinput-password'>
+            {/* ----Screen Reader text---- */}
             {/* STACK 5 */}
+            {/* ---------Screen reader text---------- */}
+            <div id='regis-optional-heading-block' className='p-2 visually-hidden'>
+            <h5 className='formSectionHeading' id='regis-optionalinput-password'>OPTIONAL DETAILS AND PASSWORD</h5>
+            </div>
+              {/* STACK 5: ADMIN CHECKBOX */}
                <Stack direction="horizontal" gap={3} id='regis-stack5'>
-                <div className="p-2">
-                  <div>
+                <div className="p-2" id='regis-admin-block'>
+                {/* ADMIN CHECKBOX: checked={newUserData.admin} */}
+                  <div className='input-div' id='regis-admin-input-group'>
                     <label className='regis-label' htmlFor='regisAdmin'>REGISTER AS ADMIN:</label>
                     <input
                       id='regisAdmin'
@@ -610,7 +640,12 @@ export default function RegistrationForm({
                   </div>
                 </div>
                 <div className="p-2 ms-auto"></div>
-                <div className="p-2"></div>
+                <div className="p-2">
+                {/* ADMIN REQUIREMENT TEXT */}
+                  <p id='regis-admin-text' className='form-text'>
+                    ADMIN USERS MUST BE AT LEAST 21 YEARS OLD
+                  </p>
+                </div>
               </Stack>
               {/* STACK 6 */}
               <Stack direction="horizontal" gap={3} id='regis-stack6'>
@@ -698,13 +733,15 @@ export default function RegistrationForm({
                   </div>
 
                   </div>
-                  {/* ERROR MESSAGES */}
+                  {/* PASSWORD ERROR MESSAGES */}
                    {showPasswordError && (
                                 <p id={passwordErrorId} className="visually-hidden" role="alert">Password is required.</p>
                             )}
+                            {/* PASSWORD LENGTH ERROR */}
                    {showPasswordLengthError && (
                                 <p id={passwordLengthErrorId} className="visually-hidden" role="alert">Password must be at least 8 characters long.</p>
                             )}
+                            {/* CONFIRM PASSWORD ERROR */}
                    {showConfirmPasswordError && (
                                 <p id={confirmPasswordErrorId} className="visually-hidden" role="alert">Please confirm your password.</p>
                             )}
@@ -722,13 +759,15 @@ export default function RegistrationForm({
                         <p className='formHelpMessage'>WE WILL NEVER SHARE YOUR PASSWORD</p>
                       </div>
                     )}
-
-                <div className="p-2 ms-auto" >
+                    {/* SHOW/HIDE PASSWORD BUTTON BLOCK */}
+                <div className="p-2 ms-auto" id='regis-showPasswordBtn-block'>
+                {/* SHOW/HIDE PASSWORD BUTTON */}
                     <Button
                       variant='warning'
                       id='showPasswordBtn'
                       type='button'
                       onClick={() => setShowPswd ((s) => !s)}
+                      // ARIA ATTRIBUTES:
                       aria-label={showPswd ? 'Hide both password fields': 'Show both password fields'}
                       aria-pressed={showPswd}
                       aria-controls='regisPasswordInput regisConfirmPasswordInput'
@@ -772,9 +811,10 @@ export default function RegistrationForm({
             ))}
           </div>
         )}
+        {/* GROUP 4: REQUIRED FIELDS MESSAGES AND SUBMISSION BUTTONS */}
         <div id='regis-group4'>
           <Stack direction="horizontal" gap={3} id='regis-stack8'>
-       {/* REQUIRED INFO */}
+       {/* REQUIRED INFO MESSAGE*/}
                 <div className="p-2" id='requiredInfo'>
                     <p className='infoMsg'>
                         <small><Asterisk color="#C22419" fontWeight={700} size={12} aria-hidden='true' focusable='false' /> Indicates required information</small>
@@ -787,6 +827,9 @@ export default function RegistrationForm({
           type='submit'
           // Disabled while the request runs, so the form cannot be submitted twice
           disabled={submitting}
+          // ARIA ATTRIBUTES:
+          aria-label={submitting ? 'Registering, please wait' : 'Register new user'}
+          aria-disabled={submitting}
           aria-busy={submitting}
           aria-describedby={describedBy(
             formError && formErrorId,
@@ -795,12 +838,16 @@ export default function RegistrationForm({
         >{submitting ? 'REGISTERING...' : 'REGISTER'}</Button>
       </div>
       <div className="p-2">
+      {/* CLEAR FORM BUTTON */}
         <Button
         variant='danger'
         id='clearFormBtn'
         type='button'
         disabled={submitting}
         onClick={handleClear}
+        // ARIA ATTRIBUTES:
+        aria-label='Clear registration form'
+        aria-disabled={submitting}
         >CLEAR FORM</Button>
       </div>
     </Stack>
