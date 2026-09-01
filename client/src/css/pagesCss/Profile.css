@@ -1,3 +1,9 @@
+/* Profile.css
+Profile.js
+*/
+/* ==============
+SECTION 1: USER PROFILE + EDIT PROFILE FORMS
+=========*/
 #profileSection1{
     width: 100%;
    background-color: #608021;
@@ -8,6 +14,9 @@
    margin: 10px 0px 10px 0px;
    padding: 0px;
 }
+/* =================
+LAYOUT
+==========*/
 #profileSection1Content{
    width: 100%;
    height: 100%;
@@ -18,6 +27,7 @@
    margin: 0px;
    padding: 10px 5px;
 }
+/* GRID: https://react-bootstrap.netlify.app/docs/layout/grid */
 #toggleEditProfileRow{
     display: flex;
     width: 100%;
@@ -36,7 +46,10 @@
     margin: 0px;
     padding: 0px;
 }
-#toggleEditProfileStack{
+/* TOGGLE EDIT PROFILE FORMS STACK:
+https://react-bootstrap.netlify.app/docs/layout/stack
+*/
+#toggleEditProfileFormsStack{
     width: 100%;
     margin: 0px;
     padding: 0px;
@@ -44,9 +57,13 @@
     align-items: center;
     justify-content: center;
 }
+/* =====================
+BUTTONS: https://react-bootstrap.netlify.app/docs/components/buttons
+==================*/
+/* EDIT PROFILE AND PASSWORD TOGGLE BUTTONS */
 #editUserToggleBtn,
 #editPswdToggleBtn{
-    width: 180px;
+    width: 200px;
     height: 40px;
     margin: 0px;
     padding: 0px;
