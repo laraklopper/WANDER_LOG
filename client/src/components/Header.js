@@ -13,64 +13,75 @@ export default function Header({heading, currentUser}) {
         <Col md={12}/>
       </Row>
          <Row id='header-row2'>
-        <Col/>
-        <Col xs={6}>
+        <Col id='heading-col1'/>
+        <Col xs={6} id='heading-col'>
         <Stack gap={3} id='heading-stack'>
-            <div className="p-2">
+            <div className="p-2" id='appHeadingBlock'>
               <h1 id='appHeading'>WANDER LOG</h1>
             </div>
-            <div className="p-2">
+            <div className="p-2" id='pageHeadingBlock'>
               <h2 id='pageHeading'>{heading}</h2>
             </div>
           </Stack>
         </Col>
-        <Col/>
+        <Col id='heading-col2'/>
       </Row>
       <Row id='header-row3'>
-      <Col/>
-        <Col xs={12} md={8}>
+      
+        <Col id='header-nav-col'>
           <nav id='navigation'>
             <ul id='navbar'>
                <Stack gap={3} id='header-nav-stack'>
-      <div className="p-2">
+      <div className="p-2" id='header-nav-block1'>
         {currentUser && (
-          <li>
-            <NavLink to='/'>DASHBOARD</NavLink>
+          <li className="link-item">
+            <NavLink to='/' className="refLink">
+              DASHBOARD
+            </NavLink>
           </li>
         )}
         {currentUser && (
-          <li>
-            <NavLink to='/travelLog'>TRAVEL LOG</NavLink>
+          <li className="link-item">
+            <NavLink to='/travelLog' className="refLink">
+              TRAVEL LOG
+            </NavLink>
           </li>
         )}
         {currentUser && (
-          <li>
-            <NavLink to='/journal'>JOURNAL</NavLink>
+          <li className="link-item">
+            <NavLink to='/journal' className="refLink">
+              JOURNAL
+            </NavLink>
           </li>
         )}
       </div>
-      <div className="p-2">
+      <div className="p-2" id='header-nav-block2'>
         {currentUser && (
-          <li>
-            <NavLink to='/budget'>BUDGET</NavLink>
+          <li className="link-item">
+            <NavLink to='/budget' className="refLink">
+              BUDGET
+            </NavLink>
           </li>
         )}
         {currentUser && (
-          <li>
-            <NavLink to='/profile'>PROFILE</NavLink>
+          <li className="link-item">
+            <NavLink to='/profile' className="refLink">
+              PROFILE
+            </NavLink>
           </li>
         )}
         {currentUser.admin && (
-          <li>
-            <NavLink to='/users'>USERS</NavLink>
+          <li className="link-item">
+            <NavLink to='/users' className="refLink">
+              USERS
+            </NavLink>
           </li>
         )}
       </div>
     </Stack>
             </ul>
           </nav>
-        </Col>
-        <Col/>
+        </Col>        
       </Row>
     </header>
   )

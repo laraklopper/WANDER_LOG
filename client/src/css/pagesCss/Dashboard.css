@@ -1,0 +1,8 @@
+#dashboardSection1 {
+   width: 100%;
+   background-color: #608021;
+   height: 100%;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+}

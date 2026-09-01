@@ -6,8 +6,11 @@ import Footer from '../components/Footer'
 
 export default function Dashboard({currentUser, logout}) {
   return (
-    <div>
+    <div id='pageContainer'>
       <Header currentUser={currentUser} heading={'DASHBOARD'}/>
+      <section id='dashboardSection1'>
+        
+      </section>
       <Footer logout={logout}/>
     </div>
   )
