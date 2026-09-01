@@ -7,16 +7,17 @@
 #edit-password-form{
     display: flex;
     flex-direction: column;
-    width: 400px;
+    width: 450px;
     background-color: #A8AEB3;
         margin: 0px;
     padding: 0px;
     align-items: center;
+    gap: 10px;
 }
 #edit-password-form-input{
-    width: 300px;
+    width: 400px;
     margin: 0px;
-    padding: 0px;
+    padding: 10px 0px 10px 0px;
     background-color: #BFBFBF;
 
 }
@@ -46,6 +47,17 @@
     justify-content: center;
     margin: 0px;
     padding: 5px 0px 0px 0px;
+}
+.password-input{
+    text-align: center;
+  border: solid black 2px;
+  border-radius: 5px;
+  height: 40px;
+  padding: 5px;
+  width: 250px;
+  font-family: "Ubuntu Mono", monospace;
+  font-size: 16px;
+  font-weight: 700;
 }
 /* CONFIRM PASSWORD */
 #confirmNewPassword-div,
@@ -89,6 +101,25 @@
 #showConfirmPswdBtn:hover,
 #showNewPswdBtn:hover,  
 #showCurrentPswdBtn:hover{
+    background-color: #323A42;
+    color: #E8F0F6;
+}
+#editPswdSubmitBtn{
+    width: 180px;
+    height: 40px;
+    margin: 0px;
+    padding: 0px;
+    color: #000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: solid 2px #323A42;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    color: #000;
+    text-transform: uppercase;
+}
+#editPswdSubmitBtn:hover{
     background-color: #323A42;
     color: #E8F0F6;
 }

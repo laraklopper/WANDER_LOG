@@ -3,7 +3,7 @@ import '../css/componentCss/EditUserForms.css'
 import '../css/componentCss/FormSetup.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
-import { Asterisk, Bug, Eye, EyeOff   } from 'lucide-react';
+import { Asterisk, Eye, EyeOff   } from 'lucide-react';
 export default function EditPasswordForm() {
     //===========STATE VARIABLES===========
     const [showPswdMsg, setShowPswdMsg] = useState(false);
@@ -25,10 +25,11 @@ export default function EditPasswordForm() {
         <label htmlFor="currentPassword" className="editPswd-label">Current Password:</label>
         <div className="input-div">
             <input
-                type="password"
+                type={showCurrentPswd ? 'text' : 'password'}
                 id="currentPassword"
                 required
-                className="input"
+                placeholder="Enter current password"
+                className="password-input"
                 name='currentPassword'
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
@@ -42,7 +43,16 @@ export default function EditPasswordForm() {
       {/* Show current password */}
       <div className="p-2" id='showCurrentPswdBtn-div'>
         <Button 
-        variant='warning' id='showCurrentPswdBtn' type='button' onClick={() => setShowCurrentPswd(!showCurrentPswd)}>
+        variant='warning' 
+        id='showCurrentPswdBtn' 
+        type='button' 
+        onClick={() => setShowCurrentPswd(!showCurrentPswd)}
+        // ARIA ATTRIBUTES:
+        aria-pressed={showCurrentPswd}
+        aria-label={showCurrentPswd ? 'Hide Current Password' : 'Show Current Password'}
+        aria-controls='currentPassword'
+        aria-expanded={showCurrentPswd}
+        >
             {showCurrentPswd ? (
               <>
               Hide current password <EyeOff fontWeight={700} aria-hidden='true' focusable='false'/></>
@@ -59,13 +69,14 @@ export default function EditPasswordForm() {
  <Stack gap={3} id='editPassword-Stack2'>
  {/* New Password */}
       <div id="newPassword-div">
-        <label htmlFor="newPassword" className="editPswd-label">New Password</label>
+        <label htmlFor="newPassword" className="editPswd-label">New Password:</label>
         <div className="input-div">
             <input
-                type="password"
+                type={showNewPswd ? 'text' : 'password'}
                 id="newPassword"
+                placeholder="Enter new password"
                 required
-                className="input"
+                className="password-input"
                 name='newPassword'
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
@@ -106,13 +117,14 @@ export default function EditPasswordForm() {
     <Stack gap={3} id='editPassword-Stack3'>
         {/* Confirm New Password */}
       <div id="confirmNewPassword-div">
-        <label htmlFor="confirmNewPassword" className="editPswd-label">Confirm New Password</label>
+        <label htmlFor="confirmNewPassword" className="editPswd-label">Confirm New Password:</label>
         <div className="input-div">
             <input
-                type="password"
+                type={showConfirmNewPswd ? 'text' : 'password'}
                 id="confirmNewPassword"
+                placeholder="Confirm new password"
                 required
-                className="input"
+                className="password-input"
                 name='confirmNewPassword'
                 value={confirmNewPassword}
                 onChange={(e) => setConfirmNewPassword(e.target.value)}
@@ -166,9 +178,9 @@ SHOW CONFIRM PASSWORD
                 </div>
             )}
         {/* Submit Button */}
-      <div className="p-2">
+      <div className="p-2" id='editPswdSubmitBtn-div'>
         <Button 
-        variant='light' id='editPasswordBtn' type='submit'>EDIT PASSWORD</Button>
+        variant='light' id='editPswdSubmitBtn' type='submit' >EDIT PASSWORD</Button>
       </div>
       {/* Clear form Button */}
       <div className="p-2">
