@@ -354,3 +354,4 @@ export default App;
 - https://fonts.google.com/
 - https://color.adobe.com/create/color-wheel
 - https://www.w3schools.com/colors/colors_groups.asp
+- https://www.w3schools.com/tags/ref_byfunc.asp
