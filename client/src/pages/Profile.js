@@ -10,7 +10,7 @@ import Footer from '../components/Footer'
 import EditPasswordForm from '../components/EditPasswordForm';
 import EditUserForm from '../components/EditUserForm';
 
-export default function Profile({currentUser, logout}) {
+export default function Profile({currentUser, logout, setError}) {
   const [showEditProfileForm, setShowEditProfileForm] = useState(false);
   const [showEditPswdForm, setShowEditPswdForm] = useState(false);
 
@@ -88,7 +88,9 @@ export default function Profile({currentUser, logout}) {
               <Col id='edit-password-col1'/>
               <Col xs={6} id='edit-password-col'>
               <div id='edit-pswd-div'>
-                <EditPasswordForm/>
+                <EditPasswordForm
+                  currentUser={currentUser}
+                />
               </div>
               </Col>
               <Col id='edit-password-col2'/>
