@@ -18,15 +18,16 @@ export default function Dashboard({currentUser, logout}) {
     <div id='pageContainer'>
       <Header currentUser={currentUser} heading={'DASHBOARD'}/>
       <section id='dashboardSection1'>
-        <div id='dashboardSection1Content'>
+        <div id='dashboardSection1Content' aria-describedby='dashboardText'>
+        <p id='dashboardText' className='visually-hidden'>Wander Log is a travel journal application that allows you to document your travel experiences, create a travel log, and keep track of your adventures.</p>
           <Row id='dashboard-row1'>
-            <Col md={12}>
-              <h3 id='dashboardHeading'>Welcome {fullName || 'User'} to Wander Log!</h3>
+            <Col md={12} id='dashboard-col1'>
+              <h3 id='dashboardHeading'>Welcome {fullName || 'User'}!</h3>
             </Col>
           </Row>
           <Row id='dashboard-row2'>
-            <Col md={12}>
-              <p id='dashboardText'>Wander Log is a travel journal application that allows you to document your travel experiences, create a travel log, and keep track of your adventures. You can add entries to your travel log, write journal entries, and view your past trips. Start exploring the world and documenting your journeys with Wander Log!</p>
+            <Col md={12} id='dashboard-col2'>
+              
             </Col>
           </Row>
         </div>
