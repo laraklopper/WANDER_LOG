@@ -7,6 +7,13 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 
 export default function Dashboard({currentUser, logout}) {
+  /* fullName arrives from the API as a nested { firstName, lastName } object, so
+  it cannot be rendered directly. The fullNameString virtual is the flattened
+  form the API sends alongside it, and the nested parts are joined as a fallback
+  in case a response was built without the virtual */
+  const {firstName = '', lastName = ''} = currentUser?.fullName || {};
+  const fullName = currentUser?.fullNameString?.trim() || `${firstName} ${lastName}`.trim();
+
   return (
     <div id='pageContainer'>
       <Header currentUser={currentUser} heading={'DASHBOARD'}/>
@@ -14,7 +21,7 @@ export default function Dashboard({currentUser, logout}) {
         <div id='dashboardSection1Content'>
           <Row id='dashboard-row1'>
             <Col md={12}>
-              <h3 id='dashboardHeading'>Welcome {currentUser?.fullName || 'User'} to Wander Log!</h3>
+              <h3 id='dashboardHeading'>Welcome {fullName || 'User'} to Wander Log!</h3>
             </Col>
           </Row>
           <Row id='dashboard-row2'>
