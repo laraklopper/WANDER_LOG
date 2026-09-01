@@ -15,6 +15,12 @@ export default function EditPasswordForm({currentUser, setError}) {
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
     const [loading, setLoading] = useState('')//Loading
 
+     const isStrongPassword =useCallback((pwd)=> {
+        return /^(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$/ //Regex pattern to check for at least 8 characters and one special character
+            .test(
+                String(pwd || '')// Ensure pwd is a string before testing
+            );
+    },[])
     const editPassword = useCallback(async (e) => {
         e.preventDefault();
         setLoading(true)
@@ -27,6 +33,15 @@ export default function EditPasswordForm({currentUser, setError}) {
     
         try {
           const token = localStorage.getItem('token')
+
+          if (!isStrongPassword(newPassword)) {
+                const msg = //Message for weak password
+                    'New password must be at least 8 characters long and include at least one special character.';
+                setError?.(msg);// Set the error state to display the error in the UI
+                alert(msg);// Alert user of error
+                return;// Exit the function early
+            }
+
           const response = await fetch(`http:/localhost:3001/users/${currentUser.id}/editPassword`, {
             method: 'PATCH',
             mode: 'cors',
@@ -55,7 +70,7 @@ export default function EditPasswordForm({currentUser, setError}) {
           setError('Error updating password:', error)
           alert(`Error updating password: ${error.message}`);
         }
-      }, [currentUser.id, setError, currentPassword, newPassword, confirmNewPassword]);
+      }, [currentUser.id, setError,isStrongPassword, currentPassword, newPassword, confirmNewPassword]);
 
       //=======================JSX RENDERING========================
   return (
@@ -225,13 +240,15 @@ export default function EditPasswordForm({currentUser, setError}) {
               variant='light' 
               id='editPswdSubmitBtn' 
               type='submit' 
+              disabled={loading}
               // ARIA ATTRIBUTES
               role='button'
-              aria-label='Submit Edit Password Form'
+              aria-disabled={loading}
+              aria-label={loading ? 'Saving…' : 'EDIT PASSWORD'}
               aria-controls='edit-password-form'
               aria-describedby='edit-password-form'
               >
-              EDIT PASSWORD
+              {loading ? 'Saving…' : 'EDIT PASSWORD'}
               </Button>
           </div>
           {/* Clear form Button */}
