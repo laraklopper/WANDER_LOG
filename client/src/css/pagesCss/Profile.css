@@ -5,6 +5,7 @@ Profile.js
 SECTION 1: USER PROFILE + EDIT PROFILE FORMS
 =========*/
 #profileSection1{
+        flex-direction: column;
     width: 100%;
    background-color: #608021;
    height: 100%;
@@ -27,6 +28,22 @@ LAYOUT
    margin: 0px;
    padding: 10px 5px;
 }
+#edit-profile-panal,
+#edit-password-panal{  
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin: 0px;
+    padding: 0px;
+}
+#edit-pswd-div{
+    background-color: #9E9E9E;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin: 0px;
+    padding: 0px;
+}
 /* GRID: https://react-bootstrap.netlify.app/docs/layout/grid */
 #toggleEditProfileRow{
     display: flex;
@@ -42,7 +59,42 @@ LAYOUT
 }
 #toggleEditProfileCol1,
 #toggleEditProfileCol2{
+    margin: 0px;
+    padding: 0px;
+}
+#edit-profile-row{
+    display: flex;
     width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#edit-profile-col{
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+    justify-content: center;
+}
+#edit-profile-col1,
+#edit-profile-col2{
+    margin: 0px;
+    padding: 0px;
+}
+#edit-password-row{
+      display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+    align-items: center;
+}
+#edit-password-col{
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+    justify-content: center;
+}
+#edit-password-col1,
+#edit-password-col2{
     margin: 0px;
     padding: 0px;
 }

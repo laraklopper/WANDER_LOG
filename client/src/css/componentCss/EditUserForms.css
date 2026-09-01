@@ -1,0 +1,8 @@
+#edit-password-form{
+    display: flex;
+    flex-direction: column;
+    width: 400px;
+    margin: 0px;
+    padding: 0px;
+    align-items: center;
+}

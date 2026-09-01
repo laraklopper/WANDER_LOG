@@ -46,7 +46,7 @@ export default function Profile({currentUser, logout}) {
           aria-describedby="edit-profile-panal"
           aria-pressed={showEditProfileForm}
           >
-            {showEditProfileForm ? 'Close Edit Profile Form' : 'Edit Profile'}
+            {showEditProfileForm ? 'Close Form' : 'Edit Profile'}
           </Button>
       <div className="p-2"></div>
       {/* TOGGLE EDIT PASSWORD FORM BUTTON */}
@@ -63,7 +63,7 @@ export default function Profile({currentUser, logout}) {
           aria-describedby="edit-password-panal"
           aria-pressed={showEditPswdForm}
           >
-          {showEditPswdForm ? 'Close Edit Password Form' : 'Edit Password'}
+          {showEditPswdForm ? 'Close Form' : 'Edit Password'}
         </Button>
       </div>
     </Stack>
