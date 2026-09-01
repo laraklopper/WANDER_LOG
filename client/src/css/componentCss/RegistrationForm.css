@@ -58,6 +58,24 @@ LAYOUT
     border-radius: 8px;
 }
 
+#personal-info-heading{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 0px;
+    padding: 0px;
+    text-transform: uppercase;
+    text-decoration: underline;
+}
+#personal-info-heading-span{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 0px;
+    padding: 0px;
+}
 /* BOOTSTRAP LAYOUT */
 /* STACK 1: https://react-bootstrap.netlify.app/docs/layout/stack */
 #regis-stack1{

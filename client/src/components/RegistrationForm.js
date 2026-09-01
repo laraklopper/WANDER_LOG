@@ -293,8 +293,8 @@ export default function RegistrationForm({
         <div id='regis-input-div'>
         {/* GROUP 1: USERNAME + FULL NAME + EMAIL + DATE OF BIRTH */}
             <div id='regis-group1' aria-labelledby='regis-personal-info-heading'>
-            <span id='regis-personal-info-heading-span'>
-                <h5 className='formSectionHeading' id='regis-personal-info-heading'>PERSONAL INFORMATION</h5><FileUser fontSize={20}  aria-hidden='true' focusable='false' />
+            <span id='regis-personal-info-heading-span' className='formSectionHeadingSpan visually-hidden'>
+                <h5 className='formSectionHeading' id='regis-personal-info-heading'>PERSONAL INFORMATION <FileUser fontSize={20}  aria-hidden='true' focusable='false' /></h5>
             </span>
             {/* STACK1 */}
              <Stack direction="horizontal" gap={3} id='regis-stack1'>
@@ -506,7 +506,6 @@ export default function RegistrationForm({
       {/* STREET ADDRESS INPUT: value={newUserData.address?.line1 || ''} */}
 <label className='regis-label' htmlFor='regisAddressLine1'>STREET ADDRESS:</label>
         <div className='input-div'>
-
             <textarea
                 rows={3}
                 className='address-text-input'
