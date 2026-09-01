@@ -49,7 +49,67 @@ General styling formats, not the default tags styling for all formats apply for 
 ```
 ### 1.3. NAVIGATION BAR
 ### 1.4. FORMS
+````css
+/* Form panal */
+#panal{
+  background-color: #9E9E9E;
+  margin
+  padding
+}
+/* Form */
 
+form{
+background-color: #A8AEB3;
+margin: 0px;
+padding: 0px;
+}
+
+.form-input-details{
+      background-color: #BFBFBF;
+  width: 80%;
+  margin: 0px;
+padding: 0px;
+}
+/* FORM GROUPS */
+.form-group{
+    border: solid #323A42 2px;
+    background: #D6D6D6;
+    border-radius: 8px;
+}
+/* GENERAL TEXT FORMAT */
+
+#formHeading{
+  color: #000000;
+  font-family: "Roboto Condensed", sans-serif;
+  font-weight: 700;
+}
+
+.label{
+ color: #000000;
+    font-weight: 700;
+    margin: 0px;
+    padding: 0px;
+    font-family: "Fira Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.infoText{
+  text-transform: uppercase;
+    color: #444;
+    text-align: center;
+    margin: 0px;
+    padding: 10px 0px;
+    font-family: "Open Sans", sans-serif;
+}
+#requiredIcon{
+  color: #C22419;
+  font-family: "Open Sans", sans-serif;
+  margin: 0px;
+  letter-spacing: 1px;
+  padding: 0px;
+}
+````
 ## 1.5. CALCULATOR/CURRENCY CONVERTER
 
 ## 1.6. DETAILS

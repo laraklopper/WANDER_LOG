@@ -1,7 +1,113 @@
 /* EDIT USER FORM */
-#edit-user-form{
+#edit-profile-form{
     display: flex;
     flex-direction: column;
+    background-color: #A8AEB3;
+    align-items: center;
+    margin: 0px;
+    padding: 10px 0px;
+    gap: 10px;
+    width: 100%;
+}
+/* ============
+LAYOUT
+==========*/
+#edit-user-input{
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    margin: 0px;
+    padding: 10px;
+    gap: 10px;
+    background-color: #BFBFBF;
+}
+/* GROUP 1 */
+#edit-profile-group1{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 0px;
+    padding: 10px;
+     border: solid #323A42 2px;
+    background: #D6D6D6;
+    border-radius: 8px;
+}
+#edit-user-stack1{
+    width: 100%;
+    display: flex;
+    margin: 0px;
+    padding: 0px;
+}
+#edit-username-block,
+#edit-user-fullname-block{
+    display: flex;
+    align-items: baseline;
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+    gap: 10px;
+}
+#edituser-profile-pic-block{
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 0px;
+}
+/* GROUP 2 */
+#edit-profile-group2{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 0px;
+    padding: 10px;
+     border: solid #323A42 2px;
+    background: #D6D6D6;
+    border-radius: 8px;
+}
+#edit-address-block1,
+#edit-address-block2{
+    display: flex;
+    gap: 10px;
+    margin: 0px;
+    padding: 0px;
+    justify-content: center;
+}
+.edit-profile-textinput{
+    width: 250px;
+    border: solid 2px;
+    border-radius: 5px;
+    overflow-y: scroll;
+    margin: 0px;
+    padding: 5px;
+}
+#edit-profile-group3{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#edit-user-stack5{
+    width: 90%;
+    margin: 0px;
+    padding: 0px;
+}
+#editUserBtn{
+ display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0px;
+    padding: 0px;
+    width: 180px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    color: #000;
+    border: solid 2px #323A42;
+}
+#editUserBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42; 
 }
 /* EDIT PASSWORD FORM */
 #edit-password-form{
@@ -23,6 +129,7 @@
 }
 /* CURRENT PASSWORD */
 #edit-password-stack1{
+    display: flex;
     width: 100%;
     margin: 0px;
     padding: 0px;
@@ -71,6 +178,7 @@
     padding: 5px 0px 0px 0px;
 }
 /* EDIT PASSWORD BUTTONS */
+.edit-profile-label,
 .editPswd-label{
     color: #000000;
     font-weight: 700;

@@ -42,7 +42,7 @@
   height: 40px;
   padding: 5px;
   width: 180px;
-  font-family: "Ubuntu Mono", monospace;
+  font-family: "Fira Sans", sans-serif;
   font-size: 16px;
   font-weight: 700;
 }
@@ -131,11 +131,12 @@
     justify-content: center;
     width: 180px;
     height: 40px;
-    font-family: "Roboto Mono", monospace;
+    font-family: "Fira Mono", monospace;
     font-weight: 700;
     text-transform: uppercase;
     color: #000;
     margin: 0px;
+    letter-spacing: 2px;
     padding: 0px;
     border: solid 2px #323A42;
 }
