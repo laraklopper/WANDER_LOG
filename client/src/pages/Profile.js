@@ -9,7 +9,7 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import EditPasswordForm from '../components/EditPasswordForm';
 import EditUserForm from '../components/EditUserForm';
-import { parseJson, errorMessage } from '../api/config';
+import { errorMessage } from '../api/config';
 
 export default function Profile({currentUser, logout, setError}) {
   const [showEditProfileForm, setShowEditProfileForm] = useState(false);
@@ -103,7 +103,10 @@ export default function Profile({currentUser, logout, setError}) {
         }),
       })
 
-      const data = await parseJson(response)
+      /* Safely parse the JSON response. Guarded because the body is empty or is
+      not JSON at all on a 429 from the rate limiter, and response.json() would
+      throw before the status could be reported */
+      const data = await response.json().catch(() => ({}))
 
       if (response.ok) {
         setError?.(null)
