@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react'
+import React, {useState, useCallback, useEffect, useMemo} from 'react'
 import '../css/pagesCss/PageSetup.css'
 import '../css/pagesCss/Profile.css'
 import Row from 'react-bootstrap/Row';
@@ -9,11 +9,122 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import EditPasswordForm from '../components/EditPasswordForm';
 import EditUserForm from '../components/EditUserForm';
+import { parseJson, errorMessage } from '../api/config';
 
 export default function Profile({currentUser, logout, setError}) {
   const [showEditProfileForm, setShowEditProfileForm] = useState(false);
   const [showEditPswdForm, setShowEditPswdForm] = useState(false);
+  // Blocks a second submit while the first request is in flight
+  const [submitting, setSubmitting] = useState(false)
+  /* Field keyed messages returned by the server when Mongoose validation fails,
+  for example { username: 'Username is already taken' }. Passed to the form so
+  each message can be shown against its own input */
+  const [fieldErrors, setFieldErrors] = useState({})
+  const [editUserData, setEditUserData] = useState({
+    username: '',
+    fullName: {
+      firstName: '',
+      lastName: '',
+    },
+    email: '',
+    profilePicture: '',
+    address: {
+      line1: '',
+      line2: '',
+      city: '',
+      province: ''
+    }
+  })
 
+  /* The saved account in the shape the form holds. An edit form starts from the
+  current details rather than from an empty form, so the user only has to change
+  the field they came to change */
+  const savedUserData = useMemo(() => ({
+    username: currentUser?.username || '',
+    fullName: {
+      firstName: currentUser?.fullName?.firstName || '',
+      lastName: currentUser?.fullName?.lastName || '',
+    },
+    email: currentUser?.email || '',
+    profilePicture: currentUser?.profilePicture || '',
+    address: {
+      line1: currentUser?.address?.line1 || '',
+      line2: currentUser?.address?.line2 || '',
+      city: currentUser?.address?.city || '',
+      province: currentUser?.address?.province || '',
+    }
+  }), [currentUser])
+
+  /* Refills the form whenever it is opened, and again if currentUser is
+  replaced after a successful save. Keyed on the toggle as well as the account
+  so that closing and reopening the panel discards any half finished edit */
+  useEffect(() => {
+    if (!showEditProfileForm) return;
+    setEditUserData(savedUserData);
+    setFieldErrors({});
+  }, [showEditProfileForm, savedUserData])
+
+  const editUser = useCallback(async () => {
+    if (submitting) return;
+
+    /* The API shapes a user with toPublicJSON, which names the key userId,
+    so currentUser.id is always undefined */
+    const userId = currentUser?.userId;
+    const token = localStorage.getItem('token');
+
+    // Without either of these the request can only come back as a 401 or a 404
+    if (!token || !userId) {
+      const message = 'Your session has expired. Please log in again to edit your profile.';
+      setError?.(message);
+      console.error('[ERROR: Profile.js] Edit blocked, no token or no user id');
+      return;
+    }
+
+    try {
+      setSubmitting(true)
+      setError?.(null)
+      setFieldErrors({})
+
+      const response = await fetch(`http://localhost:3001/users/${userId}/editUser`, {
+        method: 'PATCH',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          username: editUserData.username,
+          fullName: editUserData.fullName,
+          email: editUserData.email,
+          address: editUserData.address,
+          /* Optional field. Sent as null when blank, because the schema types it
+          as a String defaulting to null and '' would be stored as an empty URL */
+          profilePicture: editUserData.profilePicture || null,
+        }),
+      })
+
+      const data = await parseJson(response)
+
+      if (response.ok) {
+        setError?.(null)
+        setFieldErrors({})
+        alert('Profile updated successfully.')
+        setShowEditProfileForm(false)
+      } else {
+        const message = errorMessage(response, data, 'Profile update failed.');
+        // Present on a 400 from Mongoose validation, absent on a 409 or a 500
+        if (data.errors) setFieldErrors(data.errors);
+        setError?.(message);
+        console.error(`[ERROR: Profile.js] Profile update failed with status ${response.status}: ${message}`);
+      }
+    } catch (error) {
+      // Only a network level failure reaches here, a 4xx or 5xx is handled above
+      setError?.('Could not reach the server. Please check your connection and try again.');
+      console.error(`[ERROR: Profile.js] Profile update request failed: ${error.message}`);
+    } finally {
+      setSubmitting(false)
+    }
+  },[submitting, currentUser, editUserData, setError])
   const toggleEditProfile = useCallback(() => {
     setShowEditProfileForm(prevState => !prevState);
     setShowEditPswdForm(false); // Ensure the edit password form is hidden when toggling the profile form
@@ -76,7 +187,14 @@ export default function Profile({currentUser, logout, setError}) {
             <Row id='edit-profile-row'>
               <Col id='edit-profile-col1'/>
               <Col md={10} id='edit-profile-col'>
-                <EditUserForm/>
+                <EditUserForm
+                  currentUser={currentUser}
+                  editUser={editUser}
+                  editUserData={editUserData}
+                  setEditUserData={setEditUserData}
+                  submitting={submitting}
+                  fieldErrors={fieldErrors}
+                />
               </Col>
               <Col id='edit-profile-col2'/>
             </Row>

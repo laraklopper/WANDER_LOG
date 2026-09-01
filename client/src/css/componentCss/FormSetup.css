@@ -48,7 +48,8 @@
 }
 /* Fields flagged by the touched based validation */
 .input[aria-invalid="true"],
-.address-text-input[aria-invalid="true"]{
+.address-text-input[aria-invalid="true"],
+.edit-profile-textinput[aria-invalid="true"]{
   border-color: #C22419;
 }
 
