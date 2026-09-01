@@ -140,4 +140,128 @@ router.patch('/:id/editPassword', checkJwtToken, editPasswordLimiter, checkPassw
     }
 });
 
+/* Route to PATCH the profile details of one account.
+Only the five fields the edit form owns are read from the body. Everything else
+is ignored, so adding "admin": true, "password" or "entries" to the JSON cannot
+escalate the account or overwrite the stored hash */
+router.patch('/:id/editUser', checkJwtToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { username, fullName, email, address, profilePicture } = req.body || {};
+
+        /* checkJwtToken assigns the decoded token, not a loaded account, so the
+        id comes from the payload that signToken put there */
+        const requesterId = req.user?.userId;
+
+        /* Checked before the lookup, otherwise a malformed id reaches Mongoose as
+        a CastError and is reported as a 500 instead of a 400 */
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: 'Invalid user id' });
+        }
+
+        /* An account may only edit its own profile. Without this any logged in
+        user could aim the route at another id, and the token would still pass.
+        Admins are not exempt, for the same reason as on the password route */
+        if (String(requesterId) !== String(id)) {
+            console.warn(`[WARN: userRoutes.js "/:id/editUser"] ${requesterId} tried to edit the profile of ${id}`);
+            return res.status(403).json({ message: 'You may only edit your own profile' });
+        }
+
+        // password and confirmPassword are select: false, so neither is loaded here
+        const user = await User.findById(id);
+
+        //Conditional rendering to check that the account still exists
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        /* Normalised the same way the schema stores them, so the comparison below
+        does not report a clash between a value and its own untrimmed form */
+        const newUsername = username == null ? undefined : String(username).trim();
+        const newEmail = email == null ? undefined : String(email).trim().toLowerCase();
+
+        /* username and email are unique. Only the ones actually being changed are
+        looked up, so a user resubmitting their own details does not clash with
+        their own record */
+        const clashes = [];
+        if (newUsername && newUsername !== user.username) clashes.push({ username: newUsername });
+        if (newEmail && newEmail !== user.email) clashes.push({ email: newEmail });
+
+        if (clashes.length > 0) {
+            /* $or, not an implicit AND: an account clashes if EITHER field is
+            already taken. _id is excluded so the user's own record never matches */
+            const existingUser = await User.findOne({ _id: { $ne: id }, $or: clashes });
+
+            if (existingUser) {
+                // Named precisely so the form can tell the user which field to change
+                const takenField = existingUser.username === newUsername ? 'Username' : 'Email';
+                console.warn(`[WARN: userRoutes.js "/:id/editUser"] ${takenField} already registered`);
+                return res.status(409).json({ message: `${takenField} is already registered` });
+            }
+        }
+
+        /* Each field is applied only when the client sent it, so this stays a
+        PATCH: a body carrying one field leaves the other four alone */
+        if (newUsername !== undefined) user.username = newUsername;
+        if (newEmail !== undefined) user.email = newEmail;
+
+        if (fullName && typeof fullName === 'object') {
+            if (fullName.firstName !== undefined) user.fullName.firstName = fullName.firstName;
+            if (fullName.lastName !== undefined) user.fullName.lastName = fullName.lastName;
+        }
+
+        if (address && typeof address === 'object') {
+            /* Listed rather than looped over Object.keys(address), so a key that is
+            not part of the address cannot be written onto the document */
+            for (const field of ['line1', 'line2', 'city', 'province']) {
+                if (address[field] !== undefined) user.address[field] = address[field];
+            }
+        }
+
+        /* Clearing the picture is a real edit, and the form sends null to do it,
+        so an absent key is the only value that means "leave this one alone" */
+        if (profilePicture !== undefined) user.profilePicture = profilePicture;
+
+        /* Saying nothing changed is clearer than reporting a success the user
+        cannot see. The setters on the schema have already run by this point, so a
+        blank line2 resubmitted as '' is correctly counted as unchanged */
+        if (!user.isModified()) {
+            return res.status(400).json({ message: 'No changes to save' });
+        }
+
+        /* save() rather than findByIdAndUpdate, so the schema validators and the
+        setters on profilePicture and address.line2 both run */
+        await user.save();
+
+        console.info(`[SUCCESS: userRoutes.js "/:id/editUser"] ${user.username} updated their profile`);
+        return res.status(200).json({
+            message: 'Profile updated successfully',
+            user: user.toPublicJSON(),
+        });
+    } catch (error) {
+        /* Mongoose collects every failed field rule into one ValidationError.
+        They are returned as a 400 with a field keyed object so the edit form can
+        show each message next to the input that caused it */
+        if (error.name === 'ValidationError') {
+            const errors = Object.fromEntries(
+                Object.entries(error.errors).map(([field, err]) => [field, err.message])
+            );
+            console.error('[ERROR: userRoutes.js "/:id/editUser"] Validation failed:', errors);
+            return res.status(400).json({ message: 'Profile update failed, please check the highlighted fields', errors });
+        }
+
+        /* Duplicate key error from the unique indexes on username and email.
+        Reachable when two requests claim the same details at the same time,
+        after the findOne check above has already passed for both */
+        if (error.code === 11000) {
+            const field = Object.keys(error.keyPattern || {})[0] || 'Account';
+            console.error(`[ERROR: userRoutes.js "/:id/editUser"] Duplicate ${field}`);
+            return res.status(409).json({ message: `That ${field} is already registered` });
+        }
+
+        console.error('[ERROR: userRoutes.js "/:id/editUser"]:', error.message);//Log an error message in the console for debugging purposes
+        return res.status(500).json({ message: 'Internal server Error' });
+    }
+});
+
 module.exports = router

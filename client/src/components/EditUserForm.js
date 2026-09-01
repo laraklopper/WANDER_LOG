@@ -3,7 +3,7 @@ import '../css/componentCss/EditUserForms.css'
 import '../css/componentCss/FormSetup.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
-import { Asterisk, Bug } from 'lucide-react';
+import { Bug } from 'lucide-react';
 import { provinces } from '../data/locations';
 
 /* Mirrors the email pattern used by the server (userSchema.js) so the client
@@ -23,20 +23,18 @@ export default function EditUserForm({
   // True while the update request is in flight, set by the Profile page
   submitting = false,
   /* Field keyed messages from the server, for rules the browser cannot check,
-  such as a username or email already being taken */
+  such as a username or email already being taken, or a field left blank */
   fieldErrors = {},
 }) {
   const [emailMsg, setEmailMsg] = useState(false)
   const [formError, setFormError] = useState(null)// Form level error shown above the submit button
+  /* Only the fields that can raise an error of their own are tracked. The rest
+  are checked by the server, which returns its messages in fieldErrors */
   const [touched, setTouched] = useState({
     username: false,      // Tracks if username field was touched
-    firstName: false,     // Tracks if first name field was touched
-    lastName: false,      // Tracks if last name field was touched
     email: false,         // Tracks if email field was touched
     profilePicture: false,// Tracks if profile picture field was touched
-    line1: false,         // Tracks if address.line1 was touched
     line2: false,         // Tracks if address.line2 was touched
-    city: false,          // Tracks if address.city was touched
     province: false,      // Tracks if address.province was touched
   })
 
@@ -48,19 +46,15 @@ export default function EditUserForm({
   const markAllTouched = () =>
     setTouched({
       username: true,
-      firstName: true,
-      lastName: true,
       email: true,
       profilePicture: true,
-      line1: true,
       line2: true,
-      city: true,
       province: true,
     });
 
-  /* The saved account, flattened to the same keys the touched map uses.
-  Used by the reset button, and to work out whether anything was actually
-  changed, which an edit form has to know and a registration form does not */
+  /* The saved account, flattened to one level. Used by the reset button, and to
+  work out whether anything was actually changed, which an edit form has to know
+  and a registration form does not */
   const savedValues = useMemo(() => ({
     username: currentUser?.username || '',
     firstName: currentUser?.fullName?.firstName || '',
@@ -86,26 +80,14 @@ export default function EditUserForm({
     province: editUserData?.address?.province || '',
   }), [editUserData]);
 
-  //========== EMPTY FIELD VALIDATION ====================
-  /* line2 and profilePicture are left out, both are optional on the schema and
-  clearing them is a valid edit */
+  //========== EMPTY FIELD CHECKS ====================
+  /* Not errors in themselves, they only stop a format rule being applied to a
+  field that has nothing in it yet */
   const usernameEmpty = useMemo(
     () => !currentValues.username.trim(), [currentValues.username]
   );
-  const firstNameEmpty = useMemo(
-    () => !currentValues.firstName.trim(), [currentValues.firstName]
-  );
-  const lastNameEmpty = useMemo(
-    () => !currentValues.lastName.trim(), [currentValues.lastName]
-  );
   const emailEmpty = useMemo(
     () => !currentValues.email.trim(), [currentValues.email]
-  );
-  const line1Empty = useMemo(
-    () => !currentValues.line1.trim(), [currentValues.line1]
-  );
-  const cityEmpty = useMemo(
-    () => !currentValues.city.trim(), [currentValues.city]
   );
   const provinceEmpty = useMemo(
     () => !currentValues.province.trim(), [currentValues.province]
@@ -158,22 +140,15 @@ export default function EditUserForm({
     [savedValues, currentValues]
   );
 
-  const showUsernameError = touched.username && usernameEmpty;
   const showUsernameLengthError = touched.username && usernameTooShort;
-  const showFirstNameError = touched.firstName && firstNameEmpty;
-  const showLastNameError = touched.lastName && lastNameEmpty;
-  const showEmailError = touched.email && emailEmpty;
   const showEmailFormatError = touched.email && emailInvalid;
   const showProfilePictureError = touched.profilePicture && profilePictureInvalid;
-  const showLine1Error = touched.line1 && line1Empty;
   const showLine2LengthError = touched.line2 && line2TooShort;
-  const showCityError = touched.city && cityEmpty;
-  const showProvinceError = touched.province && provinceEmpty;
   const showProvinceInvalidError = touched.province && provinceInvalid;
 
-  /* Only the rules the browser cannot enforce on its own are checked here.
-  Empty, minLength and type constraints are still handled by the native
-  validation on each input, which blocks submit before this runs */
+  /* Checks the format rules the browser cannot enforce on its own. A field left
+  blank is not stopped here, it is reported by the server and shown in the
+  fieldErrors block below */
   const handleSubmit = (e) => {
     e.preventDefault()
     // Ignored while a request is already running, so the form cannot double post
@@ -236,9 +211,7 @@ export default function EditUserForm({
     }));
   };
 
-  /* Resets to the saved account rather than to a blank form. Every field except
-  line 2 and the picture is required, so emptying them would only leave a form
-  that cannot be submitted */
+  // Restores the saved account, discarding whatever the user has typed
   const handleReset = () => {
     const confirmReset = window.confirm(
       'Discard your changes and restore your saved details?'
@@ -262,33 +235,22 @@ export default function EditUserForm({
     });
     setTouched({
       username: false,
-      firstName: false,
-      lastName: false,
       email: false,
       profilePicture: false,
-      line1: false,
       line2: false,
-      city: false,
       province: false,
     });
     setFormError(null);
   };
 
   // ========= IDs USED BY aria-describedby =========
-  const usernameErrorId = 'editUserUsernameError';// ID used for username required error
   const usernameLengthErrorId = 'editUserUsernameLengthError';// ID used for short username error
-  const firstNameErrorId = 'editUserFirstNameError';// ID used for first name error message
-  const lastNameErrorId = 'editUserLastNameError';// ID used for last name error message
-  const emailErrorId = 'editUserEmailError';// ID used for email required error
   const emailFormatErrorId = 'editUserEmailFormatError';// ID used for invalid email error
   const emailHelpId = 'editUserEmailHelp';// ID used for the email privacy note
   const profilePictureHelpId = 'editUserProfilePictureHelp';// ID used for the profile picture hint
   const profilePictureErrorId = 'editUserProfilePictureError';// ID used for invalid picture URL error
-  const line1ErrorId = 'editUserAddressLine1Error';// ID used for street address error
   const line2HelpId = 'editUserAddressLine2Help';// ID used for the optional line 2 hint
   const line2LengthErrorId = 'editUserAddressLine2LengthError';// ID used for short line 2 error
-  const cityErrorId = 'editUserAddressCityError';// ID used for city error message
-  const provinceErrorId = 'editUserAddressProvinceError';// ID used for province required error
   const provinceInvalidErrorId = 'editUserAddressProvinceInvalidError';// ID used for unknown province error
   const formErrorId = 'editUserFormError';// ID used for the form level error message
   const serverErrorId = 'editUserServerErrors';// ID used for the block listing the server's field errors
@@ -322,7 +284,6 @@ export default function EditUserForm({
                   className='input'
                   id='editUsername'
                   placeholder='USERNAME'
-                  required
                   minLength={3}
                   maxLength={50}
                   autoComplete='username'
@@ -331,21 +292,15 @@ export default function EditUserForm({
                   onChange={handleInputChange}
                   onBlur={() => markTouched('username')}
                   // ARIA ATTRIBUTES:
-                  aria-required='true'
-                  aria-invalid={showUsernameError || showUsernameLengthError || hasServerError('username') ? 'true' : 'false'}
+                  aria-invalid={showUsernameLengthError || hasServerError('username') ? 'true' : 'false'}
                   aria-describedby={describedBy(
-                    showUsernameError && usernameErrorId,
                     showUsernameLengthError && usernameLengthErrorId,
                     hasServerError('username') && serverErrorId
                   )}
                 />
-                <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
               </div>
               <div>
-                {/* USERNAME ERROR MESSAGES */}
-                {showUsernameError && (
-                  <p id={usernameErrorId} className='visually-hidden' role='alert'>Username is required.</p>
-                )}
+                {/* USERNAME ERROR MESSAGE */}
                 {showUsernameLengthError && (
                   <p id={usernameLengthErrorId} className='formErrorMessage' role='alert'>
                     <Bug size={16} fontWeight={900} aria-hidden='true' focusable='false' />
@@ -364,20 +319,16 @@ export default function EditUserForm({
                   className='input'
                   id='editFirstName'
                   placeholder='FIRST NAME'
-                  required
                   minLength={2}
                   maxLength={50}
                   autoComplete='given-name'
                   name='fullName.firstName'
                   value={editUserData.fullName?.firstName || ''}
                   onChange={handleInputChange}
-                  onBlur={() => markTouched('firstName')}
                   // ARIA ATTRIBUTES:
-                  aria-required='true'
-                  aria-invalid={showFirstNameError ? 'true' : 'false'}
-                  aria-describedby={describedBy(showFirstNameError && firstNameErrorId)}
+                  aria-invalid={hasServerError('fullName.firstName') ? 'true' : 'false'}
+                  aria-describedby={describedBy(hasServerError('fullName.firstName') && serverErrorId)}
                 />
-                <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
               </div>
               <div className='input-div'>
                 <label htmlFor='editLastName' className='edit-profile-label' hidden>LAST NAME:</label>
@@ -386,29 +337,16 @@ export default function EditUserForm({
                   className='input'
                   id='editLastName'
                   placeholder='LAST NAME'
-                  required
                   minLength={2}
                   maxLength={50}
                   autoComplete='family-name'
                   name='fullName.lastName'
                   value={editUserData.fullName?.lastName || ''}
                   onChange={handleInputChange}
-                  onBlur={() => markTouched('lastName')}
                   // ARIA ATTRIBUTES:
-                  aria-required='true'
-                  aria-invalid={showLastNameError ? 'true' : 'false'}
-                  aria-describedby={describedBy(showLastNameError && lastNameErrorId)}
+                  aria-invalid={hasServerError('fullName.lastName') ? 'true' : 'false'}
+                  aria-describedby={describedBy(hasServerError('fullName.lastName') && serverErrorId)}
                 />
-                <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
-              </div>
-              <div>
-                {/* FULL NAME ERROR MESSAGES */}
-                {showFirstNameError && (
-                  <p id={firstNameErrorId} className='visually-hidden' role='alert'>First name is required.</p>
-                )}
-                {showLastNameError && (
-                  <p id={lastNameErrorId} className='visually-hidden' role='alert'>Last name is required.</p>
-                )}
               </div>
             </div>
           </Stack>
@@ -423,7 +361,6 @@ export default function EditUserForm({
                   className='input'
                   id='editUserEmail'
                   placeholder='EMAIL'
-                  required
                   maxLength={254}
                   autoComplete='email'
                   name='email'
@@ -435,23 +372,17 @@ export default function EditUserForm({
                     markTouched('email')
                   }}
                   // ARIA ATTRIBUTES:
-                  aria-required='true'
-                  aria-invalid={showEmailError || showEmailFormatError || hasServerError('email') ? 'true' : 'false'}
+                  aria-invalid={showEmailFormatError || hasServerError('email') ? 'true' : 'false'}
                   aria-describedby={describedBy(
-                    showEmailError && emailErrorId,
                     showEmailFormatError && emailFormatErrorId,
                     emailMsg && emailHelpId,
                     hasServerError('email') && serverErrorId
                   )}
                 />
-                <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
               </div>
             </div>
-            {/* EMAIL ERROR MESSAGES */}
+            {/* EMAIL ERROR MESSAGE */}
             <div className="p-2 ms-auto">
-              {showEmailError && (
-                <p id={emailErrorId} className='visually-hidden' role='alert'>Email is required.</p>
-              )}
               {showEmailFormatError && (
                 <p id={emailFormatErrorId} className='formErrorMessage' role='alert'>
                   <Bug size={16} fontWeight={900} aria-hidden='true' focusable='false' />
@@ -483,7 +414,6 @@ export default function EditUserForm({
                   onChange={handleInputChange}
                   onBlur={() => markTouched('profilePicture')}
                   // ARIA ATTRIBUTES:
-                  aria-required='false'
                   aria-invalid={showProfilePictureError || hasServerError('profilePicture') ? 'true' : 'false'}
                   aria-describedby={describedBy(
                     profilePictureHelpId,
@@ -519,19 +449,15 @@ export default function EditUserForm({
                   id='editAddressLine1'
                   rows={3}
                   placeholder='STREET ADDRESS'
-                  required
                   minLength={2}
                   maxLength={100}
                   name='address.line1'
                   value={editUserData.address?.line1 || ''}
                   onChange={handleInputChange}
-                  onBlur={() => markTouched('line1')}
                   // ARIA ATTRIBUTES:
-                  aria-required='true'
-                  aria-invalid={showLine1Error ? 'true' : 'false'}
-                  aria-describedby={describedBy(showLine1Error && line1ErrorId)}
+                  aria-invalid={hasServerError('address.line1') ? 'true' : 'false'}
+                  aria-describedby={describedBy(hasServerError('address.line1') && serverErrorId)}
                 />
-                <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
               </div>
               <div className='input-div'>
                 <label className='edit-profile-label visually-hidden' htmlFor='editAddressLine2'>ADDITIONAL ADDRESS DETAILS</label>
@@ -546,7 +472,6 @@ export default function EditUserForm({
                   onChange={handleInputChange}
                   onBlur={() => markTouched('line2')}
                   // ARIA ATTRIBUTES:
-                  aria-required='false'
                   aria-invalid={showLine2LengthError ? 'true' : 'false'}
                   aria-describedby={describedBy(
                     line2HelpId,
@@ -555,11 +480,8 @@ export default function EditUserForm({
                 />
                 <small id={line2HelpId} className='visually-hidden'>Optional</small>
               </div>
-              {/* ADDRESS LINE ERROR MESSAGES */}
+              {/* ADDRESS LINE 2 ERROR MESSAGE */}
               <div>
-                {showLine1Error && (
-                  <p id={line1ErrorId} className='visually-hidden' role='alert'>Street address is required.</p>
-                )}
                 {showLine2LengthError && (
                   <p id={line2LengthErrorId} className='formErrorMessage' role='alert'>
                     <Bug size={16} fontWeight={900} aria-hidden='true' focusable='false' />
@@ -576,37 +498,30 @@ export default function EditUserForm({
                   className='input'
                   id='editCity'
                   placeholder='CITY/TOWN'
-                  required
                   minLength={2}
                   maxLength={50}
                   autoComplete='address-level2'
                   name='address.city'
                   value={editUserData.address?.city || ''}
                   onChange={handleInputChange}
-                  onBlur={() => markTouched('city')}
                   // ARIA ATTRIBUTES:
-                  aria-required='true'
-                  aria-invalid={showCityError ? 'true' : 'false'}
-                  aria-describedby={describedBy(showCityError && cityErrorId)}
+                  aria-invalid={hasServerError('address.city') ? 'true' : 'false'}
+                  aria-describedby={describedBy(hasServerError('address.city') && serverErrorId)}
                 />
-                <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
               </div>
               <div className='input-div'>
                 <label className='edit-profile-label' htmlFor='editProvince'>PROVINCE:</label>
                 <select
                   className='input'
                   id='editProvince'
-                  required
                   autoComplete='address-level1'
                   name='address.province'
                   value={editUserData.address?.province || ''}
                   onChange={handleInputChange}
                   onBlur={() => markTouched('province')}
                   // ARIA ATTRIBUTES:
-                  aria-required='true'
-                  aria-invalid={showProvinceError || showProvinceInvalidError || hasServerError('address.province') ? 'true' : 'false'}
+                  aria-invalid={showProvinceInvalidError || hasServerError('address.province') ? 'true' : 'false'}
                   aria-describedby={describedBy(
-                    showProvinceError && provinceErrorId,
                     showProvinceInvalidError && provinceInvalidErrorId,
                     hasServerError('address.province') && serverErrorId
                   )}
@@ -617,15 +532,8 @@ export default function EditUserForm({
                     <option key={code} value={name}>{name}</option>
                   ))}
                 </select>
-                <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
               </div>
-              {/* CITY AND PROVINCE ERROR MESSAGES */}
-              {showCityError && (
-                <p id={cityErrorId} className='visually-hidden' role='alert'>City or town is required.</p>
-              )}
-              {showProvinceError && (
-                <p id={provinceErrorId} className='visually-hidden' role='alert'>Province is required.</p>
-              )}
+              {/* PROVINCE ERROR MESSAGE */}
               {showProvinceInvalidError && (
                 <p id={provinceInvalidErrorId} className='formErrorMessage' role='alert'>
                   <Bug size={16} fontWeight={900} aria-hidden='true' focusable='false' />
@@ -646,8 +554,8 @@ export default function EditUserForm({
         </div>
       )}
       {/* SERVER SIDE FIELD ERRORS, returned when the API rejects the update.
-      These are rules the browser cannot check on its own, such as a username
-      already being taken, so they can only be reported after a round trip */}
+      These are rules the browser is no longer checking, such as a field left
+      blank, or cannot check at all, such as a username already being taken */}
       {serverErrors.length > 0 && (
         <div id={serverErrorId} className='formErrorBlock' role='alert' aria-live='assertive'>
           {serverErrors.map(([field, message]) => (
@@ -660,12 +568,7 @@ export default function EditUserForm({
       )}
       <div id='edit-profile-group3'>
         <Stack direction="horizontal" gap={3} id='edit-user-stack5'>
-          {/* REQUIRED INFO MESSAGE */}
-          <div className="p-2" id='requiredInfo'>
-            <p className='infoMsg'>
-              <small><Asterisk color='#C22419' fontWeight={700} size={12} aria-hidden='true' focusable='false' /> Indicates required information</small>
-            </p>
-          </div>
+          <div className="p-2"></div>
           <div className="p-2 ms-auto">
             <Button
               type='submit'
