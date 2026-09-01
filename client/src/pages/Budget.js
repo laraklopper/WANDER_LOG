@@ -5,7 +5,7 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 export default function Budget({currentUser, logout}) {
   return (
-    <div>
+    <div id='pageContainer'>
       <Header currentUser={currentUser} heading={'BUDGET'}/>
       <Footer logout={logout}/>
     </div>

@@ -6,7 +6,7 @@ import Footer from '../components/Footer'
 
 export default function TravelLog({currentUser, logout}) {
   return (
-    <div>
+    <div id='pageContainer'>
       <Header currentUser={currentUser} heading={'TRAVEL LOG'}/>
       <Footer logout={logout}/>
     </div>
