@@ -25,6 +25,9 @@ export default function Profile({currentUser, logout}) {
         <Col xs={5} id='toggleEditProfileCol'>
           <Stack gap={3} id='toggleEditProfileStack'>
           {/* EDIT PROFILE FORM BUTTON */}
+          <Button variant="light" id='editUserToggleBtn'>
+            Edit Profile
+          </Button>
       <div className="p-2"></div>
       {/* TOGGLE EDIT PASSWORD FORM BUTTON */}
       <div className="p-2">
