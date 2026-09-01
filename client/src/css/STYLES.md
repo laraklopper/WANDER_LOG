@@ -15,9 +15,38 @@ General styling formats, not the default tags styling for all formats apply for 
 ### 1.1. BODY/HTML/ROOT
 
 ### 1.2. HEADER/FOOTER
-
+```css
+#main-header, #page-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin: 10px 0px 10px 0px;
+    padding: 0px;
+    background-color: #5F9B9E;
+}
+#footer{
+  display: flex;
+    flex-direction: column;
+    margin: 0px;
+    padding: 10px 0px 10px 0px;
+    width: 100%;
+    background-color: #5F9B9E;
+}
+```
 ### 1.3. SECTIONS
-
+```css
+#section1{
+   width: 100%;
+   background-color: #608021;
+   height: 100%;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   margin: 10px 0px 10px 0px;
+   padding: 0px;
+}
+```
 ### 1.3. NAVIGATION BAR
 ### 1.4. FORMS
 
@@ -26,7 +55,30 @@ General styling formats, not the default tags styling for all formats apply for 
 ## 1.6. DETAILS
 
 ## 1.7. BUTTONS
-
+```css
+#button,
+#submitBtn,
+#toggleButton{
+   display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 180px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #000;
+    margin: 0px;
+    padding: 0px;
+    border: solid 2px #323A42;
+}
+#button:hover,
+#submitBtn:hover,
+#toggleEditPswdBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
+}
+```
 ---
 ## 2. BOOTSTRAP
 
