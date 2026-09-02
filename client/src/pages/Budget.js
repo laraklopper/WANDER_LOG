@@ -12,24 +12,24 @@ export default function Budget({currentUser, logout}) {
     <div id='pageContainer'>
       <Header currentUser={currentUser} heading={'BUDGET'}/>
         <section id='budget-section1'>
-          <div>
-            <Row>
-        <Col/>
-        <Col xs={5}>
-          <Stack gap={3}>
-      <div className="p-2">
+          <div id='section-1-panal'>
+            <Row id='toggle-btns-row'>
+        <Col id='toggle-col1'/>
+        <Col xs={5} id='toggle-col'>
+          <Stack gap={3} id='toggle-btns-stack'>
+      <div id='toggle-calculator-block'>
         <Button>
           SHOW CALCULATOR
         </Button>
       </div>
-      <div className="p-2">
+      <div id='toggle-converter-block'>
         <Button>SHOW CURRENCY CONVERTER</Button>
       </div>
-      <div className="p-2">Third item</div>
     </Stack>
         </Col>
-        <Col/>
+        <Col id='toggle-col2'/>
       </Row>
+
           </div>
         </section>
       <Footer logout={logout}/>

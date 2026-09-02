@@ -8,3 +8,35 @@
    margin: 10px 0px 10px 0px;
    padding: 0px;
 }
+#section-1-panal{
+    width: 100%;
+    padding: 0px;
+    margin: 0px;
+}
+#toggle-btns-row{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#toggle-col{
+    margin: 0px;
+    padding: 0px;
+}
+#toggle-col1,
+#toggle-col2{
+    margin: 0px;
+    padding: 0px;
+}
+#toggle-btns-stack{
+    display: flex;
+    justify-content: center;
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+}
+#toggle-calculator-block,
+#toggle-converter-block{
+    display: flex;
+    justify-content: center;
+    padding: 10px 0px;
+}
