@@ -37,3 +37,63 @@ VAT CALCULATOR: VatCalculatorForm.js
     margin: 0px;
     padding: 0px;
 }
+/* STACK: https://react-bootstrap.netlify.app/docs/layout/stack */
+#vat-calculator-stack1{
+    display: flex;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+    justify-content: center;
+}
+#vat-calculator-block1{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0px;
+    padding: 0px;
+}
+#vat-calculator-block2{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0px;
+    padding: 0px;
+}
+#vat-calculator-block3{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    margin: 0px;
+    padding: 0px;
+}
+#vat-calc-btn-div{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0px;
+    padding: 0px;
+    gap: 5px;
+}
+#vat-calculator-checkbox{
+    display: flex;
+    margin: 0px;
+    padding: 0px;
+}
+#selectModeBtn1,
+#selectModeBtn2{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-transform: uppercase;
+    margin: 0px;
+    padding: 0px;
+    width: 290px;
+    letter-spacing: 1px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    color: #000;
+    border: solid 2px #323A42;
+    font-size: 16px;
+}

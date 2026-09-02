@@ -121,14 +121,14 @@ export default function VatCalculator({ onCalculate, onSave, isAuthenticated }) 
     >
         <div id='vat-calc-head-block'>
             <h3 id='calculator-heading'>VAT CALCULATOR</h3>
-            <p className="form-text">
+            <i><p className="form-text">
         South African standard rate: {SARS_VAT_RATE * 100}% (SARS)
-      </p>
+      </p></i>
         </div>
         <div id='vat-calculator-input'>
             <div id='vat-form-group1'>
-                  <Stack gap={3}>
-      <div className="p-2">
+                  <Stack gap={3} id='vat-calculator-stack1'>
+      <div className="p-2" id='vat-calculator-block1'>
           <label className="vat-calculator-label" htmlFor="vat-amount">
           Amount (ZAR)
         </label>

@@ -65,6 +65,16 @@
   margin: 0px;
   padding: 0px;
 }
+.form-text{
+  font-family: "Open Sans", sans-serif;
+  font-size: 15px;
+  letter-spacing: 1px;
+  color: #323A42;
+  margin: 0px;
+  padding: 0px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
 .infoMsg{
   font-family: "Open Sans", sans-serif;
   margin: 0px;
