@@ -43,6 +43,17 @@
     margin: 0px;
     padding: 0px;
 }
+#vat-calculator-col{
+    display: flex;
+    justify-content: center;
+    margin: 0px;
+    padding: 0px;
+}
+#vat-calculator-col1,
+#vat-calculator-col2{
+    margin: 0px;
+    padding: 0px;
+}
 #toggle-btns-stack{
     display: flex;
     justify-content: center;
