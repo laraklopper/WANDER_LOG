@@ -39,7 +39,6 @@ export default function Budget({currentUser, logout}) {
       </div>
       <div id='toggle-intcalculator-block'>
         <Button variant='light'>SHOW VAT CALCULATOR</Button>
-
       </div>
       <div id='toggle-converter-block'>
         <Button>SHOW CURRENCY CONVERTER</Button>
