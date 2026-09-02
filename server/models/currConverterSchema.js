@@ -1,5 +1,6 @@
 // currConverterSchema.js
 const mongoose = require('mongoose');
+const { apiCurrencies } = require('../serverData/currencies');
 
 const CURRENCY_CODE_PATTERN = /^[A-Z]{3}$/;
 
@@ -18,6 +19,7 @@ const converterSchema = new mongoose.Schema({
             required: [true, 'base currency is required'],
             trim: true,
             uppercase: true,
+            enum: apiCurrencies,
             match: [CURRENCY_CODE_PATTERN, 'Base currency must be a 3-letter currency code'],
         },
         // Field for target currency
@@ -26,6 +28,7 @@ const converterSchema = new mongoose.Schema({
             required: [true, 'target currency is required'],
             trim: true,
             uppercase: true,
+            enum: apiCurrencies,
             match: [CURRENCY_CODE_PATTERN, 'Target currency must be a 3-letter currency code'],
         },
     },

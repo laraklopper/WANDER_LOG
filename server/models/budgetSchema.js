@@ -1,5 +1,8 @@
 // budgetSchema.js
 const mongoose = require('mongoose');
+const { apiCurrencies } = require('../serverData/currencies');
+
+const CURRENCY_CODE_PATTERN = /^[A-Z]{3}$/;
 
 //Define expenseSchema
 const expenseSchema = new mongoose.Schema({
@@ -27,6 +30,8 @@ const expenseSchema = new mongoose.Schema({
         required: true,
         uppercase: true,
         default: 'ZAR',
+        enum: apiCurrencies,
+        match: [CURRENCY_CODE_PATTERN, 'Expense currency must be a 3-letter currency code'],
         maxlength: 3, // ISO 4217 currency code e.g. "ZAR", "EUR", "GPD"
     },
     // Field for converted amount
