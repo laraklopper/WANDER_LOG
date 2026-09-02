@@ -35,8 +35,33 @@
     width: 100%;
 }
 #toggle-calculator-block,
+#toggle-vatcalculator-block,
 #toggle-converter-block{
     display: flex;
     justify-content: center;
     padding: 10px 0px;
+    margin: 0px;
+}
+#toggleCalcBtn,
+#toggleVatCalcBtn,
+#toggleConverterBtn{
+    width: 250px;
+    height: 40px;
+    margin: 0px;
+    padding: 0px;
+    color: #000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    color: #000;
+    text-transform: uppercase;
+    border: solid 2px #323A42;
+}
+#toggleCalcBtn:hover,
+#toggleVatCalcBtn:hover,
+#toggleConverterBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
 }

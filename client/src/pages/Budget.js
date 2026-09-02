@@ -184,15 +184,21 @@ export default function Budget({currentUser, logout, setError, error}) {
         <Col xs={5} id='toggle-col'>
           <Stack gap={1} id='toggle-btns-stack'>
       <div id='toggle-calculator-block'>
-        <Button onClick={toggleCalculator}>
+        <Button variant='light' onClick={toggleCalculator} id='toggleCalcBtn'>
           SHOW CALCULATOR
         </Button>
       </div>
-      <div id='toggle-intcalculator-block'>
-        <Button variant='light' onClick={toggleVatCalculator}>SHOW VAT CALCULATOR</Button>
+      <div id='toggle-vatcalculator-block'>
+        <Button variant='light' id='toggleVatCalcBtn' onClick={toggleVatCalculator}>SHOW VAT CALCULATOR</Button>
       </div>
       <div id='toggle-converter-block'>
-        <Button onClick={toggleConverter}>SHOW CURRENCY CONVERTER</Button>
+        <Button 
+        variant='light'
+        type='button'
+        onClick={toggleConverter} 
+        id='toggleConverterBtn'>
+          {showConverter ? 'Close Converter': 'Show Currency Converter'}
+        </Button>
       </div>
     </Stack>
         </Col>
