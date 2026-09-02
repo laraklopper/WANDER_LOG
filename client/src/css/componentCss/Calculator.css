@@ -8,6 +8,13 @@
     padding: 0px;
     text-transform: uppercase;
 }
+#vat-calc-head-block{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0px;
+    padding: 0px;
+}
 #buttonBlock{
     width: 100%;
     display: flex;

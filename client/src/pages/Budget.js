@@ -11,6 +11,7 @@ import CurrencyConverter from '../components/CurrencyConverter';
 import { EMPTY_CONVERT_FORM, FALLBACK_CURRENCIES } from '../util/currencyFunc';
 import ConversionsList from '../components/ConversionsList';
 import Calculator from '../components/Calculator';
+import VatCalculator from '../components/VatCalculator';
 export default function Budget({currentUser, logout, setError, error}) {
   // ==========STATE VARIABLES===============
   const [currencyOptions, setCurrencyOptions] = useState(FALLBACK_CURRENCIES)
@@ -220,7 +221,9 @@ export default function Budget({currentUser, logout, setError, error}) {
         <div id='vat-calculator-panal'>
           <Row id='vat-calculator-row'>
             <Col id='vat-calculator-col1'/>
-            <Col xs={12} md={8} id='vat-calculator-col'></Col>
+            <Col xs={12} md={8} id='vat-calculator-col'>
+              <VatCalculator/>
+            </Col>
             <Col id='vat-calculator-col2'/>
           </Row>
         </div>
