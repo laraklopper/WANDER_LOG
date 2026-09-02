@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useState, useEffect } from 'react'
 import '../css/pagesCss/PageSetup.css'
 import '../css/pagesCss/Budget.css'
 import Row from 'react-bootstrap/Row';
@@ -15,6 +15,34 @@ export default function Budget({currentUser, logout}) {
   const [showVatCalc, setShowVatCalc] = useState(false)
   const [showConverter, setShowConverter] = useState(false)
   
+  useEffect(() => {
+      let ignore = false;
+  
+      const loadCurrencies = async () => {
+        const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
+        try {
+          const response = await fetch(`http://localhost:3001/api/currencies`, {
+              method: 'GET',//HTTP request method
+              mode: 'cors',//Enable Cross-Origin Resource Sharing
+              headers: { 
+                'Authorization': `Bearer ${token}` // Attach the token in the Authorization header
+              }
+            }) const data = await response.json();//Parse the response as json
+  
+            //Conditional rendering to check the request succeeded
+            if (!response.ok) {
+              console.error('[ERROR: CurrencyConverter.js, loadCurrencies]', data.message || 'Could not load currencies.');//Log an error message in the console for debugging purposes
+              return;
+            }
+  
+            if (!ignore && data.currencies?.length) setCurrencyOptions(data.currencies);
+        } catch (error) {
+          console.error('[ERROR: CurrencyConverter.js, loadCurrencies]', error.message);
+        }
+      }
+      loadCurrencies();
+      return () => { ignore = true }
+    },[])
   //================EVENT LISTENERS========================
   //  Function to toggle general/number calculator
   const toggleCalculator = useCallback(() => {
