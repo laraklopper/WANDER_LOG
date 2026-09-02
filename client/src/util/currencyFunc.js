@@ -1,7 +1,7 @@
 // currencyCalculations.js
 /*Utility(helper) functions relating to currencies and currency conversion
 */
-import { currencyCountries } from '../dataArrays/currencyCountries'
+import { currencyCountries } from '../data/financeData'
 import { NOT_AVAILABLE, toDecimal } from './formatCalculations'
 
 //===========================================================================
