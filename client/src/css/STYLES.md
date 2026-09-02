@@ -46,6 +46,15 @@ General styling formats, not the default tags styling for all formats apply for 
    margin: 10px 0px 10px 0px;
    padding: 0px;
 }
+#section2{
+  display: flex;
+   justify-content: center;
+   align-items: center;
+  background-color: #7BA428;
+  width: 100%;
+  margin: 10px 0px 10px 0px;
+  padding: 0px;
+}
 ```
 ### 1.3. NAVIGATION BAR
 ### 1.4. FORMS
