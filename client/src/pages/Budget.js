@@ -10,6 +10,7 @@ import Footer from '../components/Footer'
 import CurrencyConverter from '../components/CurrencyConverter';
 import { EMPTY_CONVERT_FORM, FALLBACK_CURRENCIES } from '../util/currencyFunc';
 import ConversionsList from '../components/ConversionsList';
+import Calculator from '../components/Calculator';
 export default function Budget({currentUser, logout, setError, error}) {
   // ==========STATE VARIABLES===============
   const [currencyOptions, setCurrencyOptions] = useState(FALLBACK_CURRENCIES)
@@ -208,7 +209,9 @@ export default function Budget({currentUser, logout, setError, error}) {
         <div id='basic-calculator-panal'>
           <Row id='basic-calculator-row'>
         <Col/>
-        <Col xs={5}></Col>
+        <Col xs={5}>
+          <Calculator/>
+        </Col>
         <Col />
       </Row>
         </div>
