@@ -1,0 +1,45 @@
+#line1,
+#line2,
+#line4,
+#line3{
+    display: flex;
+    align-items: baseline;
+    margin: 0px;
+    padding: 0px;
+    gap: 10px;
+}
+#Btn0, #Btn1,
+#Btn2, #Btn3,
+#Btn4, #Btn5,
+#Btn6,
+#Btn7,
+#Btn8,
+#Btn9{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    color: #000;
+    font-weight: 700;
+    font-size: 20px;
+    margin: 0px;
+    padding: 0px;
+    font-family: "Fira Mono", monospace;
+}
+#multiplyBtn,
+#divideBtn,
+#minusBtn,
+#plusBtn{
+      display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    color: #000;
+    font-weight: 700;
+    font-size: 20px;
+    margin: 0px;
+    padding: 0px;
+    font-family: "Fira Mono", monospace;
+}

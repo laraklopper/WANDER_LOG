@@ -27,7 +27,7 @@ export default function ButtonGrid({
             <div className="p-2" id='line1'>
                 <Button 
                     variant='secondary' 
-                    id='btn7'
+                    id='Btn7'
                     className='numButton'
                     size='sm'
                     onClick={() => handleClick('7', 'seven')}
@@ -35,7 +35,7 @@ export default function ButtonGrid({
                     >7</Button>
                 <Button 
                 variant='secondary' 
-                id='btn8' 
+                id='Btn8' 
                 size='sm'
                 className='numButton' // Shared styling class
                 onClick={() => handleClick('8', 'Eight')}
@@ -68,7 +68,7 @@ export default function ButtonGrid({
                         role='button'
                         aria-label='Divide'               // Accessibility label for screen reader
                     >
-                        <Divide size={16} fontWeight={700} aria-hidden='true' focusable='false'/>
+                        <Divide size={20} fontWeight={700} aria-hidden='true' focusable='false'/>
                     </Button>
             </div>
             {/* -----------LINE 2: 4, 5, 6, Multiply ---------------- */}
@@ -122,7 +122,7 @@ export default function ButtonGrid({
                         // ARIA ATTRIBUTES:
                         aria-label='Multiply'
                     >
-                        <X size={16} fontWeight={700} aria-hidden='true' focusable='false'/>
+                        <X size={20} fontWeight={700} aria-hidden='true' focusable='false'/>
                     </Button>
                 </div>
           
@@ -178,7 +178,7 @@ export default function ButtonGrid({
                         // ARIA ATTRIBUTES:
                         aria-label='Minus' // Announced as "Minus" for accessibility
                     >
-                        <Minus size={16} fontWeight={700} aria-hidden='true' focusable='false'/>
+                        <Minus size={20} fontWeight={700} aria-hidden='true' focusable='false'/>
                     </Button>
                 </div>
             <div className="p-2" id='line3'>
