@@ -37,12 +37,20 @@ export default function CurrencyConverter() {
               </div>
             </div>
       <div className="p-2" id='convert-amount-block'>
-        <label className='converter-label'>AMOUNT:</label>
+        <label className='converter-label' htmlFor='converterAmount'>AMOUNT:</label>
         <div className='input-div'>
             <input
                 type='number'
+                id='converterAmount'
+                placeholder='0.00'
                 required
                 className='input'
+                step='0.01'
+                min='0.01'
+                // name=''
+                // value={}
+                // onChange={}
+                // ARIA ATTRIBUTES:
             />
             <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
         </div>
