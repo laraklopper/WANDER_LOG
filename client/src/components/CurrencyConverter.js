@@ -9,13 +9,34 @@ import { Asterisk } from 'lucide-react';
 
 export default function CurrencyConverter() {
   return (
-    <form id='currency-converter-form'>
+    <form id='currency-converter-form' method='GET' aria-labelledby='formHeading'>
         <div  id='formHeadingBlock'>
             <h3 id='formHeading'>Currency Converter</h3>
         </div>
         <div id='currency-converter-details'>
             <Stack  gap={3} id='converterStack1'>
-      <div className="p-2">
+            <div className='p-2 visually-hidden' id='converter-username-block'>
+            {/* CURRENT USER USERNAME
+            required to save conversion calculations
+             */}
+              <label className='converter-label' htmlFor='converterUsername'>USERNAME:</label>
+              <div className='input-div'>
+                <input
+                  className='input'
+                  id='converterUsername'
+                  placeholder='USERNAME'//currentUser.username
+                  readOnly
+                  // name=''
+                  // value={}
+                  // ARIA ATTRIBUTES
+                  aria-required='true'
+                  aria-readonly='true'
+                  aria-label='Current User Username'
+                />
+                <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
+              </div>
+            </div>
+      <div className="p-2" id='convert-amount-block'>
         <label className='converter-label'>AMOUNT:</label>
         <div className='input-div'>
             <input
@@ -26,20 +47,29 @@ export default function CurrencyConverter() {
             <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
         </div>
       </div>
-      <div className="p-2">
+      <div className="p-2" id='convert-baseCurrency-block'>
         <label className='converter-label'>CONVERT FROM:</label>
         <div className='input-div'>
-            <select>
+            <select
+            className='input'
+            // name=''
+            // value={}
+            // onChange={}
+            >
             {/* MAP ALL AVAILABLE CURRENCIES WITH SELECT AS THE PLACEHOLDER */}
                 <option>SELECT</option>
             </select>
             <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
         </div>
       </div>
-      <div className="p-2">
+      <div className="p-2" id='convert-TargetCurrency-block'>
         <label className='converter-label'>CONVERT TO:</label>
         <div className='input-div'>
-            <select>
+            <select
+            className='input'
+            // name=''
+            // value={}
+            >
             {/* MAP ALL AVAILABLE CURRENCIES WITH SELECT AS THE PLACEHOLDER */}
                 <option>SELECT</option>
             </select>
@@ -47,22 +77,23 @@ export default function CurrencyConverter() {
         </div>
       </div>
     </Stack>
+    </div>
     <Stack  gap={3} id='converter-stack2'>
     <div className="p-2" id='requiredInfo'>
-                        <p className='infoText' aria-live='polite' aria-hidden='true'>
-                            <small><Asterisk color="#C22419" fontWeight={700} size={16} aria-hidden='true' focusable='false' /> Indicates required information</small>
-                        </p>
-                    </div>
-      <div className="p-2">
+        <p className='infoText' aria-live='polite' aria-hidden='true'>
+            <small><Asterisk color="#C22419" fontWeight={700} size={16} aria-hidden='true' focusable='false' /> Indicates required information</small>
+        </p>
+    </div>
+      <div className="p-2" id='converter-btn-block'>
       <Button variant='light' type='submit' id='convertCurrencyBtn'>CONVERT</Button></div>
       <div className="p-2">
         <Button variant='danger' id='clearFormBtn'>CLEAR</Button>
       </div>
       {/* CONVERTER RESULT */}
-      <div className="p-2" id='converterResultBlock' aria-live='polite'>Third item</div>
+      <div className="p-2" id='converterResultBlock' aria-live='polite'></div>
     </Stack>
             
-        </div>
+        
     </form>
   )
 }

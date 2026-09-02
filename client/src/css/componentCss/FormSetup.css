@@ -107,6 +107,8 @@
     align-items: center;
     margin: 0px;
     padding: 0px;
+    text-transform: uppercase;
+    font-weight: 700;
 }
 /* BUTTON */
 #showPasswordBtn,
