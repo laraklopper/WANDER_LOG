@@ -1,0 +1,10 @@
+#budget-section1{
+    width: 100%;
+   background-color: #608021;
+   height: 100%;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   margin: 10px 0px 10px 0px;
+   padding: 0px;
+}
