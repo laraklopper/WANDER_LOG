@@ -9,12 +9,12 @@ import { Asterisk } from 'lucide-react';
 
 export default function CurrencyConverter() {
   return (
-    <form>
+    <form id='currency-converter-form'>
         <div  id='formHeadingBlock'>
             <h3 id='formHeading'>Currency Converter</h3>
         </div>
         <div id='currency-converter-details'>
-            <Stack  gap={3}>
+            <Stack  gap={3} id='converterStack1'>
       <div className="p-2">
         <label className='converter-label'>AMOUNT:</label>
         <div className='input-div'>
@@ -47,13 +47,19 @@ export default function CurrencyConverter() {
         </div>
       </div>
     </Stack>
-    <Stack  gap={3}>
-      <div className="p-2"><Button variant='light' type='submit' id='convertCurrencyBtn'>CONVERT</Button></div>
+    <Stack  gap={3} id='converter-stack2'>
+    <div className="p-2" id='requiredInfo'>
+                        <p className='infoText' aria-live='polite' aria-hidden='true'>
+                            <small><Asterisk color="#C22419" fontWeight={700} size={16} aria-hidden='true' focusable='false' /> Indicates required information</small>
+                        </p>
+                    </div>
+      <div className="p-2">
+      <Button variant='light' type='submit' id='convertCurrencyBtn'>CONVERT</Button></div>
       <div className="p-2">
         <Button variant='danger' id='clearFormBtn'>CLEAR</Button>
       </div>
       {/* CONVERTER RESULT */}
-      <div className="p-2">Third item</div>
+      <div className="p-2" id='converterResultBlock' aria-live='polite'>Third item</div>
     </Stack>
             
         </div>

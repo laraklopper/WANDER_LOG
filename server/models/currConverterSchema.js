@@ -33,9 +33,22 @@ const converterSchema = new mongoose.Schema({
         type: Number,
         required: [true, 'amount is required'],
         min: [0, 'Amount cannot be negative'],
+    },
+    // Exchange rate used for the conversion (target per base)
+    rate:{
+        type: Number,
+        required: [true, 'rate is required'],
+        min: [0, 'Rate cannot be negative'],
     }
 }, {
     timestamps: true,
+    toJSON: {virtuals: true},
+    toObject: {virtuals: true}
+});
+
+// Virtual field returning the converted amount (amount * rate)
+currencyConvertSchema.virtual('convertedAmount').get(function () {
+    return this.amount * this.rate;
 });
 
 module.exports = mongoose.model('currency', converterSchema)
