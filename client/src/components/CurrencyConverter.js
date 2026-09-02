@@ -7,7 +7,21 @@ import Stack from 'react-bootstrap/Stack';
 //IMPORT REACT-ROUTER-DOM COMPENTS
 import { Asterisk } from 'lucide-react';
 
-export default function CurrencyConverter() {
+export default function CurrencyConverter(
+  {
+    convert,
+    EMPTY_CONVERT_FORM,
+    currencyOptions = [],
+    loading,
+    setLoading, 
+    error,
+    setError,
+    result,
+    setResult,
+    form,
+    setForm
+  }
+) {
 
   return (
     <form id='currency-converter-form' method='GET' aria-labelledby='formHeading'>

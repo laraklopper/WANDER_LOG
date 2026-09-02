@@ -8,8 +8,13 @@ import Button from 'react-bootstrap/Button';
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import CurrencyConverter from '../components/CurrencyConverter';
-export default function Budget({currentUser, logout}) {
+import { EMPTY_CONVERT_FORM, FALLBACK_CURRENCIES } from '../util/currencyFunc';
+export default function Budget({currentUser, logout, setError, error}) {
   // ==========STATE VARIABLES===============
+  const [currencyOptions, setCurrencyOptions] = useState(FALLBACK_CURRENCIES)
+  const [form, setForm] = useState(EMPTY_CONVERT_FORM)
+  const [result, setResult] = useState(null)
+  const [loading, setLoading] = useState(false)
   // Toggle Buttons State
   const [showCalculator, setShowCaculator] = useState(false)
   const [showVatCalc, setShowVatCalc] = useState(false)
@@ -45,6 +50,40 @@ export default function Budget({currentUser, logout}) {
       loadCurrencies();
       return () => { ignore = true }
     },[])
+
+    const convert = useCallback(async () => {
+      setError('')
+      setResult(null)
+      if (!form.amount || !form.from || !form.to) {
+        setError('Please fill in all fields.');
+          return;
+      }
+      setLoading(true)
+      const token = localStorage.getItem('token')
+      try {
+        const response = await fetch(`http://localhost:3001/api/convert?amount=${encodeURIComponent(form.amount)}&from=${encodeURIComponent(form.from)}&to=${encodeURIComponent(form.to)}`,{
+          method: 'GET',
+          mode:'cors',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        const data = await response.json()
+
+         if (!response.ok) {
+           console.error(data.message || 'Conversion failed.');//Log an error message in the console for debugging purposes
+            setError(data.message || 'Conversion failed.');// Set the error state to display the error in the UI
+            return;
+        }
+
+        setResult(data);
+      } catch (error) {
+        console.error('Failed to convert. Please try again.');
+          setError('Failed to convert. Please try again.');//Set the Error state to display a message in the UI
+      }finally{
+        setLoading(false)
+      }
+    },[setError, setLoading, form.to, form.from, form.amount])
   //================EVENT LISTENERS========================
   //  Function to toggle general/number calculator
   const toggleCalculator = useCallback(() => {
@@ -114,7 +153,19 @@ export default function Budget({currentUser, logout}) {
         <Row id='currency-converter-row'>
         <Col id='currency-convert-col1'/>
         <Col xs={6} id='currency-convert-col'>
-          <CurrencyConverter/>
+          <CurrencyConverter
+            convert={convert}
+            EMPTY_CONVERT_FORM={EMPTY_CONVERT_FORM}
+            currencyOptions={currencyOptions}
+            form={form}
+            setForm={setForm}
+            result={result}
+            error={error}
+            setError={setError}
+            loading={loading}
+            setLoading={setLoading}
+            setResult={setResult}
+          />
         </Col>
         <Col id='currency-convert-col2'/>
       </Row>
