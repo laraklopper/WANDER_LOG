@@ -15,6 +15,8 @@ export default function Budget({currentUser, logout, setError, error}) {
   const [form, setForm] = useState(EMPTY_CONVERT_FORM)
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [conversions, setConversions] = useState([])
+  const [conversionsTotal, setConversionsTotal] = useState(0)
   // Toggle Buttons State
   const [showCalculator, setShowCaculator] = useState(false)
   const [showVatCalc, setShowVatCalc] = useState(false)
@@ -84,6 +86,71 @@ export default function Budget({currentUser, logout, setError, error}) {
         setLoading(false)
       }
     },[setError, setLoading, form.to, form.from, form.amount])
+
+       const fetchConversions = useCallback(async () => {
+      try {
+       const token = localStorage.getItem('token')
+       const response =  await fetch(`http://localhost:3001/api/history`,{
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+       } )
+       const data = await response.json().catch(() =>({}))
+
+       //Conditional rendering to check the request succeeded
+       if (!response.ok) {
+        const message = data.message || 'Could not load your saved conversions.';
+        console.error('[ERROR: CurrencyConverter.js, fetchConversions]', message);//Log an error message in the console for debugging purposes
+        setError(message);// Set the error state to display the error in the UI
+        return;// Exit the function early, keeping whatever list is already on screen
+       }
+
+       const fetchedConversions = Array.isArray(data.conversions) ? data.conversions : [];
+       setConversions(fetchedConversions)
+       setConversionsTotal(typeof data.total === 'number' ? data.total : fetchedConversions.length)
+       setError('');//Clear any previous error messages
+       console.log(`[SUCCESS: CurrencyConverter.js, fetchConversions] Fetched ${fetchedConversions.length} of ${data.total ?? fetchedConversions.length} conversions`);
+      } catch (error) {
+        console.error(`Error fetching conversion data`, error.message);
+        setError(`Error fetching conversion data, ${error.message}`)
+      }
+    },[setError])
+     const saveConversions = useCallback(async (conversion) => {
+      const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
+      const response = await fetch(`http://localhost:3001/api/save`,{
+        method: 'POST',//HTTP request method
+        mode: 'cors',//Enable Cross-Origin Resource Sharing
+        headers: {
+          'Content-Type': 'application/json',// Specify that we're sending JSON data in the request body
+          'Authorization': `Bearer ${token}`,// Attach the token in the Authorization header
+        },
+        body: JSON.stringify({// Send the conversion's inputs in the request body as JSON
+          amount: conversion.amount,
+          from: conversion.from,
+          to: conversion.to,
+        })
+      })
+
+      const data = await response.json();//Parse the response as json
+
+      //Conditional rendering to check the request succeeded
+      if (!response.ok) {
+        const message = data.message || 'Could not save the conversion. Please try again.';
+        console.error('[ERROR: CurrencyConverter.js, saveConversion]', message);//Log an error message in the console for debugging purposes
+        throw new Error(message);
+      }
+
+      /* Refresh the calculations list so a save is visible straight away. The
+      list fetches on mount, so this only matters while it is already open — but
+      without it the panel would sit there missing the conversion just saved. */
+      fetchConversions();
+
+      return data;
+        },[fetchConversions])
+
   //================EVENT LISTENERS========================
   //  Function to toggle general/number calculator
   const toggleCalculator = useCallback(() => {
@@ -155,6 +222,7 @@ export default function Budget({currentUser, logout, setError, error}) {
         <Col xs={6} id='currency-convert-col'>
           <CurrencyConverter
             convert={convert}
+            saveConversions={saveConversions}
             EMPTY_CONVERT_FORM={EMPTY_CONVERT_FORM}
             currencyOptions={currencyOptions}
             form={form}
@@ -169,7 +237,6 @@ export default function Budget({currentUser, logout, setError, error}) {
         </Col>
         <Col id='currency-convert-col2'/>
       </Row>
-
         </div>
       )}
           </div>
