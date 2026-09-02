@@ -27,7 +27,9 @@ export default function Budget({currentUser, logout}) {
               headers: { 
                 'Authorization': `Bearer ${token}` // Attach the token in the Authorization header
               }
-            }) const data = await response.json();//Parse the response as json
+            }) 
+            
+            const data = await response.json();//Parse the response as json
   
             //Conditional rendering to check the request succeeded
             if (!response.ok) {
