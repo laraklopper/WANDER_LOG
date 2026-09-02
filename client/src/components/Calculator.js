@@ -100,23 +100,30 @@ export default function Calculator() {
             ref={inputRef}
             readOnly
         />
-      </div>
-       <div id='resultBlock'>
+        <div id='resultBlock'>
+        {/* Result display with '=' prefix */}
+            <h4 id='outputText'>
+                <Equal aria-hidden='true' focusable='false'/>{result} 
+            </h4>
          <div
             id='result'    
             tabIndex={-1}                        // Not focusable via tab key                      
             aria-live='polite'                   // Accessibility: announce updates non-interruptively
             aria-atomic='true'                   // Announce the entire content change
         >
-        {/* Result display with '=' prefix */}
-            <h4 id='outputText'>
-                <Equal aria-hidden='true' focusable='false'/>{result} 
-            </h4>
+        
         </div>
       </div>
+      </div>
+       
     </Stack>
     <div id='buttonBlock'>
-        <ButtonGrid/>
+        <ButtonGrid
+        handleClick={handleClick}
+            handleBackspace={handleBackspace}
+            handleClear={handleClear}
+            handleEquals={handleEquals}
+        />
     </div>
     </div>
   )

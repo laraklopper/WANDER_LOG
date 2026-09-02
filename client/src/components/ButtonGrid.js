@@ -181,14 +181,6 @@ export default function ButtonGrid({
                         <Minus size={20} fontWeight={700} aria-hidden='true' focusable='false'/>
                     </Button>
                 </div>
-            <div className="p-2" id='line3'>
-                <Button variant='secondary'>1</Button>
-                <Button variant='secondary'>2</Button>
-                <Button variant='secondary'>3</Button>
-                <Button variant='secondary'>
-                    <Minus size={16} fontWeight={700} aria-hidden='true' focusable='false'/>
-                </Button>
-            </div>
             {/* ------LINE 4: 0 , decimal,equal, plus ------------ */}
             <div className="p-2" id='line4'>
                  <Button
