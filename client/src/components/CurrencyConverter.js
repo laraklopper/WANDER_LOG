@@ -8,6 +8,7 @@ import Stack from 'react-bootstrap/Stack';
 import { Asterisk } from 'lucide-react';
 
 export default function CurrencyConverter() {
+
   return (
     <form id='currency-converter-form' method='GET' aria-labelledby='formHeading'>
         <div  id='formHeadingBlock'>
