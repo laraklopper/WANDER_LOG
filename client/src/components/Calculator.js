@@ -1,4 +1,5 @@
 import React, { useCallback, useRef, useEffect, useState } from 'react'
+import '../css/componentCss/Calculator.css'
 import Stack from 'react-bootstrap/Stack';
 import ButtonGrid from './ButtonGrid';
 // IMPORT COMPONENTS FROM math.js
@@ -87,6 +88,9 @@ export default function Calculator() {
      {/* Screen-reader live region for announcing actions (hidden visually) */}
         <div aria-live='assertive' aria-atomic='true' className='visually-hidden'>
               {liveMessage}
+        </div>
+        <div id='formHeadingBlock'>
+            <h3 id='calculator-heading'>CALCULATOR</h3>
         </div>
 <Stack gap={3} id='basic-calculator-stack'>
       <div className="p-2" id='calculator-input-block'>

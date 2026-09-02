@@ -186,7 +186,7 @@ export default function Budget({currentUser, logout, setError, error}) {
           <Stack gap={1} id='toggle-btns-stack'>
       <div id='toggle-calculator-block'>
         <Button variant='light' onClick={toggleCalculator} id='toggleCalcBtn'>
-          SHOW CALCULATOR
+          {showCalculator ? 'Hide Calculator': 'Show Calculator'}
         </Button>
       </div>
       <div id='toggle-vatcalculator-block'>
@@ -208,11 +208,11 @@ export default function Budget({currentUser, logout, setError, error}) {
       {showCalculator && (
         <div id='basic-calculator-panal'>
           <Row id='basic-calculator-row'>
-        <Col/>
-        <Col xs={5}>
+        <Col id='basic-calculator-col1'/>
+        <Col xs={5} id='basic-calculator-col'>
           <Calculator/>
         </Col>
-        <Col />
+        <Col id='basic-calculator-col2'/>
       </Row>
         </div>
       )}

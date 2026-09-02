@@ -27,6 +27,22 @@
     margin: 0px;
     padding: 0px;
 }
+#basic-calculator-row{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#basic-calculator-col{
+    display: flex;
+    justify-content: center;
+    margin: 0px;
+    padding: 0px;
+}
+#basic-calculator-col1,
+#basic-calculator-col2{
+    margin: 0px;
+    padding: 0px;
+}
 #toggle-btns-stack{
     display: flex;
     justify-content: center;
@@ -64,4 +80,9 @@
 #toggleConverterBtn:hover{
     color: #E8F0F6;
     background-color: #323A42;
+}
+#basic-calculator-panal{
+    display: flex;
+    margin: 0px;
+    padding: 10px 0px;
 }
