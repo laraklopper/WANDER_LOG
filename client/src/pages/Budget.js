@@ -9,6 +9,7 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import CurrencyConverter from '../components/CurrencyConverter';
 import { EMPTY_CONVERT_FORM, FALLBACK_CURRENCIES } from '../util/currencyFunc';
+import ConversionsList from '../components/ConversionsList';
 export default function Budget({currentUser, logout, setError, error}) {
   // ==========STATE VARIABLES===============
   const [currencyOptions, setCurrencyOptions] = useState(FALLBACK_CURRENCIES)
@@ -240,6 +241,20 @@ export default function Budget({currentUser, logout, setError, error}) {
         </div>
       )}
           </div>
+        </section>
+        <section id='budget-section2'>
+          <Row>
+            <Col>
+              <div>
+                <ConversionsList
+                  conversionsTotal={conversionsTotal}
+                  currencyOptions={currencyOptions}
+                  fetchConversions={fetchConversions}
+                  conversions={conversions}
+                />
+              </div>
+            </Col>
+          </Row>
         </section>
       <Footer logout={logout}/>
     </div>
