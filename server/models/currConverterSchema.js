@@ -11,6 +11,11 @@ const converterSchema = new mongoose.Schema({
         required: [true, 'user is required'],
         index: true,
     },
+    amount: {
+        type: Number,
+        required: [true, 'amount is required'],
+        min: [0, 'Amount cannot be negative'],
+    },
      // ==============NESTED CURRENCY OBJECT=================
     currency: {
         // Field for base currency
@@ -32,11 +37,7 @@ const converterSchema = new mongoose.Schema({
             match: [CURRENCY_CODE_PATTERN, 'Target currency must be a 3-letter currency code'],
         },
     },
-    amount: {
-        type: Number,
-        required: [true, 'amount is required'],
-        min: [0, 'Amount cannot be negative'],
-    },
+    
     // Exchange rate used for the conversion (target per base)
     rate:{
         type: Number,
