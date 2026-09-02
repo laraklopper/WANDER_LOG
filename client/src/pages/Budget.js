@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import '../css/pagesCss/PageSetup.css'
 import '../css/pagesCss/Budget.css'
 import Row from 'react-bootstrap/Row';
@@ -8,6 +8,8 @@ import Button from 'react-bootstrap/Button';
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 export default function Budget({currentUser, logout}) {
+  const [toggleConverter, setToggleConverter] = useState(false)
+
   return (
     <div id='pageContainer'>
       <Header currentUser={currentUser} heading={'BUDGET'}/>
@@ -21,6 +23,10 @@ export default function Budget({currentUser, logout}) {
         <Button>
           SHOW CALCULATOR
         </Button>
+      </div>
+      <div id='toggle-intcalculator-block'>
+        <Button variant='light'>INTEREST CALCULATOR</Button>
+
       </div>
       <div id='toggle-converter-block'>
         <Button>SHOW CURRENCY CONVERTER</Button>
