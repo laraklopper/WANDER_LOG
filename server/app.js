@@ -16,6 +16,7 @@ const helmet = require('helmet');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const vatRoutes = require('./routes/vatRoutes');
+const tripRoutes = require('./routes/tripRoutes');
 // Extract enviromental variables
 const port = process.env.PORT || 3001;
 /* Origin the React dev server runs on. Set CLIENT_URL in .env to point the
@@ -63,6 +64,8 @@ app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 // The VAT calculator, and the logged in user's saved calculations
 app.use('/vat', vatRoutes);
+// The logged in user's trips
+app.use('/trip', tripRoutes);
 
 // Lightweight endpoint for checking the API is up
 app.get('/health', (req, res) => {

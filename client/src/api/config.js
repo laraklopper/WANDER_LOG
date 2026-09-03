@@ -14,6 +14,7 @@ export const ENDPOINTS = {
   // Takes the id of the account being changed, so it is a function not a string
   editPassword: (userId) => `${API_BASE_URL}/users/${userId}/editPassword`,
   editUser: (userId) => `${API_BASE_URL}/users/${userId}/editUser`,
+  addTrip: `${API_BASE_URL}/trip/addTrip`,
 };
 
 /* Reads the JSON body of a response without throwing when the body is empty or

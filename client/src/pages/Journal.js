@@ -14,14 +14,43 @@ import Footer from '../components/Footer'
 import AddTripForm from '../components/AddTripForm';
 import AddEntryForm from '../components/AddEntryForm';
 import AddExpenseForm from '../components/AddExpenseForm';
+// IMPORT API CONFIG FUNCTIONS
+import { ENDPOINTS, authHeaders, parseJson, errorMessage } from '../api/config';
+
+/* Empty trip shape, used for the initial state and by the form's clear button.
+The two nested objects mirror the shape tripSchema stores, so the state can be
+sent to the API as it is. The owner is left out on purpose: the API takes the
+userId from the token and reads the username off the account */
+const EMPTY_TRIP = {
+  title: '',
+  purpose: '',
+  destination: {
+    destinationType: '',
+    tripLocation: '',
+    country: '',
+  },
+  date: {
+    startDate: '',
+    endDate: '',
+  },
+  status: '',
+};
 
 // ============MAIN JOURNAL COMPONENT============
 export default function Journal(//Export default Journal.js component
   {//PROPS PASSED FROM PARENT COMPONENT (App.js)
-    currentUser, logout}) {
+    currentUser, logout, setError}) {
       const [showAddTripForm, setShowAddTripForm] = useState(false)
       const [showAddEntryForm, setShowAddEntryForm] = useState(false)
       const [showAddExpForm, setShowAddExpForm] = useState(false)
+      // ============ADD TRIP STATE=============
+      const [newTripData, setNewTripData] = useState(EMPTY_TRIP)
+      // Blocks a second submit while the first request is in flight
+      const [submittingTrip, setSubmittingTrip] = useState(false)
+      /* Field keyed messages returned by the server when Mongoose validation
+      fails, for example { 'date.endDate': 'End date must be after start date' }.
+      Passed to the form so each message can be shown against its own input */
+      const [tripFieldErrors, setTripFieldErrors] = useState({})
 
       const toggleAddTripForm = useCallback(() => {
         setShowAddTripForm(prev => (!prev))
@@ -40,6 +69,74 @@ export default function Journal(//Export default Journal.js component
         setShowAddTripForm(false)
 
       },[])
+
+      //======================CALLBACKS/REQUEST FUNCTIONS========================
+      /* Sends the completed form to POST /trip/addTrip.
+      The route is behind checkJwtToken, so the stored token is attached to the
+      request. The trip's owner is not sent with it: the API reads the userId off
+      that token, which is what stops a trip being filed against another account */
+      const addTrip = useCallback(async () => {
+        if (submittingTrip) return;
+
+        const token = localStorage.getItem('token');
+        // Conditional rendering to check a session is still stored
+        if (!token) {
+          setError?.('Your session has expired. Please log in again.');
+          console.warn('[WARN: Journal.js] No token stored, cannot add a trip');
+          return;
+        }
+
+        try {
+          setSubmittingTrip(true)
+          setError?.(null)
+          setTripFieldErrors({})
+
+          const response = await fetch(ENDPOINTS.addTrip, {
+            method: 'POST',
+            mode: 'cors',
+            headers: authHeaders(token),
+            body: JSON.stringify({
+              title: newTripData.title,
+              purpose: newTripData.purpose,
+              destination: {
+                destinationType: newTripData.destination?.destinationType,
+                tripLocation: newTripData.destination?.tripLocation,
+                /* Only sent for an international trip. The API drops it from a
+                domestic one anyway, so this keeps the two in agreement */
+                country: newTripData.destination?.destinationType === 'International'
+                  ? newTripData.destination?.country
+                  : undefined,
+              },
+              date: newTripData.date,
+              status: newTripData.status,
+            })
+          })
+
+          const data = await parseJson(response)
+
+          if (response.ok) {
+            setError?.(null)
+            setTripFieldErrors({})
+            // Cleared so the next trip starts from an empty form
+            setNewTripData(EMPTY_TRIP)
+            setShowAddTripForm(false)
+            alert(data.message || 'Trip added successfully.')
+            console.log('[SUCCESS: Journal.js] Trip created:', data.trip?._id)
+          } else {
+            const message = errorMessage(response, data, 'Could not add the trip.');
+            // Present on a 400 from Mongoose validation, absent on a 401 or a 500
+            if (data.errors) setTripFieldErrors(data.errors);
+            setError?.(message);
+            console.error(`[ERROR: Journal.js] Add trip failed with status ${response.status}: ${message}`);
+          }
+        } catch (error) {
+          // Only a network level failure reaches here, a 4xx or 5xx is handled above
+          setError?.('Could not reach the server. Please check your connection and try again.');
+          console.error(`[ERROR: Journal.js] Add trip request failed: ${error.message}`);
+        } finally {
+          setSubmittingTrip(false)
+        }
+      },[submittingTrip, newTripData, setError])
   return (
     <div id='pageContainer'>
       <Header currentUser={currentUser} heading={'JOURNAL'}/>
@@ -95,6 +192,12 @@ export default function Journal(//Export default Journal.js component
                 <div id='addTrip-display-block'>
                   <AddTripForm
                     currentUser={currentUser}
+                    newTripData={newTripData}
+                    setNewTripData={setNewTripData}
+                    addTrip={addTrip}
+                    submitting={submittingTrip}
+                    fieldErrors={tripFieldErrors}
+                    emptyForm={EMPTY_TRIP}
                   />
                 </div>
               </Col>

@@ -176,7 +176,7 @@ export default function App() {
             }/>
             <Route path='/journal' element={
               <ProtectedUserRoute currentUser={currentUser}>
-                <Journal currentUser={currentUser} logout={logout}/>
+                <Journal currentUser={currentUser} logout={logout} setError={setError}/>
               </ProtectedUserRoute>
             }/>
             <Route path='/budget' element={
