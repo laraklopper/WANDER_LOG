@@ -1,0 +1,29 @@
+#journalSection1{
+    width: 100%;
+   background-color: #608021;
+   height: 100%;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   margin: 10px 0px 10px 0px;
+   padding: 0px;
+}
+/* =====================
+LAYOUT
+============*/
+#journal-section1-panal{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#toggleJournalFormsStack{
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
