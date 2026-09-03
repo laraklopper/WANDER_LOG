@@ -73,8 +73,7 @@ CALCULATORS + CURRENCY CONVERTER DISPLAY/LAYOUT
     display: flex;
     justify-content: center;
     background-color: #9E9E9E;
-    display: flex;
-    margin:  0px;
+    margin: 5px 0px;
     padding: 10px 5px;
-    width: 100%;
+    width: 90%;
 }
