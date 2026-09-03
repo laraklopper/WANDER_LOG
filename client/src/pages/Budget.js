@@ -15,8 +15,11 @@ import VatCalculator from '../components/VatCalculator';
 import { EMPTY_CONVERT_FORM, FALLBACK_CURRENCIES } from '../util/currencyFunc';
 import VatCalculationsList from '../components/VatCalculationsList';
 
-export default function Budget({currentUser, logout, setError, error}) {
+export default function Budget({currentUser, logout, setError, error, loggedIn}) {
   // ==========STATE VARIABLES===============
+  const [vatCalculations, setVatCalculations] = useState([])
+  const [vatCalculationsTotal, setVatCalculationsTotal] = useState(0)
+  const [vatCalculationsError, setVatCalculationsError] = useState('')
   const [currencyOptions, setCurrencyOptions] = useState(FALLBACK_CURRENCIES)
   const [form, setForm] = useState(EMPTY_CONVERT_FORM)
   const [result, setResult] = useState(null)
@@ -29,6 +32,7 @@ export default function Budget({currentUser, logout, setError, error}) {
   const [showConverter, setShowConverter] = useState(false)
   const [showVatCalculations, setShowVatCalculations] = useState(false)
   const [showConversions, setShowConversions] = useState(false)
+
   useEffect(() => {
       let ignore = false;
   
@@ -187,7 +191,7 @@ export default function Budget({currentUser, logout, setError, error}) {
 
   },[])
   const toggleConversions = useCallback(() => {
-    setConversions(prev => (!prev))
+    setShowConversions(prev => (!prev))
     setShowVatCalculations(false)
     setShowCaculator(false)
     setShowVatCalc(false)
@@ -316,7 +320,13 @@ export default function Budget({currentUser, logout, setError, error}) {
             <Row id='vatCalculationsRow'>
               <Col id='vatCalculationsCol'>
                 <div id='vat-calculations-display-block'>
-                  <VatCalculationsList/>
+                  <VatCalculationsList
+                    vatCalculationsTotal={vatCalculationsTotal}
+                    loggedIn={loggedIn}
+                    vatCalculations={vatCalculations}
+                    vatCalculationError={vatCalculationsError}
+                    setVatCalculationsError={setVatCalculationsError}
+                  />
                 </div>
               </Col>
             </Row>
