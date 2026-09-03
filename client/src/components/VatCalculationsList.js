@@ -9,6 +9,8 @@ export default function VatCalculationsList(
         vatCalculationError
     }
 ) {
+
+    
   return (
     <div>VatCalculationsList</div>
   )
