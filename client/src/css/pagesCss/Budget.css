@@ -82,3 +82,21 @@ LAYOUT
     color: #E8F0F6;
     background-color: #323A42;
 }
+#budget-section2{
+    display: flex;
+   justify-content: center;
+   align-items: center;
+  background-color: #7BA428;
+  width: 100%;
+  margin: 10px 0px 10px 0px;
+  padding: 0px;
+}
+#budget-section2-panal{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    padding: 0px;
+    margin: 0px;
+    gap: 5px;
+}

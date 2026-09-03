@@ -266,7 +266,8 @@ export default function Budget({currentUser, logout, setError, error}) {
           </div>
         </section>
         <section id='budget-section2'>
-          <Row>
+        <div id='budget-section2-panal'>
+ <Row>
             <Col>
               <div>
                 <ConversionsList
@@ -278,6 +279,8 @@ export default function Budget({currentUser, logout, setError, error}) {
               </div>
             </Col>
           </Row>
+        </div>
+         
         </section>
       <Footer logout={logout}/>
     </div>

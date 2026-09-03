@@ -69,6 +69,11 @@ CALCULATORS + CURRENCY CONVERTER DISPLAY/LAYOUT
 }
 
 /* CURRENCY CONVERTER */
+#currency-converter-panal{
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+}
 #converter-display-block{
     display: flex;
     justify-content: center;
