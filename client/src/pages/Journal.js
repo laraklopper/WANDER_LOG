@@ -11,6 +11,7 @@ import Stack from 'react-bootstrap/Stack';
 // IMPORT CUSTOM COMPONENTS
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import AddTripForm from '../components/AddTripForm';
 
 // ============MAIN JOURNAL COMPONENT============
 export default function Journal(//Export default Journal.js component
@@ -42,9 +43,9 @@ export default function Journal(//Export default Journal.js component
       <Header currentUser={currentUser} heading={'JOURNAL'}/>
       <section id='journalSection1'>
         <div id='journal-section1-panal'>
-          <Row>
-        <Col>1 of 3</Col>
-        <Col xs={5}>
+          <Row id='toggleJournalRow'>
+        <Col id='toggleJournalCol1'/>
+        <Col xs={5} id='toggleJournalCol'>
            <Stack gap={3} id='toggleJournalFormsStack'>
       <div className="p-2">
         <Button
@@ -81,13 +82,19 @@ export default function Journal(//Export default Journal.js component
       </div>
     </Stack>
         </Col>
-        <Col/>
+        <Col id='toggleJournalCol2'/>
       </Row>
-      <div>
+      <div id='journal-form-panal'>
         {showAddTripForm && (
-          <div>
-            <Row>
-              
+          <div id='add-trip-panal'>
+            <Row id='addTripRow'>
+            <Col id='addTripCol1'/>
+              <Col xs={12} md={8} id='addTripCol'>
+                <div id='addTrip-display-block'>
+                  <AddTripForm/>
+                </div>
+              </Col>
+              <Col id='addTripCol2'/>
             </Row>
           </div>
         )}

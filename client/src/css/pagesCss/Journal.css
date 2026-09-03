@@ -20,10 +20,80 @@ LAYOUT
     margin: 0px;
     padding: 0px;
 }
+#toggleJournalRow{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#toggleJournalCol{
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+    justify-content: center;
+}
+#toggleJournalCol1,
+#toggleJournalCol2{
+    margin: 0px;
+    padding: 0px;
+}
 #toggleJournalFormsStack{
     display: flex;
     align-items: center;
     width: 100%;
     margin: 0px;
     padding: 0px;
+}
+#journal-form-panal{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    margin: 0px;
+    padding: 0px;
+}
+#add-trip-panal{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#addTripRow{
+    width: 100%;
+    padding: 0px;
+    margin: 0px;
+}
+#addTripCol{
+    display: flex;
+    margin: 0px;
+    padding: 0px;
+}
+#addTripCol1,
+#addTripCol2{
+    margin: 0px;
+    padding: 0px;
+}
+#addTrip-display-block{
+    display: flex;
+        flex-direction: column;
+        align-items: center;
+    width: 100%;
+        padding: 10px 0px;
+margin: 0px;
+}
+#addTripBtn{
+        display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 180px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #000;
+    margin: 0px;
+    letter-spacing: 2px;
+    padding: 0px;
+    border: solid 2px #323A42;
+}
+#addTripBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
 }

@@ -1,0 +1,130 @@
+#addTripForm{
+    width: 100%;
+    margin: 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0px;
+    background-color: #A8AEB3;
+    gap: 10px;
+}
+.add-trip-label{
+    color: #000000;
+    font-weight: 700;
+    margin: 0px;
+    padding: 0px;
+    font-family: "Fira Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+#addtrip-input-details{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+      background-color: #BFBFBF;
+  width: 90%;
+  margin: 0px;
+padding: 10px;
+gap: 10px;
+overflow-y: scroll;
+}
+/* GROUP 1: Username + Title + Purpose */
+#addTrip-group1{
+    border: solid #323A42 2px;
+    background: #D6D6D6;
+    border-radius: 8px;
+    width: 100%;
+}
+#add-trip-block1{
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+#add-trip-block2{
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+/* GROUP 2 */
+#addTrip-group2{
+    display: flex;
+    width: 100%;
+}
+.trip-input-group{
+    display: flex;
+    align-items: baseline;
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+    justify-content: space-around;
+}
+.trip-input-div{
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 0px;
+    padding: 0px;
+}
+#addTrip-group2{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: solid #323A42 2px;
+    background: #D6D6D6;
+    border-radius: 8px;
+    margin: 0px;
+    padding: 10px 0px;
+}
+.addTripGroupHead{
+    display: flex;
+    margin: 0px;
+    padding: 0px;
+    
+}
+#addTrip-group2Head-span{
+    display: flex;
+    align-items: center;
+    margin: 0px;
+    padding: 0px;
+    gap: 5px;
+}
+#tripCountryInput-div{
+    display: flex;
+    align-items: center;
+}
+#destination-type-block,
+#addTrip-location-block{
+    display: flex;
+    align-items: baseline;
+}
+#addTrip-group3{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: solid #323A42 2px;
+    background: #D6D6D6;
+    border-radius: 8px;
+    margin: 0px;
+    width: 100%;
+    padding: 10px 0px;
+}
+#addTrip-group3Head-span{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+#addTrip-status-block{
+    display: flex;
+    align-items: center;
+}
+#addTrip-group4{
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: center;
+}
+#addTrip-stack5{
+    width: 90%;
+    margin: 0px;
+    padding: 0px;
+}

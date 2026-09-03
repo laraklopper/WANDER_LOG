@@ -14,6 +14,11 @@
 }
 .formSectionHeading{
   text-align: center;
+  font-family: "Fira Sans", sans-serif;
+  letter-spacing: 2px;
+  margin: 0px;
+  padding: 0px;
+  text-decoration: underline;
 }
 .input-group{
     display: flex;
@@ -27,7 +32,7 @@
   padding: 0px;
   display: flex;
   gap: 5px;
-  align-items: baseline;
+  align-items: center;
 }
 .text-input-div{
     display: flex;
