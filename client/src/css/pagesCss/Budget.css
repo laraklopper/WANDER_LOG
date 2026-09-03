@@ -100,3 +100,22 @@ LAYOUT
     margin: 0px;
     gap: 5px;
 }
+#toggle-calculations-row{
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+}
+#show-calculations-stack{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#calculations-panal{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#conversions-list-panal{
+    width: 100%;
+}

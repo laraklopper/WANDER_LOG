@@ -26,7 +26,8 @@ export default function Budget({currentUser, logout, setError, error}) {
   const [showCalculator, setShowCaculator] = useState(false)
   const [showVatCalc, setShowVatCalc] = useState(false)
   const [showConverter, setShowConverter] = useState(false)
-  
+  const [showVatCalculations, setShowVatCalculations] = useState(false)
+  const [showConversions, setShowConversions] = useState(false)
   useEffect(() => {
       let ignore = false;
   
@@ -176,7 +177,21 @@ export default function Budget({currentUser, logout, setError, error}) {
     setShowVatCalc(false)
 
   },[])
+  const toggleVatCalculations = useCallback(() => {
+    setShowVatCalculations(prev => (!prev))
+    setShowConversions(false)
+    setShowCaculator(false)
+    setShowVatCalc(false)
+    setShowConverter(false)
 
+  },[])
+  const toggleConversions = useCallback(() => {
+    setConversions(prev => (!prev))
+    setShowVatCalculations(false)
+    setShowCaculator(false)
+    setShowVatCalc(false)
+    setShowConverter(false)
+  },[])
 
   return (
     <div id='pageContainer'>
@@ -267,9 +282,50 @@ export default function Budget({currentUser, logout, setError, error}) {
         </section>
         <section id='budget-section2'>
         <div id='budget-section2-panal'>
- <Row>
-            <Col>
-              <div>
+          <Row id='toggle-calculations-row'>
+        <Col id='toggle-calculations-col1'/>
+        <Col xs={5} id='toggle-calculations-col'>
+          <Stack gap={3} id='show-calculations-stack'>
+      <div className="p-2">
+        <Button
+        variant='light'
+        onClick={toggleVatCalculations}
+        id='toggleVatCalculationsBtn'
+        >
+          {showVatCalculations ? 'Hide Vat Calculations':'SHOW VAT CALCULATIONS'}
+        </Button>
+      </div>
+      <div className="p-2">
+        <Button
+        variant='light'
+        onClick={toggleConversions}
+        type='button'
+        id='toggleConversionsBtn'
+        >
+          {showConversions ? 'Hide Conversions' : 'Show Conversions'}
+        </Button>
+      </div>
+    </Stack>
+        </Col>
+        <Col id='toggle-calculations-col2'/>
+        </Row>
+        <div id='calculations-panal'>
+        {showVatCalculations && (
+          <div id='vat-calculations-panal'>
+            <Row id='vatCalculationsRow'>
+              <Col id='vatCalculationsCol'>
+                <div id='vat-calculations-display-block'>
+                  VAT CALCULATIONS
+                </div>
+              </Col>
+            </Row>
+          </div>
+        )}
+        {showConversions && (
+          <div id='conversions-list-panal'>
+          <Row id='conversions-list-Row'>
+            <Col id='conversionsListCol'>
+              <div id='conversions-list-display'>
                 <ConversionsList
                   conversionsTotal={conversionsTotal}
                   currencyOptions={currencyOptions}
@@ -279,8 +335,10 @@ export default function Budget({currentUser, logout, setError, error}) {
               </div>
             </Col>
           </Row>
+          </div>
+        )}
         </div>
-         
+        </div>
         </section>
       <Footer logout={logout}/>
     </div>
