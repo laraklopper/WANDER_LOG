@@ -176,7 +176,7 @@ export default function CurrencyConverter(
             <small><Asterisk color="#C22419" fontWeight={700} size={16} aria-hidden='true' focusable='false' /> Indicates required information</small>
         </p>
     </div>
-      <div className="p-2" id='converter-btn-block'>
+      <div id='converter-btn-block1'>
       <Button 
       variant='light' 
       type='submit' 
@@ -189,7 +189,7 @@ export default function CurrencyConverter(
       >
         {loading ? 'CONVERTING...': 'CONVERT'}
       </Button></div>
-      <div className="p-2">
+      <div id='converter-btn-block2'>
         <Button 
         variant='danger' 
         id='clearFormBtn'

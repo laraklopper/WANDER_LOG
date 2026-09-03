@@ -16,6 +16,15 @@
  font-weight: 700;
  text-decoration: underline;
 }
+#currency-converter-details{
+    display: flex;
+    margin: 0px;
+    padding: 10px 0px;
+    width: 80%;
+    background-color: #BFBFBF;
+    border: solid #323A42 2px;
+    border-radius: 8px;
+}
 #converter-stack1{
     display: flex;
     align-items: center;
@@ -34,6 +43,14 @@
 #converter-stack2{
     display: flex;
     align-items: center;
+}
+#converter-btn-block1,
+#converter-btn-block2{
+    display: flex;
+    justify-content: center;
+    margin: 0px;
+    padding: 5px 0px;
+    width: 100%;
 }
 #converterResultBlock{
     width: 100%;
