@@ -36,7 +36,7 @@ const tripSchema = new mongoose.Schema({
             required: [true, 'Destination type is required']
         },
         // Field for destination
-        destination: {
+        tripLocation: {
             type: String,
             trim: true,
             maxlength: 50,
@@ -70,6 +70,7 @@ const tripSchema = new mongoose.Schema({
         type: String,
         enum: ['upcoming', 'ongoing', 'completed'],
         default: 'upcoming',
+        required: [true, 'trip status is required'],
     },
     // Auto-incremented by entrySchema post-save/delete hooks
     entryCount: {
