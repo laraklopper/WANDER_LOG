@@ -5,7 +5,7 @@ import '../css/componentCss/FormSetup.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
 import { SARS_VAT_RATE, ZERO_RATED_CATEGORIES  } from '../util/vatFunctions';
-
+import { formatCurrency } from '../util/currencyFunc';
 
 
 
@@ -16,91 +16,52 @@ export default function VatCalculator() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
 
-   const formatCurrency = (value) =>
-    new Intl.NumberFormat('en-ZA', {
-      style: 'currency',
-      currency: 'ZAR',
-    }).format(value);
-
-  const calculateVat = (rawAmount, calcMode, zeroRated) => {
-    const rate = zeroRated ? 0 : SARS_VAT_RATE;
-
-    let netAmount;
-    let vatAmount;
-    let grossAmount;
-
-    if (calcMode === 'exclusive') {
-      // User entered the amount excluding VAT — add VAT on top
-      netAmount = rawAmount;
-      vatAmount = netAmount * rate;
-      grossAmount = netAmount + vatAmount;
-    } else {
-      // User entered the amount including VAT — strip VAT back out
-      grossAmount = rawAmount;
-      netAmount = rate === 0 ? grossAmount : grossAmount / (1 + rate);
-      vatAmount = grossAmount - netAmount;
+ 
+ 
+  // Function to calculate VAT
+  const calculateVat = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch ('http://localhost:3001/')
+    } catch (error) {
+      
     }
+  },[])
+  // Function to save vat calculation
+  const saveVatCalculation = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch('http://localhost:3001/vat/save', {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(
+          amount,
 
-    return {
-      mode: calcMode,
-      isZeroRated: zeroRated,
-      ratePercent: rate * 100,
-      netAmount: Number(netAmount.toFixed(2)),
-      vatAmount: Number(vatAmount.toFixed(2)),
-      grossAmount: Number(grossAmount.toFixed(2)),
-      calculatedAt: new Date().toISOString(),
-    };
-  };
-
-  const handleAmountChange = (e) => {
+        )
+      }
+    )
+    } catch (error) {
+      
+    }
+  })
+  
+   const handleAmountChange = (e) => {
     const value = e.target.value;
     setAmount(value);
-    runCalculation(value, mode, isZeroRated);
   };
 
   const handleModeChange = (newMode) => {
     setMode(newMode);
-    runCalculation(amount, newMode, isZeroRated);
   };
 
   const handleZeroRatedToggle = (e) => {
     const checked = e.target.checked;
     setIsZeroRated(checked);
-    runCalculation(amount, mode, checked);
   };
-
-  const runCalculation = (rawValue, calcMode, zeroRated) => {
-    const parsed = parseFloat(rawValue);
-
-    if (rawValue === '' || Number.isNaN(parsed)) {
-      setResult(null);
-      setError('');
-      return;
-    }
-
-    if (parsed < 0) {
-      setError('Amount cannot be negative.');
-      setResult(null);
-      return;
-    }
-
-    setError('');
-    const calcResult = calculateVat(parsed, calcMode, zeroRated);
-    setResult(calcResult);
-
-    if (onCalculate) {
-      onCalculate(calcResult);
-    }
-  };
-
-  // Function to save vat calculation
-  const saveVatCalculation = useCallback(async () => {
-    try {
-      
-    } catch (error) {
-      
-    }
-  })
   
   return (
     <form
