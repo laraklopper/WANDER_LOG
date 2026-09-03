@@ -1,6 +1,6 @@
 // Journal.js Route '/journal'
 //IMPORT REQUIRED MODULES AND PACKAGES
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 // IMPORT CSS STYLESHEETS
 import '../css/pagesCss/PageSetup.css'
 import '../css/pagesCss/Journal.css'
@@ -18,8 +18,25 @@ export default function Journal(//Export default Journal.js component
     currentUser, logout}) {
       const [showAddTripForm, setShowAddTripForm] = useState(false)
       const [showAddEntryForm, setShowAddEntryForm] = useState(false)
-      const [addExpenseForm, setAddExpenseForm] = useState(false)
-      
+      const [showAddExpForm, setShowAddExpForm] = useState(false)
+
+      const toggleAddTripForm = useCallback(() => {
+        setShowAddTripForm(prev => (!prev))
+        setShowAddEntryForm(false)
+        setShowAddExpForm(false)
+
+      },[])
+      const toggleAddEntryForm = useCallback(() => {
+        setShowAddEntryForm(prev => (!prev))
+        setShowAddTripForm(false)
+        setShowAddExpForm(false)
+      },[])
+      const toggleAddExpenseForm = useCallback(() => {
+        setShowAddExpForm(prev => (!prev))
+        setShowAddEntryForm(false)
+        setShowAddTripForm(false)
+
+      },[])
   return (
     <div id='pageContainer'>
       <Header currentUser={currentUser} heading={'JOURNAL'}/>
@@ -30,14 +47,51 @@ export default function Journal(//Export default Journal.js component
         <Col xs={5}>
            <Stack gap={3} id='toggleJournalFormsStack'>
       <div className="p-2">
-        <Button>ADD TRIP</Button>
+        <Button
+        variant='light'
+        onClick={toggleAddTripForm}
+        id='toggleAddTripBtn'
+        type='button'
+        // ARIA ATTRIBUTES
+        >
+          {showAddTripForm ? 'Hide Form' : 'Add Trip'}
+        </Button>
       </div>
-      <div className="p-2">Second item</div>
-      <div className="p-2">Third item</div>
+      <div className="p-2">
+        <Button
+        variant='light'
+        onClick={toggleAddEntryForm}
+        id='toggleAddEntryBtn'
+        type='button'
+        // ARIA ATTRIBUTES:
+        >
+        {showAddEntryForm ? 'Hide Form' : 'Add Entry'}
+        </Button>
+      </div>
+      <div className="p-2">
+        <Button
+        variant='light'
+        onClick={toggleAddExpenseForm}
+        id='toggleAddExpBtn'
+        type='button'
+        // ARIA ATTRIBUTES
+        >
+          {showAddExpForm ? 'Hide Form': 'Add Trip Expense'}
+        </Button>
+      </div>
     </Stack>
         </Col>
-        <Col>3 of 3</Col>
+        <Col/>
       </Row>
+      <div>
+        {showAddTripForm && (
+          <div>
+            <Row>
+              
+            </Row>
+          </div>
+        )}
+      </div>
         </div>
       </section>
       <Footer logout={logout}/>
