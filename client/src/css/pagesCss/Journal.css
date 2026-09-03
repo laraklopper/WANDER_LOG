@@ -78,22 +78,25 @@ LAYOUT
         padding: 10px 0px;
 margin: 0px;
 }
-#addTripBtn{
-        display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 180px;
-    height: 40px;
-    font-family: "Fira Mono", monospace;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: #000;
-    margin: 0px;
-    letter-spacing: 2px;
-    padding: 0px;
-    border: solid 2px #323A42;
+#addEntry-display-block{
+    display: flex;
+        flex-direction: column;
+        align-items: center;
+    width: 100%;
+        padding: 10px 0px;
+margin: 0px;
 }
-#addTripBtn:hover{
-    color: #E8F0F6;
-    background-color: #323A42;
+#addEntry-Row{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#addEntryCol{
+    margin: 0px;
+    padding: 0px;
+}
+#addEntryCol1,
+#addEntryCol2{
+    margin: 0px;
+    padding: 0px;
 }

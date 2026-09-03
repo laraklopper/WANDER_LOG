@@ -101,13 +101,17 @@ export default function Journal(//Export default Journal.js component
           </div>
         )}
         {showAddEntryForm && (
-          <div>
-            <Row>
-              <Col>
-                <div>
-                  <AddEntryForm/>
+          <div id='add-entry-panal'>
+            <Row addEntry-Row>
+              <Col id='addEntryCol1'/>
+              <Col md={10} id='addEntryCol'>
+                <div id='addEntry-display-block'>
+                  <AddEntryForm
+                    currentUser={currentUser}
+                  />
                 </div>
               </Col>
+              <Col id='addEntryCol2'/>
             </Row>
           </div>
         )}
