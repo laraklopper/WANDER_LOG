@@ -13,6 +13,7 @@ import ConversionsList from '../components/ConversionsList';
 import Calculator from '../components/Calculator';
 import VatCalculator from '../components/VatCalculator';
 import { EMPTY_CONVERT_FORM, FALLBACK_CURRENCIES } from '../util/currencyFunc';
+import VatCalculationsList from '../components/VatCalculationsList';
 
 export default function Budget({currentUser, logout, setError, error}) {
   // ==========STATE VARIABLES===============
@@ -315,7 +316,7 @@ export default function Budget({currentUser, logout, setError, error}) {
             <Row id='vatCalculationsRow'>
               <Col id='vatCalculationsCol'>
                 <div id='vat-calculations-display-block'>
-                  VAT CALCULATIONS
+                  <VatCalculationsList/>
                 </div>
               </Col>
             </Row>
