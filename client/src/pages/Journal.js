@@ -98,6 +98,28 @@ export default function Journal(//Export default Journal.js component
             </Row>
           </div>
         )}
+        {showAddEntryForm && (
+          <div>
+            <Row>
+              <Col>
+                <div>
+                  ADD ENTRY
+                </div>
+              </Col>
+            </Row>
+          </div>
+        )}
+        {showAddExpForm && (
+          <div>
+            <Row>
+              <Col>
+                <div>
+                  ADD ENTRY
+                </div>
+              </Col>
+            </Row>
+          </div>
+        )}
       </div>
         </div>
       </section>
