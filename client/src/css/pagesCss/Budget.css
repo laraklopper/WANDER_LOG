@@ -27,7 +27,8 @@
     margin: 0px;
     padding: 0px;
 }
-#basic-calculator-row{
+#basic-calculator-row,
+#vat-calculator-row{
     width: 100%;
     margin: 0px;
     padding: 0px;
