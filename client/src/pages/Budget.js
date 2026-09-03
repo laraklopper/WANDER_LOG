@@ -1,6 +1,7 @@
 import React, { useCallback, useState, useEffect } from 'react'
 import '../css/pagesCss/PageSetup.css'
 import '../css/pagesCss/Budget.css'
+import '../css/componentCss/CalculatorsDisplay.css'
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Stack from 'react-bootstrap/Stack';
@@ -8,10 +9,11 @@ import Button from 'react-bootstrap/Button';
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import CurrencyConverter from '../components/CurrencyConverter';
-import { EMPTY_CONVERT_FORM, FALLBACK_CURRENCIES } from '../util/currencyFunc';
 import ConversionsList from '../components/ConversionsList';
 import Calculator from '../components/Calculator';
 import VatCalculator from '../components/VatCalculator';
+import { EMPTY_CONVERT_FORM, FALLBACK_CURRENCIES } from '../util/currencyFunc';
+
 export default function Budget({currentUser, logout, setError, error}) {
   // ==========STATE VARIABLES===============
   const [currencyOptions, setCurrencyOptions] = useState(FALLBACK_CURRENCIES)
