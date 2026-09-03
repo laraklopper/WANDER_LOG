@@ -185,9 +185,11 @@ router.post('/save', checkJwtToken, async (req, res) => {
 
         const { fromCurrency, toCurrency, parsedAmount } = input;
 
-        // The fullName is read from the database rather than trusted from the body
-        const user = await User.findById(req.user.userId).select('fullName').exec();
-        // Conditional rendering to check the user on the token still exists
+        const user = await User.findById(req.user.userId)
+            .select('fullName')
+            .exec();
+        
+            // Conditional rendering to check the user on the token still exists
         if (!user) {
             console.warn('[WARN: apiRoutes.js, /save] No user found for id', req.user.userId);
             return res.status(401).json({ success: false, message: 'Invalid token. Please login again.' });
