@@ -206,12 +206,15 @@ export default function Budget({currentUser, logout, setError, error}) {
         </Col>
         <Col id='toggle-col2'/>
       </Row>
+      <div id='calculator-display-panal'>
       {showCalculator && (
         <div id='basic-calculator-panal'>
           <Row id='basic-calculator-row'>
         <Col id='basic-calculator-col1'/>
         <Col xs={5} id='basic-calculator-col'>
-          <Calculator/>
+          <div id='basic-calculator-block'>
+            <Calculator/>
+          </div>
         </Col>
         <Col id='basic-calculator-col2'/>
       </Row>
@@ -221,8 +224,10 @@ export default function Budget({currentUser, logout, setError, error}) {
         <div id='vat-calculator-panal'>
           <Row id='vat-calculator-row'>
             <Col id='vat-calculator-col1'/>
-            <Col xs={12} md={8} id='vat-calculator-col'>
-              <VatCalculator/>
+            <Col xs={6}  id='vat-calculator-col'>
+              <div id='vat-calculator-block'>
+                <VatCalculator/>
+              </div>
             </Col>
             <Col id='vat-calculator-col2'/>
           </Row>
@@ -233,7 +238,8 @@ export default function Budget({currentUser, logout, setError, error}) {
         <Row id='currency-converter-row'>
         <Col id='currency-convert-col1'/>
         <Col xs={6} id='currency-convert-col'>
-          <CurrencyConverter
+          <div id='converter-display-block'>
+           <CurrencyConverter
             convert={convert}
             saveConversions={saveConversions}
             EMPTY_CONVERT_FORM={EMPTY_CONVERT_FORM}
@@ -246,12 +252,15 @@ export default function Budget({currentUser, logout, setError, error}) {
             loading={loading}
             setLoading={setLoading}
             setResult={setResult}
-          />
+          /> 
+          </div>
+          
         </Col>
         <Col id='currency-convert-col2'/>
       </Row>
         </div>
       )}
+      </div>
           </div>
         </section>
         <section id='budget-section2'>

@@ -8,17 +8,28 @@
    margin: 10px 0px 10px 0px;
    padding: 0px;
 }
+/* =================
+LAYOUT
+=============*/
 #section-1-panal{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     width: 100%;
     padding: 0px;
     margin: 0px;
+    gap: 5px;
 }
+/* BOOTSTRAP LAYOUT */
+/* GRID: https://react-bootstrap.netlify.app/docs/layout/grid */
 #toggle-btns-row{
     width: 100%;
     margin: 0px;
     padding: 0px;
 }
 #toggle-col{
+    display: flex;
+    justify-content: center;
     margin: 0px;
     padding: 0px;
 }
@@ -27,34 +38,7 @@
     margin: 0px;
     padding: 0px;
 }
-#basic-calculator-row,
-#vat-calculator-row{
-    width: 100%;
-    margin: 0px;
-    padding: 0px;
-}
-#basic-calculator-col{
-    display: flex;
-    justify-content: center;
-    margin: 0px;
-    padding: 0px;
-}
-#basic-calculator-col1,
-#basic-calculator-col2{
-    margin: 0px;
-    padding: 0px;
-}
-#vat-calculator-col{
-    display: flex;
-    justify-content: center;
-    margin: 0px;
-    padding: 0px;
-}
-#vat-calculator-col1,
-#vat-calculator-col2{
-    margin: 0px;
-    padding: 0px;
-}
+/* STACK: https://react-bootstrap.netlify.app/docs/layout/stack */
 #toggle-btns-stack{
     display: flex;
     justify-content: center;
@@ -70,6 +54,90 @@
     padding: 10px 0px;
     margin: 0px;
 }
+/* ===============
+CALCULATORS + CURRENCY CONVERTER DISPLAY/LAYOUT 
+==============*/
+#calculator-display-panal{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    margin: 0px;
+    padding: 0px;
+
+}
+/* BOOTSTRAP LAYOUT */
+/* GRID: https://react-bootstrap.netlify.app/docs/layout/grid */
+#basic-calculator-row,
+#vat-calculator-row{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#vat-calculator-col{
+    display: flex;
+    justify-content: center;
+    margin: 0px;
+    padding: 0px;
+}
+#basic-calculator-col1,
+#basic-calculator-col2,
+#vat-calculator-col1,
+#vat-calculator-col2{
+    margin: 0px;
+    padding: 0px;
+}
+#basic-calculator-row,
+#vat-calculator-row{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#basic-calculator-col{
+    display: flex;
+    justify-content: center;
+    margin: 0px;
+    padding: 0px;
+}
+
+
+/* BASIC CALCULATOR */
+#basic-calculator-panal{
+    display: flex;
+    margin: 0px;
+    padding: 10px 0px;
+}
+#basic-calculator-block{
+    background-color: #9E9E9E;
+    display: flex;
+    justify-content: center;
+    margin: 10px 0px;
+    padding: 10px;
+    width: 100%;
+}
+/* VAT CALCULATOR */
+#vat-calculator-panal{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#vat-calculator-block{
+    background-color: #9E9E9E;
+    display: flex;
+    margin: 10px 0px;
+    padding: 10px;
+}
+
+/* CURRENCY CONVERTER */
+
+#converter-display-block{
+    display: flex;
+    justify-content: center;
+    background-color: #9E9E9E;
+    display: flex;
+    margin:  0px;
+    padding: 10px;
+}
+
 #toggleCalcBtn,
 #toggleVatCalcBtn,
 #toggleConverterBtn{
@@ -92,9 +160,4 @@
 #toggleConverterBtn:hover{
     color: #E8F0F6;
     background-color: #323A42;
-}
-#basic-calculator-panal{
-    display: flex;
-    margin: 0px;
-    padding: 10px 0px;
 }

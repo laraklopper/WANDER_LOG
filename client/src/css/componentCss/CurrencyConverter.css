@@ -4,7 +4,9 @@
     align-items: center;
     background-color: #A8AEB3;
 margin: 0px;
-padding: 0px;
+padding: 10px 0px;
+    width: 70%;
+    gap: 5px;
 }
 .converter-label{
      margin: 0px;
