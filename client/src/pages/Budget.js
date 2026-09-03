@@ -64,6 +64,9 @@ export default function Budget({currentUser, logout, setError, error, loggedIn})
       return () => { ignore = true }
     },[])
 
+    // Function to fetchVatCalculations
+  
+    // Function to convert currency
     const convert = useCallback(async () => {
       setError('')
       setResult(null)
@@ -161,6 +164,10 @@ export default function Budget({currentUser, logout, setError, error, loggedIn})
 
       return data;
         },[fetchConversions])
+
+        const fetchVatCalculations = useCallback(async () => {
+          
+        },[])
 
   //================EVENT LISTENERS========================
   //  Function to toggle general/number calculator

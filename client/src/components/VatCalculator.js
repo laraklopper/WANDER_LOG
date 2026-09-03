@@ -1,29 +1,15 @@
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import '../css/componentCss/Calculator.css'
 import '../css/componentCss/VatCalculator.css'
 import '../css/componentCss/FormSetup.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
+import { SARS_VAT_RATE, ZERO_RATED_CATEGORIES  } from '../util/vatFunctions';
 
-const SARS_VAT_RATE = 0.15;
 
-const ZERO_RATED_CATEGORIES = [
-  'Brown bread',
-  'Maize meal',
-  'Rice',
-  'Vegetables',
-  'Fruit',
-  'Milk',
-  'Eggs',
-  'Vegetable oil',
-  'Dried beans',
-  'Lentils',
-  'Paraffin',
-  'Brown wheaten meal',
-  'Pilchards/sardinella in tins',
-];
 
-export default function VatCalculator({ onCalculate, onSave, isAuthenticated }) {
+
+export default function VatCalculator() {
     const [amount, setAmount] = useState('')
     const [mode, setMode] = useState('exclusive')// 'exclusive' (add VAT) | 'inclusive' (remove VAT)
   const [isZeroRated, setIsZeroRated] = useState(false);
@@ -107,11 +93,15 @@ export default function VatCalculator({ onCalculate, onSave, isAuthenticated }) 
     }
   };
 
-  const handleSave = () => {
-    if (result && onSave) {
-      onSave(result);
+  // Function to save vat calculation
+  const saveVatCalculation = useCallback(async () => {
+    try {
+      
+    } catch (error) {
+      
     }
-  };
+  })
+  
   return (
     <form
     id='vat-calculator-form'
@@ -215,23 +205,7 @@ export default function VatCalculator({ onCalculate, onSave, isAuthenticated }) 
             </div>
 
         </div>
-           {isAuthenticated ? (
-        <Button
-        variant='light'
-          type="button"
-          id="save-to-history-btn"
-          onClick={handleSave}
-          disabled={!result}
-        >
-          Save to history
-        </Button>
-      ) : (
-        result && (
-          <p className="vat-calculator__auth-hint">
-            Log in to save this calculation to your history.
-          </p>
-        )
-      )}
+      
     </form>
   )
 }

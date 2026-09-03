@@ -43,7 +43,7 @@ export const toVatRate = (calculation) => {
     if (calculation.isZeroRated) return '0% (ZERO-RATED)'
     return `${calculation.ratePercent.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}%`
 }
-
+export const SARS_VAT_RATE = 0.15;
 export const ZERO_RATED_CATEGORIES = [
   'Brown bread',
   'Maize meal',

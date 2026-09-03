@@ -4,6 +4,13 @@
 import { currencyCountries } from '../data/financeData'
 import { NOT_AVAILABLE, toDecimal } from './formatCalculations'
 
+export const formatCurrency = (value) =>
+    new Intl.NumberFormat('en-ZA', {
+      style: 'currency',
+      currency: 'ZAR',
+    }).format(value);
+
+
 //===========================================================================
 // CURRENCY OPTIONS (CurrencyConverter.js, CurrencyConvertForm.js)
 //===========================================================================
