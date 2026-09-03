@@ -3,7 +3,8 @@ import '../css/componentCss/Footer.css'
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
-
+// IMPORT ICONS FROM LUCIDE-REACT
+import {  Copyright } from 'lucide-react';
 export default function Footer({logout}) {
   return (
     <footer id='footer'>
@@ -25,7 +26,17 @@ export default function Footer({logout}) {
       </Row>
          <Row id='footer-row3'>
         <Col/>
-        <Col xs={6}></Col>
+        <Col xs={6} id='copyRightDetailsCol' aria-live='polite'>
+          {/* COPYRIGHT INFO */}
+                <div aria-labelledby='footerTextTitle' id='copyRightBlock'>
+                    <p id='footerTextTitle' className='visually-hidden'>Copyright</p>
+                    <span>
+                    <Copyright size={16} aria-hidden='true'/><h6 id='footerText'> 2026 Travel App. All rights reserved.</h6>
+
+                    </span>
+                    
+                </div>   
+        </Col>
         <Col/>
       </Row>
     </footer>

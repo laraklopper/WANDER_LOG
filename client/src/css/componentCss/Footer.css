@@ -39,6 +39,37 @@
     margin: 0px;
     padding: 0px;
 }
+#logout-col2{
+    display: flex;
+    justify-content: flex-end;
+    margin: 0px;
+    padding: 0px 5px;
+}
+#copyRightBlock{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0px;
+    padding: 10px 0px;
+    gap: 10px;
+}
+#copyRightBlock span{
+        display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 0px;
+    padding: 0px;
+}
+#footerText{
+    font-family: "Open Sans", sans-serif;
+    text-transform: uppercase;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0px;
+    letter-spacing: 1px;
+    padding: 0px;
+    text-decoration: underline;
+}
 #logoutBtn{
      display: flex;
     justify-content: center;
@@ -54,4 +85,8 @@
     border: solid 2px #323A42;
     text-transform: uppercase;
     gap: 5px;
+}
+#logoutBtn:hover{
+    background-color: #323A42;
+    color: #E8F0F6;
 }

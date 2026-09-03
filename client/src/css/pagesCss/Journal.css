@@ -103,6 +103,14 @@ background-color: #9E9E9E;
     margin: 0px;
     padding: 0px;
 }
+#toggle-addtrip-block,
+#toggle-addEntry-block,
+#toggle-addexp-block{
+    display: flex;
+    justify-content: center;
+    margin: 0px;
+    padding: 0px;
+}
 #toggleAddTripBtn,
 #toggleAddEntryBtn,
 #toggleAddExpBtn{

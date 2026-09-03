@@ -15,7 +15,7 @@ import AddTripForm from '../components/AddTripForm';
 import AddEntryForm from '../components/AddEntryForm';
 import AddExpenseForm from '../components/AddExpenseForm';
 // IMPORT API CONFIG FUNCTIONS
-import { ENDPOINTS, authHeaders, parseJson, errorMessage } from '../api/config';
+import { errorMessage } from '../api/config';
 
 /* Empty trip shape, used for the initial state and by the form's clear button.
 The two nested objects mirror the shape tripSchema stores, so the state can be
@@ -91,10 +91,13 @@ export default function Journal(//Export default Journal.js component
           setError?.(null)
           setTripFieldErrors({})
 
-          const response = await fetch(ENDPOINTS.addTrip, {
+          const response = await fetch('http://localhost:3001//trip/addTrip', {
             method: 'POST',
             mode: 'cors',
-            headers: authHeaders(token),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
             body: JSON.stringify({
               title: newTripData.title,
               purpose: newTripData.purpose,
@@ -112,7 +115,7 @@ export default function Journal(//Export default Journal.js component
             })
           })
 
-          const data = await parseJson(response)
+          const data = await response.json()
 
           if (response.ok) {
             setError?.(null)
@@ -146,35 +149,47 @@ export default function Journal(//Export default Journal.js component
         <Col id='toggleJournalCol1'/>
         <Col xs={5} id='toggleJournalCol'>
            <Stack gap={3} id='toggleJournalFormsStack'>
-      <div className="p-2">
+      <div className="p-2" id='toggle-addtrip-block'>
         <Button
         variant='light'
         onClick={toggleAddTripForm}
         id='toggleAddTripBtn'
         type='button'
         // ARIA ATTRIBUTES
+        aria-label={showAddTripForm ? 'Hide Form' : 'Add Trip'}
+        aria-controls='add-trip-panal'
+        aria-pressed={showAddTripForm}
+        aria-expanded={showAddTripForm}
         >
           {showAddTripForm ? 'Hide Form' : 'Add Trip'}
         </Button>
       </div>
-      <div className="p-2">
+      <div className="p-2" id='toggle-addEntry-block'>
         <Button
         variant='light'
         onClick={toggleAddEntryForm}
         id='toggleAddEntryBtn'
         type='button'
         // ARIA ATTRIBUTES:
+        aria-label={showAddEntryForm ? 'Hide Form' : 'Add Entry'}
+        aria-controls='add-entry-panal'
+        aria-pressed={showAddEntryForm}
+        aria-expanded={showAddEntryForm}
         >
         {showAddEntryForm ? 'Hide Form' : 'Add Entry'}
         </Button>
       </div>
-      <div className="p-2">
+      <div className="p-2" id='toggle-addexp-block'>
         <Button
         variant='light'
         onClick={toggleAddExpenseForm}
         id='toggleAddExpBtn'
         type='button'
         // ARIA ATTRIBUTES
+        aria-label={showAddExpForm ? 'Hide Form': 'Add Trip Expense'}
+        aria-pressed={showAddExpForm}
+        aria-expanded={showAddExpForm}
+        aria-controls='add-exp-panal'
         >
           {showAddExpForm ? 'Hide Form': 'Add Trip Expense'}
         </Button>
@@ -184,6 +199,7 @@ export default function Journal(//Export default Journal.js component
         <Col id='toggleJournalCol2'/>
       </Row>
       <div id='journal-form-panal'>
+      {/* TOGGLE ADD TRIP FORM */}
         {showAddTripForm && (
           <div id='add-trip-panal'>
             <Row id='addTripRow'>
@@ -205,6 +221,7 @@ export default function Journal(//Export default Journal.js component
             </Row>
           </div>
         )}
+        {/* TOGGLE ADD ENTRY FORM */}
         {showAddEntryForm && (
           <div id='add-entry-panal'>
             <Row id='addEntry-Row'>
@@ -220,9 +237,10 @@ export default function Journal(//Export default Journal.js component
             </Row>
           </div>
         )}
+        {/* TOGGLE ADD EXPENSE FORM */}
         {showAddExpForm && (
-          <div>
-            <Row>
+          <div id='add-exp-panal'>
+            <Row id='add-expense-row'>
               <Col>
                 <div>
                   <AddExpenseForm/>
