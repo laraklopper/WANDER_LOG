@@ -83,8 +83,9 @@ margin: 0px;
         flex-direction: column;
         align-items: center;
     width: 100%;
-        padding: 10px 0px;
+        padding: 10px;
 margin: 0px;
+background-color: #9E9E9E;
 }
 #addEntry-Row{
     width: 100%;
@@ -92,11 +93,36 @@ margin: 0px;
     padding: 0px;
 }
 #addEntryCol{
+    display: flex;
+    justify-content: center;
     margin: 0px;
-    padding: 0px;
+    padding: 10px 0px;
 }
 #addEntryCol1,
 #addEntryCol2{
     margin: 0px;
     padding: 0px;
+}
+#toggleAddTripBtn,
+#toggleAddEntryBtn,
+#toggleAddExpBtn{
+    margin: 0px;
+    padding: 0px;
+    color: #000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    color: #000;
+    text-transform: uppercase;
+    border: solid 2px #323A42;
+    width: 180px;
+    height: 40px;
+}
+#toggleAddTripBtn:hover,
+#toggleAddEntryBtn:hover,
+#toggleAddExpBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
 }

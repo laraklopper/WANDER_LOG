@@ -93,7 +93,9 @@ export default function Journal(//Export default Journal.js component
             <Col id='addTripCol1'/>
               <Col xs={12} md={8} id='addTripCol'>
                 <div id='addTrip-display-block'>
-                  <AddTripForm/>
+                  <AddTripForm
+                    currentUser={currentUser}
+                  />
                 </div>
               </Col>
               <Col id='addTripCol2'/>
@@ -102,7 +104,7 @@ export default function Journal(//Export default Journal.js component
         )}
         {showAddEntryForm && (
           <div id='add-entry-panal'>
-            <Row addEntry-Row>
+            <Row id='addEntry-Row'>
               <Col id='addEntryCol1'/>
               <Col md={10} id='addEntryCol'>
                 <div id='addEntry-display-block'>

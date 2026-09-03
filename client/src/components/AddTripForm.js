@@ -4,7 +4,7 @@ import '../css/componentCss/FormSetup.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
 import { Asterisk, MapPin, Calendars  } from 'lucide-react';
-export default function AddTripForm() {
+export default function AddTripForm({currentUser}) {
   return (
     <form id='addTripForm' aria-labelledby='formHeading'>
         <div id='formHeadingBlock'>
@@ -22,9 +22,7 @@ export default function AddTripForm() {
                                 className='input'
                                 id='new-trip-username'
                                 readOnly
-                                // name=''
-                                // value={}
-                                // onChange={}
+                                value={`${currentUser?.username || 'USERNAME'}`}
                                 // ARIA ATTRIBUTES:
                                 aria-required='true'
                                 aria-readonly='true'
