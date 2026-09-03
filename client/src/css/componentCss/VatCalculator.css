@@ -1,4 +1,5 @@
 /* ===================
+VatCalculator.css
 VAT CALCULATOR: VatCalculatorForm.js
 ===========*/
 #vat-calculator-form{
@@ -22,6 +23,9 @@ VAT CALCULATOR: VatCalculatorForm.js
     color: #000;
     text-transform: uppercase;
 }
+/* ====================
+LAYOUT
+================*/
 #vat-calculator-input{
     display: flex;
     flex-direction: column;
@@ -29,11 +33,25 @@ VAT CALCULATOR: VatCalculatorForm.js
     padding: 0px;
     width: 100%;
 }
+/* GROUP 1 */
 #vat-form-group1{
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#vat-calc-btn-div{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0px;
+    padding: 0px;
+    gap: 5px;
+}
+#vat-calculator-checkbox{
+    display: flex;
     margin: 0px;
     padding: 0px;
 }
@@ -56,6 +74,7 @@ VAT CALCULATOR: VatCalculatorForm.js
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 5px;
     margin: 0px;
     padding: 0px;
 }
@@ -67,19 +86,7 @@ VAT CALCULATOR: VatCalculatorForm.js
     margin: 0px;
     padding: 0px;
 }
-#vat-calc-btn-div{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 0px;
-    padding: 0px;
-    gap: 5px;
-}
-#vat-calculator-checkbox{
-    display: flex;
-    margin: 0px;
-    padding: 0px;
-}
+/* BUTTONS https://react-bootstrap.netlify.app/docs/components/buttons  */
 #selectModeBtn1,
 #selectModeBtn2{
     display: flex;

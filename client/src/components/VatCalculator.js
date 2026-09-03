@@ -146,7 +146,7 @@ export default function VatCalculator({ onCalculate, onSave, isAuthenticated }) 
             />
         </div>
       </div>
-      <div className="p-2">
+      <div id='vat-calculator-block2'>
          <label className="vat-calculator-label">Calculation type</label>
          <div id='vat-calc-btn-div'>
             <Button 
