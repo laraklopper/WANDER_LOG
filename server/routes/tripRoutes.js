@@ -10,3 +10,21 @@
 all routes require JWT Auth
 */
 
+/* Load environment variables from a .env
+file using the dotenv package*/
+require('dotenv').config();
+
+
+// ======ROUTES=====================
+/*──────────────────────────── GET ROUTES ─────────────────────────────────────
+   GET: READ — Used to fetch information from the database
+────────────────────────────────────────────────────────────────────────────────*/
+/*──────────────────────────── POST ROUTES ──────────────────────────────
+    POST: Used to create a new resource/submit data to the database
+ ─────────────────────────────────────────────────────────────────────────*/
+/*──────────────────────────── PATCH ROUTES ───────────────────────────────────
+   PATCH: UPDATE — Used to partially update information in the database
+────────────────────────────────────────────────────────────────────────────────*/
+/*──────────────────────────── DELETE ROUTES ───────────────────────────────────
+    DELETE: Used to remove an item from the database
+ ────────────────────────────────────────────────────────────────────────────────*/
