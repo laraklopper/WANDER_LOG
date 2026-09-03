@@ -1,13 +1,21 @@
+// Login.js : Route: /
+//IMPORT REQUIRED MODULES AND PACKAGES
 import React, { useCallback, useState } from 'react'
+// IMPORT CSS STYLESHEETS
 import '../css/pagesCss/PageSetup.css'
 import '../css/pagesCss/LoggedOut.css'
+// IMPORT BOOTSTRAP COMPONENTS
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+//IMPORT CUSTOM COMPONENTS
 import MainHeader from '../components/MainHeader'
 import LoginForm from '../components/LoginForm';
-import { errorMessage } from '../api/config';
-export default function Login(
-  {
+// IMPORT API CONFIG FUNCTIONS
+import { errorMessage } from '../api/config'
+;
+//=======MAIN LOGIN FUNCTION COMPONENT=========
+export default function Login(//Export the default Login function component
+  {//PROPS PASSED FROM PARENT COMPONENT (App.js)
     userData,
     setUserData,
     loggedIn,
@@ -19,6 +27,16 @@ export default function Login(
   /* Blocks a second request while the first is still running, so a double click
   on the login button cannot spend two of the server's rate limited attempts */
   const [submitting, setSubmitting] = useState(false)
+
+    /* Clear any half-finished session. Called whenever a login attempt does not
+  end in a usable token, so a stale token from an earlier session is never left
+  behind for the authenticated requests in App.js to pick up. */
+  const clearStoredSession = useCallback(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('email');
+    localStorage.removeItem('loggedIn');
+    setLoggedIn(false);
+  }, [setLoggedIn])
 
   const submitLogin = useCallback(async () => {
     if (submitting) return;
@@ -60,6 +78,7 @@ export default function Login(
         console.error(`[ERROR: Login.js] Login failed with status ${response.status}`);
       }
     } catch (error) {
+      clearStoredSession();
       // Only a network level failure reaches here, a 4xx or 5xx is handled above
       setError('Could not reach the server. Please check your connection and try again.');
       console.error('[ERROR: Login.js] Login request failed:', error.message);
@@ -67,18 +86,24 @@ export default function Login(
     } finally {
       setSubmitting(false)
     }
-  },[submitting, setError, userData, setUserData, setLoggedIn, setCurrentUser])
+  },[submitting,clearStoredSession, setError, userData, setUserData, setLoggedIn, setCurrentUser])
+
+  //================JSX RENDERING=====================
   return (
     <div id='pageContainer' aria-labelledby='pageTitle'>
           {/* ---------Screen Reader Page Heading-------------- */}
       <p className='visually-hidden' id='pageTitle'>LOGIN PAGE</p>
-
+    {/* Render the MainHeader.js component with 'LOGIN' mainHeading */}
       <MainHeader mainHeading={'LOGIN'}/>
+      {/* ========================
+      SECTION 1: LoginForm
+      ================== */}
       <section id='loginSection'>
   <Row id='login-row'>
         <Col id='login-col1'/>
         <Col xs={6} id='login-col'>
           <div id='login-form-panal'>
+          {/* Render the LoginForm.js function component */}
             <LoginForm
               userData={userData}
               setUserData={setUserData}

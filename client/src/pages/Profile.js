@@ -1,17 +1,30 @@
+// Profile.js
+//IMPORT REQUIRED MODULES AND PACKAGES
 import React, {useState, useCallback, useEffect, useMemo} from 'react'
+// IMPORT CSS STYLESHEETS
 import '../css/pagesCss/PageSetup.css'
 import '../css/pagesCss/Profile.css'
+// IMPORT BOOTSTRAP COMPONENTS
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 import Stack from 'react-bootstrap/Stack';
+// IMPORT CUSTOM COMPONENTS
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import EditPasswordForm from '../components/EditPasswordForm';
 import EditUserForm from '../components/EditUserForm';
+// IMPORT API CONFIG FUNCTIONS
 import { errorMessage } from '../api/config';
 
-export default function Profile({currentUser, logout, setError}) {
+// ======MAIN PROFILE FUNCTION COMPONENT=======
+export default function Profile(//Export the default Profile.js function component
+  {//PROPS PASSED FROM PARENT COMPONENT (App.js)
+    currentUser, 
+    logout, 
+    setError
+  }) {
+    //=========STATE VARIABLES==================
   const [showEditProfileForm, setShowEditProfileForm] = useState(false);
   const [showEditPswdForm, setShowEditPswdForm] = useState(false);
   // Blocks a second submit while the first request is in flight
@@ -138,9 +151,17 @@ export default function Profile({currentUser, logout, setError}) {
   }, []);
 
 
+  //===============JSX RENDERING================
   return (
-    <div id='pageContainer'>
+    <div id='pageContainer' aria-labelledby='pageTitle' role='main'>
+    {/* ---------Screen Reader Page Heading-------------- */}
+    <p className='visually-hidden' id='pageTitle'>PROFILE PAGE</p>
+    {/* =========HEADER========= */}
+    {/* Render the Header.js function component with 'PROFILE' as the pageHeader */}
       <Header currentUser={currentUser} heading={'PROFILE'}/>
+      {/* --------------
+       SECTION 1: USER DETAILS AND EDIT USER + EDIT PASSWORD FORM
+      -------- */}
       <section id='profileSection1'>
         <div id='profileSection1Content' aria-describedby='profileText'>
           <Row id='toggleEditProfileRow'>
@@ -185,6 +206,7 @@ export default function Profile({currentUser, logout, setError}) {
         <Col id='toggleEditProfileCol2'/>
       </Row>
         </div>
+        {/* TOGGLE THE EDIT USER FORM (EditUserForm.js) */}
         {showEditProfileForm && (
           <div id='edit-profile-panal'>
             <Row id='edit-profile-row'>
@@ -203,6 +225,7 @@ export default function Profile({currentUser, logout, setError}) {
             </Row>
           </div>
         )}
+        {/* TOGGLE THE EDITPASSWORD FORM(EditPassword.js) */}
         {showEditPswdForm && (
           <div id='edit-password-panal'>
             <Row id='edit-password-row'>

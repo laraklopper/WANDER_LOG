@@ -1,11 +1,18 @@
-import React, { useCallback, useState } from 'react'
+//Registration.js Route '/reg'
+//IMPORT REQUIRED MODULES AND PACKAGES
+import React, { useCallback, useState } from 'react';
+// IMPORT CSS STYLESHEETS
 import '../css/pagesCss/PageSetup.css'
 import '../css/pagesCss/LoggedOut.css'
+// IMPORT BOOTSTRAP COMPONENTS
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+// IMPORT CUSTOM COMPONENTS
 import MainHeader from '../components/MainHeader'
 import RegistrationForm from '../components/RegistrationForm';
+// IMPORT REACT-ROUTER COMPONENTS/HOOKS
 import { useNavigate } from 'react-router-dom';
+// IMPORT API CONFIG FUNCTIONS
 import { errorMessage} from '../api/config';
 
 // Empty form shape, used for the initial state and by the clear button
@@ -29,7 +36,13 @@ const EMPTY_FORM = {
   confirmPassword: ''
 };
 
-export default function Register({setError}) {
+//============MAIN REGISTRATION COMPONENT=============
+export default function Register(//Export default Registration function component
+  {//PROPS PASSED FROM PARENT COMPONENT (App.js)
+  setError
+  }
+  ) {
+    // =========STATE VARIABLES=============
   const [newUserData, setNewUserData] = useState(EMPTY_FORM)
   // Blocks a second submit while the first request is in flight
   const [submitting, setSubmitting] = useState(false)
@@ -38,7 +51,12 @@ export default function Register({setError}) {
   Passed to the form so each message can be shown against its own input */
   const [fieldErrors, setFieldErrors] = useState({})
 
-  const navigate = useNavigate()
+  //======================NAVIGATION HOOK========================
+  const navigate = useNavigate();// Hook to navigate between different Pages
+
+  //======================CALLBACKS/REQUEST FUNCTIONS========================
+  //Function to register a new user
+  //send registration request to 'http://localhost:3001/auth/register'
   const addUser = useCallback(async () => {
     if (submitting) return;
 
@@ -97,8 +115,13 @@ export default function Register({setError}) {
       setSubmitting(false)
     }
   },[submitting, setError, navigate, newUserData])
+
+  //===================JSX RENDERING========================
   return (
-    <div id='pageContainer'>
+    <div id='pageContainer' role='main' aria-labelledby='pageTitle'>
+     {/* ---------Screen Reader Page Heading-------------- */}
+      <p className='visually-hidden' id='pageTitle'>REGISTRATION PAGE</p>
+      {/* Render the MainHeader.js component with 'REGISTER' mainHeading */}
       <MainHeader mainHeading={'REGISTER'}/>
       <section id='regis-section1'>
    <Row id='register-row'>

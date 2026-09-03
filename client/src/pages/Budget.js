@@ -1,25 +1,41 @@
+// Budget.js
+//IMPORT REQUIRED MODULES AND PACKAGES
 import React, { useCallback, useState, useEffect } from 'react'
+// IMPORT CSS STYLESHEETS
 import '../css/pagesCss/PageSetup.css'
 import '../css/pagesCss/Budget.css'
 import '../css/componentCss/CalculatorsDisplay.css'
+// IMPORT BOOTSTRAP COMPONENTS
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
+// IMPORT CUSTOM COMPONENTS
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import CurrencyConverter from '../components/CurrencyConverter';
 import ConversionsList from '../components/ConversionsList';
 import Calculator from '../components/Calculator';
 import VatCalculator from '../components/VatCalculator';
-import { EMPTY_CONVERT_FORM, FALLBACK_CURRENCIES } from '../util/currencyFunc';
 import VatCalculationsList from '../components/VatCalculationsList';
+// IMPORT UTILITY FUNCTIONS
+import { EMPTY_CONVERT_FORM, FALLBACK_CURRENCIES } from '../util/currencyFunc';
 
-export default function Budget({currentUser, logout, setError, error, loggedIn}) {
+// ======MAIN BUDGET.js COMPONENT====================
+export default function Budget(//Export default Budget.js component
+  {//PROPS PASSED FROM PARENT COMPONENT(App.js)
+    currentUser, 
+    logout, 
+    setError, 
+    error, 
+    loggedIn
+  }) {
   // ==========STATE VARIABLES===============
+  // VAT CALCULATOR VARIABLES
   const [vatCalculations, setVatCalculations] = useState([])
   const [vatCalculationsTotal, setVatCalculationsTotal] = useState(0)
   const [vatCalculationsError, setVatCalculationsError] = useState('')
+  // CURRENCY CONVERTER VARIABLES
   const [currencyOptions, setCurrencyOptions] = useState(FALLBACK_CURRENCIES)
   const [form, setForm] = useState(EMPTY_CONVERT_FORM)
   const [result, setResult] = useState(null)
