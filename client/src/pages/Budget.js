@@ -64,8 +64,6 @@ export default function Budget({currentUser, logout, setError, error, loggedIn})
       return () => { ignore = true }
     },[])
 
-    // Function to fetchVatCalculations
-  
     // Function to convert currency
     const convert = useCallback(async () => {
       setError('')
@@ -165,9 +163,89 @@ export default function Budget({currentUser, logout, setError, error, loggedIn})
       return data;
         },[fetchConversions])
 
+        /* Loads the logged in user's saved VAT calculations for the VAT
+        calculations list. The user is taken from the token on the server, so no
+        id is sent: the endpoint can only ever return the requester's own
+        records. */
         const fetchVatCalculations = useCallback(async () => {
-          
+          try {
+            const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
+            // Nothing to fetch without a session, and the endpoint would answer 401
+            if (!token) return;
+
+            const response = await fetch(`http://localhost:3001/vat/history`,{
+              method: 'GET',//HTTP request method
+              mode: 'cors',//Enable Cross-Origin Resource Sharing
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,// Attach the token in the Authorization header
+              }
+            })
+            const data = await response.json().catch(() => ({}))//Parse the response as json
+
+            //Conditional rendering to check the request succeeded
+            if (!response.ok) {
+              const message = data.message || 'Could not load your saved VAT calculations.';
+              console.error('[ERROR: Budget.js, fetchVatCalculations]', message);//Log an error message in the console for debugging purposes
+              setVatCalculationsError(message);// Set the error state to display the error in the UI
+              return;// Exit the function early, keeping whatever list is already on screen
+            }
+
+            const fetchedCalculations = Array.isArray(data.calculations) ? data.calculations : [];
+            setVatCalculations(fetchedCalculations)
+            /* The response reports the total separately from the array, because
+            only the newest 100 records are returned. It is kept so the list can
+            say when it is showing a truncated view. */
+            setVatCalculationsTotal(typeof data.total === 'number' ? data.total : fetchedCalculations.length)
+            setVatCalculationsError('');//Clear any previous error messages
+            console.log(`[SUCCESS: Budget.js, fetchVatCalculations] Fetched ${fetchedCalculations.length} of ${data.total ?? fetchedCalculations.length} VAT calculation(s)`);
+          } catch (error) {
+            console.error('[ERROR: Budget.js, fetchVatCalculations]', error.message);//Log an error message in the console for debugging purposes
+            setVatCalculationsError(`Error fetching VAT calculations, ${error.message}`)
+          }
         },[])
+
+        /* Removes one of the user's saved VAT calculations. The list is
+        refetched rather than filtered in place, so what is on screen is what
+        the database holds. */
+        const deleteVatCalculation = useCallback(async (calculationId) => {
+          try {
+            const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
+            if (!token) return;
+
+            const response = await fetch(`http://localhost:3001/vat/history/${calculationId}`,{
+              method: 'DELETE',//HTTP request method
+              mode: 'cors',//Enable Cross-Origin Resource Sharing
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,// Attach the token in the Authorization header
+              }
+            })
+            const data = await response.json().catch(() => ({}))//Parse the response as json
+
+            //Conditional rendering to check the request succeeded
+            if (!response.ok) {
+              const message = data.message || 'Could not remove the VAT calculation.';
+              console.error('[ERROR: Budget.js, deleteVatCalculation]', message);//Log an error message in the console for debugging purposes
+              setVatCalculationsError(message);// Set the error state to display the error in the UI
+              return;
+            }
+
+            setVatCalculationsError('');//Clear any previous error messages
+            console.log('[SUCCESS: Budget.js, deleteVatCalculation] Deleted VAT calculation', calculationId);
+            fetchVatCalculations();// Refresh the list so the removal is visible straight away
+          } catch (error) {
+            console.error('[ERROR: Budget.js, deleteVatCalculation]', error.message);//Log an error message in the console for debugging purposes
+            setVatCalculationsError(`Error removing the VAT calculation, ${error.message}`)
+          }
+        },[fetchVatCalculations])
+
+  /* Loads the saved calculations when the panel is opened rather than on mount,
+  so a user who never opens it never pays for the request, and reopening it
+  shows anything saved since it was last closed. */
+  useEffect(() => {
+    if (showVatCalculations) fetchVatCalculations()
+  },[showVatCalculations, fetchVatCalculations])
 
   //================EVENT LISTENERS========================
   //  Function to toggle general/number calculator
@@ -333,6 +411,8 @@ export default function Budget({currentUser, logout, setError, error, loggedIn})
                     vatCalculations={vatCalculations}
                     vatCalculationError={vatCalculationsError}
                     setVatCalculationsError={setVatCalculationsError}
+                    fetchVatCalculations={fetchVatCalculations}
+                    deleteVatCalculation={deleteVatCalculation}
                   />
                 </div>
               </Col>

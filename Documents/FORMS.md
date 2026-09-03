@@ -34,11 +34,11 @@ A form is listed here as **required** where a schema in [SCHEMAS.md](SCHEMAS.md)
 | 9 | Budget | — | [Budget.js](../client/src/pages/Budget.js) | `POST /budgets` (does not exist) | Not started |
 | 10 | Add expense | [AddExpenseForm.js](../client/src/components/AddExpenseForm.js) | [Budget.js](../client/src/pages/Budget.js) | `POST /budgets/:id/expenses` (does not exist) | Empty file |
 | 11 | Currency converter | [CurrencyConverter.js](../client/src/components/CurrencyConverter.js) | [Budget.js](../client/src/pages/Budget.js) | `GET /api/convert`, `POST /api/save` | Built, no endpoints |
-| 12 | VAT calculator | [VatCalculator.js](../client/src/components/VatCalculator.js) | [Budget.js](../client/src/pages/Budget.js) | `POST /vat/calculate`, `POST /vat/save` | Empty file |
+| 12 | VAT calculator | [VatCalculator.js](../client/src/components/VatCalculator.js) | [Budget.js](../client/src/pages/Budget.js) | `POST /vat/calculate`, `POST /vat/save` | Built |
 
-Each of the four built forms edits a `User`. Nothing in the UI can yet create a trip, an entry, a budget or an expense, which is what the four unbuilt forms are for.
+Four of the five built forms edit a `User`; the VAT calculator writes a `vat` record. Nothing in the UI can yet create a trip, an entry, a budget or an expense, which is what the four unbuilt forms are for.
 
-Of the endpoints above, only `/auth` and `/users` are mounted — see [app.js:60](../server/app.js#L60). The rest are covered in [KNOWN GAPS](#known-gaps).
+Of the endpoints above, only `/auth`, `/users` and `/vat` are mounted — see [app.js:61](../server/app.js#L61). The rest are covered in [KNOWN GAPS](#known-gaps).
 
 ## 2. SHARED CONVENTIONS
 
@@ -229,7 +229,7 @@ The ten category keys are `accommodation`, `transport`, `food`, `activities`, `s
 
 ## 12. VAT CALCULATOR FORM
 
-**Required, file is empty.** [VatCalculator.js](../client/src/components/VatCalculator.js) has no content, and [Budget.js](../client/src/pages/Budget.js) already renders an empty `#vat-calculator-panal` behind its toggle. The arithmetic is done in [vatCalculations.js](../server/util/vatCalculations.js); against the `vat` schema (section 8 of [SCHEMAS.md](SCHEMAS.md)).
+**Built.** [VatCalculator.js](../client/src/components/VatCalculator.js), rendered by [Budget.js](../client/src/pages/Budget.js) behind its `#vat-calculator-panal` toggle. The arithmetic is done in [vatCalculations.js](../server/util/vatCalculations.js), never in the browser, so what is on screen is worked out by the same code a saved record is built from; against the `vat` schema (section 8 of [SCHEMAS.md](SCHEMAS.md)).
 
 | Field | Control | Required | Constraints | Notes |
 |---|---|---|---|---|
@@ -239,6 +239,9 @@ The ten category keys are `accommodation`, `transport`, `food`, `activities`, `s
 
 - `ratePercent`, `netAmount`, `vatAmount` and `grossAmount` are results, not inputs. The rate is `SARS_VAT_RATE` (15%), or 0 when zero-rated, and is stored with the record so a calculation saved at one rate still reproduces itself after the rate changes.
 - The results panel and the save-to-history button follow the converter: save what is on screen, disable after a success, and report the outcome through the button variant.
+- `mode` is a pair of buttons rather than a `select`, so both directions are readable at once. The chosen one is marked by more than colour — a heavier border and `aria-pressed` — and a hint under them says which price the amount will be read as.
+- Changing any of the three inputs clears the result, so a figure on screen is never left to be read against inputs that have moved on.
+- Only the three inputs are posted to `/vat/save`. The server recalculates from them, so the stored amounts cannot be edited on the way to the database.
 
 ## 13. NOT FORMS
 
@@ -248,6 +251,7 @@ Listed so they are not mistaken for missing forms.
 |---|---|
 | [Calculator.js](../client/src/components/Calculator.js) | A general number calculator, empty. It has a display and a keypad, not fields, and saves nothing. [ButtonGrid.js](../client/src/components/ButtonGrid.js) is its keypad, partly built |
 | [ConversionsList.js](../client/src/components/ConversionsList.js) | The saved-conversions panel, a placeholder returning one `div`. A read-only table, though a delete control on each row would post to `DELETE /api/history/:id` |
+| [VatCalculationsList.js](../client/src/components/VatCalculationsList.js) | The saved VAT calculations panel, a placeholder returning one `div`. Its two requests are built and passed in from [Budget.js](../client/src/pages/Budget.js) as `fetchVatCalculations` and `deleteVatCalculation`; only the table itself is outstanding. Formatting helpers for the rows are already in [vatFunctions.js](../client/src/util/vatFunctions.js) |
 | [Users.js](../client/src/pages/Users.js) | The admin page, a header and a footer. `GET /users/findUsers` takes no parameters, so a search or filter here would be client-side over the fetched list rather than a form submission |
 
 ## 14. KNOWN GAPS
@@ -256,9 +260,8 @@ Where the forms above do not line up with the API. Recorded so the tables can be
 
 | Where | Issue |
 |---|---|
-| [app.js:60](../server/app.js#L60) | Only `/auth` and `/users` are mounted. Every other path in this document returns the 404 fallback |
-| [calculatorRoutes.js](../server/routes/calculatorRoutes.js) | Empty. The four endpoints the converter calls — `GET /api/currencies`, `GET /api/convert`, `GET /api/history`, `POST /api/save` — have no implementation, so the built form cannot convert or save |
-| [vatRoutes.js](../server/routes/vatRoutes.js) | Comments only, exporting nothing. Documents `POST /vat/calculate`, `POST /vat/save`, `GET /vat/history` and `DELETE /vat/history/:id` |
+| [app.js:61](../server/app.js#L61) | Only `/auth`, `/users` and `/vat` are mounted. Every other path in this document returns the 404 fallback |
+| [apiRoutes.js](../server/routes/apiRoutes.js) | Written but not mounted, and it references an undefined `CurrencyConvert` where the import is named `Conversion`, and uses `mongoose` without importing it. The four endpoints the converter calls — `GET /api/currencies`, `GET /api/convert`, `GET /api/history`, `POST /api/save` — are therefore unreachable, so the built form cannot convert or save |
 | [expenseRoutes.js](../server/routes/expenseRoutes.js) | Empty. No route creates a budget or an expense |
 | — | No route file exists for trips or entries, so sections 7 and 8 have nothing to submit to |
 | [Budget.js:32](../client/src/pages/Budget.js#L32) | The page fetches `http://localhost:3001` directly instead of using `API_BASE_URL` and `ENDPOINTS` from [config.js](../client/src/api/config.js), as do [Profile.js](../client/src/pages/Profile.js), [Login.js](../client/src/pages/Login.js), [Register.js](../client/src/pages/Register.js) and [EditPasswordForm.js](../client/src/components/EditPasswordForm.js). A deployed API would need every call changed rather than one variable |

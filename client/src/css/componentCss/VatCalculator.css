@@ -50,10 +50,23 @@ LAYOUT
     padding: 0px;
     gap: 5px;
 }
-#vat-calculator-checkbox{
+/* Selected on the class the checkbox actually carries: its id is
+`vat-zero-rated`, which its label points at with htmlFor */
+.vat-calculator-checkbox{
     display: flex;
     margin: 0px;
     padding: 0px;
+}
+/* Says what the amount will be read as, names the common zero-rated items, and
+labels the direction a result was worked out in */
+.vat-calculator-hint{
+    text-transform: uppercase;
+    color: #444;
+    text-align: center;
+    margin: 0px;
+    padding: 5px 0px;
+    font-size: 13px;
+    font-family: "Open Sans", sans-serif;
 }
 /* STACK: https://react-bootstrap.netlify.app/docs/layout/stack */
 #vat-calculator-stack1{
@@ -103,4 +116,99 @@ LAYOUT
     color: #000;
     border: solid 2px #323A42;
     font-size: 16px;
+}
+/* The chosen direction. Marked by more than colour alone - the border thickens
+and the weight changes - so the selection is still visible to a user who cannot
+tell the two backgrounds apart, and aria-pressed reports it to a screen reader */
+.vat-calculator__toggle-btn--active{
+    background-color: #323A42;
+    color: #E8F0F6;
+    border: solid 3px #000;
+}
+.vat-calculator__toggle-btn--active:hover{
+    background-color: #323A42;
+    color: #E8F0F6;
+}
+#calculateVatBtn,
+#clearVatFormBtn,
+#saveVatCalculationBtn{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 180px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #000;
+    margin: 0px;
+    padding: 0px;
+    border: solid 2px #323A42;
+}
+#calculateVatBtn:hover,
+#saveVatCalculationBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
+}
+/* ====================
+BUTTONS AND RESULTS LAYOUT
+================*/
+#vat-calculator-stack2{
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#vat-calc-btn-block1,
+#vat-calc-btn-block2,
+#vat-calc-btn-block3{
+    display: flex;
+    justify-content: center;
+    margin: 0px;
+}
+/* ====================
+CALCULATION RESULT
+================*/
+#vat-calculator-results{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+/* One line of the result: the label on the left and the figure on the right,
+so the three amounts read as a column of figures rather than as sentences */
+.vat-calculator__result-row{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 20px;
+    margin: 0px;
+    padding: 5px 10px;
+    font-family: "Fira Mono", monospace;
+    color: #000;
+    text-transform: uppercase;
+    border-bottom: solid 1px #323A42;
+}
+/* The gross amount, which is the figure the user came for */
+.vat-calculator__result-row--total{
+    font-weight: 700;
+    font-size: 18px;
+    border-bottom: solid 3px #323A42;
+}
+/* ====================
+ERROR MESSAGE
+================*/
+.vat-calculator__error{
+    text-transform: uppercase;
+    color: #C22419;
+    text-align: center;
+    font-weight: 700;
+    margin: 0px;
+    padding: 10px 0px;
+    font-family: "Open Sans", sans-serif;
 }

@@ -78,7 +78,7 @@ const vatSchema = new mongoose.Schema({
 an exclusive calculation and the gross on an inclusive one. Derived rather than
 stored, because `mode` already says which of the two it was and storing it again
 would be a fourth amount that could disagree with the other three. */
-vatCalcSchema.virtual('enteredAmount').get(function () {
+vatSchema.virtual('enteredAmount').get(function () {
     return this.mode === 'inclusive' ? this.grossAmount : this.netAmount;
 });
 
@@ -86,7 +86,7 @@ vatCalcSchema.virtual('enteredAmount').get(function () {
 the rate the calculation actually worked out to, which reconciles against
 `ratePercent` and is what makes a stored record checkable. Nil net amount
 returns 0 rather than dividing by zero. */
-vatCalcSchema.virtual('effectiveRate').get(function () {
+vatSchema.virtual('effectiveRate').get(function () {
     return this.netAmount > 0 ? (this.vatAmount / this.netAmount) * 100 : 0;
 });
 

@@ -294,7 +294,6 @@ Points where the code does not yet match what the schemas above describe. Record
 | Where | Issue |
 |---|---|
 | [currConverterSchema.js:53](../server/models/currConverterSchema.js#L53) | The `convertedAmount` virtual is declared on `currencyConvertSchema`, a name that is never defined — the schema variable is `converterSchema`. Requiring the module throws a `ReferenceError` |
-| [vatSchema.js:81](../server/models/vatSchema.js#L81) | The `enteredAmount` and `effectiveRate` virtuals are declared on `vatCalcSchema`, a name that is never defined — the schema variable is `vatSchema`. Requiring the module throws a `ReferenceError` |
 | [currConverterSchema.js:10](../server/models/currConverterSchema.js#L10), [vatSchema.js:12](../server/models/vatSchema.js#L12) | Both use `ref: 'user'`, but the model is registered as `User`. Mongoose model names are case-sensitive, so `populate()` on these fields will not resolve |
 | [entrySchema.js:79](../server/models/entrySchema.js#L79) | The text index covers `tags`, but the schema has no `tags` field |
 | [userSchema.js:59](../server/models/userSchema.js#L59) | `fullName.lastName` has `trim: 'true'` — the string, not the boolean. It is truthy, so trimming still happens, but the type is wrong |
