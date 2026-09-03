@@ -12,6 +12,8 @@ import Stack from 'react-bootstrap/Stack';
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import AddTripForm from '../components/AddTripForm';
+import AddEntryForm from '../components/AddEntryForm';
+import AddExpenseForm from '../components/AddExpenseForm';
 
 // ============MAIN JOURNAL COMPONENT============
 export default function Journal(//Export default Journal.js component
@@ -103,7 +105,7 @@ export default function Journal(//Export default Journal.js component
             <Row>
               <Col>
                 <div>
-                  ADD ENTRY
+                  <AddEntryForm/>
                 </div>
               </Col>
             </Row>
@@ -114,7 +116,7 @@ export default function Journal(//Export default Journal.js component
             <Row>
               <Col>
                 <div>
-                  ADD ENTRY
+                  <AddExpenseForm/>
                 </div>
               </Col>
             </Row>
