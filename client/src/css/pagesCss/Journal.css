@@ -20,6 +20,21 @@ LAYOUT
     margin: 0px;
     padding: 0px;
 }
+/* FORM PANALS */
+#add-trip-panal{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#journal-form-panal{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    margin: 0px;
+    padding: 0px;
+}
+/* BOOTSTRAP LAYOUT */
+/* GRID: https://react-bootstrap.netlify.app/docs/layout/grid */
 #toggleJournalRow{
     width: 100%;
     margin: 0px;
@@ -36,6 +51,7 @@ LAYOUT
     margin: 0px;
     padding: 0px;
 }
+/* STACK: https://react-bootstrap.netlify.app/docs/layout/stack */
 #toggleJournalFormsStack{
     display: flex;
     align-items: center;
@@ -43,100 +59,40 @@ LAYOUT
     margin: 0px;
     padding: 0px;
 }
-#journal-form-panal{
-    width: 100%;
+#toggle-addtrip-block,
+#toggle-addEntry-block{
     display: flex;
-    flex-direction: column;
-    margin: 0px;
-    padding: 0px;
-}
-#add-trip-panal{
-    width: 100%;
-    margin: 0px;
-    padding: 0px;
-}
-#addTripRow{
-    width: 100%;
-    padding: 0px;
-    margin: 0px;
-}
-#addTripCol{
-    display: flex;
-    margin: 0px;
-    padding: 0px;
-}
-#addTripCol1,
-#addTripCol2{
-    margin: 0px;
-    padding: 0px;
-}
-#addTrip-display-block{
-    display: flex;
-        flex-direction: column;
-        align-items: center;
-    width: 100%;
-        padding: 10px 0px;
-margin: 0px;
-}
-#addEntry-display-block{
-    display: flex;
-        flex-direction: column;
-        align-items: center;
-    width: 100%;
-        padding: 10px;
-margin: 0px;
-background-color: #9E9E9E;
-}
-#add-expense-row,
-#addEntry-Row{
-    width: 100%;
+    justify-content: center;
     margin: 0px;
     padding: 0px;
 }
 
+#addTripRow,
+#addEntry-Row{
+    width: 100%;
+    padding: 0px;
+    margin: 0px;
+}
+#addTripCol,
 #addEntryCol{
     display: flex;
     justify-content: center;
     margin: 0px;
     padding: 10px 0px;
 }
-#addExpCol{
-    display: flex;
-    justify-content: center;
-    margin: 0px;
-    padding: 0px;
-}
+#addTripCol1,
+#addTripCol2,
 #addEntryCol1,
-#addEntryCol2,
-#addExpCol1,
-#addExpCol2{
+#addEntryCol2{
     margin: 0px;
     padding: 0px;
 }
-#add-exp-panal{
-    margin: 0px;
-    padding: 10px 0px;
-}
-#addExp-Form-display{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-        padding: 10px 5px;
-    margin: 0px;
-    background-color: #9E9E9E;
-}
-#toggle-addtrip-block,
-#toggle-addEntry-block,
-#toggle-addexp-block{
-    display: flex;
-    justify-content: center;
-    margin: 0px;
-    padding: 0px;
-}
+
+/* ===============
+ BUTTONS https://react-bootstrap.netlify.app/docs/components/buttons 
+ =================*/
 #toggleAddTripBtn,
-#toggleAddEntryBtn,
-#toggleAddExpBtn{
+#toggleAddEntryBtn{
     margin: 0px;
     padding: 0px;
     color: #000000;
@@ -152,8 +108,7 @@ background-color: #9E9E9E;
     height: 40px;
 }
 #toggleAddTripBtn:hover,
-#toggleAddEntryBtn:hover,
-#toggleAddExpBtn:hover{
+#toggleAddEntryBtn:hover{
     color: #E8F0F6;
     background-color: #323A42;
 }
