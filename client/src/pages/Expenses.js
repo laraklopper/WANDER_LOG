@@ -7,6 +7,7 @@ import Button from 'react-bootstrap/Button';
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import AddExpenseForm from '../components/AddExpenseForm';
+import ExpensesList from '../components/ExpensesList';
 
 export default function Expenses({currentUser, logout}) {
     const [showAddExp, setShowAddExp] = useState(false)
@@ -21,6 +22,7 @@ export default function Expenses({currentUser, logout}) {
         
         <Col id='expensesListCol'>
             <div id='expensesListBlock'>
+                <ExpensesList/>
 
             </div>
         </Col>
