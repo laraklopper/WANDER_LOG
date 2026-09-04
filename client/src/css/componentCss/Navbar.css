@@ -12,13 +12,8 @@
     margin: 0px;
     padding: 0px;   
 }
-#header-nav-stack{
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    margin: 0px;
-    padding: 0px;
-}
+/* BOOTSTRAP LAYOUT */
+/* GRID: https://react-bootstrap.netlify.app/docs/layout/grid */
 #header-nav-row{
     display: flex;
     justify-content: center;
@@ -26,6 +21,15 @@
     margin: 0px;
     padding: 0px;
 }
+/* STACK: https://react-bootstrap.netlify.app/docs/layout/stack */
+#header-nav-stack{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+
 #header-nav-block1,
 #header-nav-block2{
     display: flex;
@@ -35,6 +39,14 @@
     padding: 0px;
     gap: 10px;
 }
+#admin-nav-block{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+/* LINKS */
 .link-item{
     width: 180px;
     display: flex;
