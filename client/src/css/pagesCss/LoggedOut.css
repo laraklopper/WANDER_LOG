@@ -1,3 +1,8 @@
+/* ===================
+Login.js 
+----------------------
+SECTION 1: LOGIN FORM
+=======*/
 #loginSection{
      background-color: #608021;
     width: 100%;
@@ -6,6 +11,9 @@
     display: flex;
     justify-content: center;
 }
+/* ============
+LAYOUT
+===========*/
 #login-form-panal{
     display: flex;
     flex-direction: column;
@@ -15,6 +23,8 @@
     padding: 10px;
     width: 100%;
 }
+/* BOOTSTRAP LAYOUT */
+/* GRID: https://react-bootstrap.netlify.app/docs/layout/grid */
 #login-row{
     margin: 0px;
     padding: 0px;
@@ -31,18 +41,30 @@
     margin: 0px;
     padding: 0px;
 }
+/* ================
+Registration.js
+-----------
+SECTION 1
+===============*/
 #regis-section1{
-    background-color: azure;
+    display: flex;
+    justify-content: center;
+    background-color: #608021;
     width: 100%;
     margin: 10px 0px;
     padding: 10px 0px;
 }
+/* ==================
+LAYOUT
+=============*/
 #regis-form-panal{
     width: 100%;
     background-color: #9E9E9E;
     margin: 0px;
     padding: 10px;
 }
+/* BOOTSTRAP LAYOUT */
+/* GRID: https://react-bootstrap.netlify.app/docs/layout/grid */
 #register-row{
     width: 100%;
     margin: 0px;

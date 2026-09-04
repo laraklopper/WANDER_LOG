@@ -1,3 +1,6 @@
+/* ================
+SECTION 1
+==============*/
 #expensesSection1{
     display: flex;
     flex-direction: column;
@@ -6,6 +9,9 @@
     padding: 0px;
     background-color: #608021;
 }
+/* ==================
+LAYOUT
+===========*/
 #exp-section1-panal{
     display: flex;
     flex-direction: column;
@@ -26,7 +32,7 @@
     flex-direction: column;
     align-items: center;
     width: 100%;
-        padding: 10px 5px;
+    padding: 10px 5px;
     margin: 0px;
     background-color: #9E9E9E;
 }
@@ -36,6 +42,7 @@
     width: 100%;
 }
 /* BOOTSTRAP */
+/* GRID: https://react-bootstrap.netlify.app/docs/layout/grid */
 #toggleExpFormRow{
     width: 100%;
     margin: 0px;
@@ -52,6 +59,9 @@
     margin: 0px;
     padding: 0px;
 }
+/* ===============
+ BUTTONS https://react-bootstrap.netlify.app/docs/components/buttons 
+ =================*/
 #toggleAddExpBtn{
     margin: 0px;
     padding: 0px;

@@ -51,22 +51,7 @@ LAYOUT
     margin: 0px;
     padding: 0px;
 }
-/* STACK: https://react-bootstrap.netlify.app/docs/layout/stack */
-#toggleJournalFormsStack{
-    display: flex;
-    align-items: center;
-    width: 100%;
-    margin: 0px;
-    padding: 0px;
-}
-#toggle-addtrip-block,
-#toggle-addEntry-block{
-    display: flex;
-    justify-content: center;
-    margin: 0px;
-    padding: 0px;
-}
-
+/* FORM GRID */
 #addTripRow,
 #addEntry-Row{
     width: 100%;
@@ -88,6 +73,21 @@ LAYOUT
     padding: 0px;
 }
 
+/* STACK: https://react-bootstrap.netlify.app/docs/layout/stack */
+#toggleJournalFormsStack{
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#toggle-addtrip-block,
+#toggle-addEntry-block{
+    display: flex;
+    justify-content: center;
+    margin: 0px;
+    padding: 0px;
+}
 /* ===============
  BUTTONS https://react-bootstrap.netlify.app/docs/components/buttons 
  =================*/
