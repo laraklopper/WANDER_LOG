@@ -118,12 +118,6 @@ export default function App() {
    
   },[currentUser, loggedIn])
 
-  const fetchTrips = useCallback(async () => {
-    
-  },[])
-  const fetchEntries = useCallback(async () => {
-    
-  },[])
 
   //========EVENT HANDLERS==================
    const logout = useCallback(() => {
