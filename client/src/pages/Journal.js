@@ -13,7 +13,7 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import AddTripForm from '../components/AddTripForm';
 import AddEntryForm from '../components/AddEntryForm';
-import AddExpenseForm from '../components/AddExpenseForm';
+
 
 /* Empty trip shape, used for the initial state and by the form's clear button.
 The two nested objects mirror the shape tripSchema stores, so the state can be
@@ -33,14 +33,24 @@ const EMPTY_TRIP = {
   },
   status: '',
 };
+const EMPTY_ENTRY = {
+  trip: '',
+  username: '',
+  title: '',
+  body: '',
+  date: ''
+}
 
 // ============MAIN JOURNAL COMPONENT============
 export default function Journal(//Export default Journal.js component
   {//PROPS PASSED FROM PARENT COMPONENT (App.js)
-    currentUser, logout, setError}) {
+    currentUser, 
+    logout, 
+    setError
+  }) {
+    // ========STATE VARIABLES=============================
       const [showAddTripForm, setShowAddTripForm] = useState(false)
       const [showAddEntryForm, setShowAddEntryForm] = useState(false)
-      const [showAddExpForm, setShowAddExpForm] = useState(false)
       // ============ADD TRIP STATE=============
       const [newTripData, setNewTripData] = useState(EMPTY_TRIP)
       // Blocks a second submit while the first request is in flight
@@ -49,24 +59,26 @@ export default function Journal(//Export default Journal.js component
       fails, for example { 'date.endDate': 'End date must be after start date' }.
       Passed to the form so each message can be shown against its own input */
       const [tripFieldErrors, setTripFieldErrors] = useState({})
+      // =========ADD ENTRY STATE====================
+      const [newEntryData, setNewEntry] = useState(EMPTY_ENTRY)
+      const [submittingEntry, setSubmittingEntry] = useState(false)
+      // Blocks a second submit while the first request is in flight
+      const [entryFieldErrors, setEntryFieldErrors] = useState({})
 
+
+      //================EVENT HANDLERS=====================
+      // Toggle Buttons
+      // Function to toggle AddTripForm
       const toggleAddTripForm = useCallback(() => {
         setShowAddTripForm(prev => (!prev))
         setShowAddEntryForm(false)
-        setShowAddExpForm(false)
-
       },[])
+      // Function to toggle AddEntryForm
       const toggleAddEntryForm = useCallback(() => {
         setShowAddEntryForm(prev => (!prev))
         setShowAddTripForm(false)
-        setShowAddExpForm(false)
       },[])
-      const toggleAddExpenseForm = useCallback(() => {
-        setShowAddExpForm(prev => (!prev))
-        setShowAddEntryForm(false)
-        setShowAddTripForm(false)
-
-      },[])
+ 
 
       //======================CALLBACKS/REQUEST FUNCTIONS========================
       /* Sends the completed form to POST /trip/addTrip.
@@ -147,6 +159,41 @@ export default function Journal(//Export default Journal.js component
           setSubmittingTrip(false)
         }
       },[submittingTrip, newTripData, setError])
+
+      // Send a POST request to a new journal entry
+      const addEntry = useCallback(async () => {
+        try {
+          const token = localStorage.getItem('token')
+          if (!token) {
+            setError?.('Your session has expired. Please log in again.');
+            console.warn('[WARN: Journal.js] No token stored, cannot add an entry');
+            return;
+          }
+
+          const response = await fetch('http://localhost:3001/entry/addEntry', {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              // REQUEST BODY
+            })
+          })
+          const data = await response.json().catch(() => ({}))
+
+          if (response.ok) {
+            setError?.(null)
+          } else {
+            
+          }
+        } catch (error) {
+          console.error();
+          setError(`Error adding entry: ${error.message}`)
+
+        }
+      },[setError])
   return (
     <div id='pageContainer'>
       <Header currentUser={currentUser} heading={'JOURNAL'}/>
@@ -184,21 +231,6 @@ export default function Journal(//Export default Journal.js component
         aria-expanded={showAddEntryForm}
         >
         {showAddEntryForm ? 'Hide Form' : 'Add Entry'}
-        </Button>
-      </div>
-      <div className="p-2" id='toggle-addexp-block'>
-        <Button
-        variant='light'
-        onClick={toggleAddExpenseForm}
-        id='toggleAddExpBtn'
-        type='button'
-        // ARIA ATTRIBUTES
-        aria-label={showAddExpForm ? 'Hide Form': 'Add Trip Expense'}
-        aria-pressed={showAddExpForm}
-        aria-expanded={showAddExpForm}
-        aria-controls='add-exp-panal'
-        >
-          {showAddExpForm ? 'Hide Form': 'Add Trip Expense'}
         </Button>
       </div>
     </Stack>
@@ -241,22 +273,6 @@ export default function Journal(//Export default Journal.js component
                 </div>
               </Col>
               <Col id='addEntryCol2'/>
-            </Row>
-          </div>
-        )}
-        {/* TOGGLE ADD EXPENSE FORM */}
-        {showAddExpForm && (
-          <div id='add-exp-panal'>
-            <Row id='add-expense-row'>
-              <Col id='addExpCol1'/>
-              <Col xs={12} md={8} id='addExpCol'>
-                <div id='addExp-Form-display'>
-                  <AddExpenseForm
-                    currentUser={currentUser}
-                  />
-                </div>
-              </Col>
-              <Col id='addExpCol2'/>
             </Row>
           </div>
         )}
