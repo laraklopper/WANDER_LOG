@@ -60,7 +60,7 @@ export default function Journal(//Export default Journal.js component
       Passed to the form so each message can be shown against its own input */
       const [tripFieldErrors, setTripFieldErrors] = useState({})
       // =========ADD ENTRY STATE====================
-      const [newEntryData, setNewEntry] = useState(EMPTY_ENTRY)
+      const [newEntryData, setNewEntryData] = useState(EMPTY_ENTRY)
       const [submittingEntry, setSubmittingEntry] = useState(false)
       // Blocks a second submit while the first request is in flight
       const [entryFieldErrors, setEntryFieldErrors] = useState({})
