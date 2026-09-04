@@ -1,12 +1,36 @@
 // budgetSchema.js
 const mongoose = require('mongoose');
 const { apiCurrencies } = require('../serverData/currencies');
+/* The category and payment method enums, shared with expenseRoutes.js so a
+submission is checked against the same values the schema stores */
+const { EXPENSE_CATEGORIES, PAYMENT_METHODS } = require('../serverData/expenseData');
 
 const CURRENCY_CODE_PATTERN = /^[A-Z]{3}$/;
 
+/* Money is stored as a Number, and every amount is entered through an input
+with step='0.01', so a figure is rounded to the two decimals money is written in
+rather than kept as the floating point result of a conversion. A value that is
+not a number is passed through untouched, so Mongoose still reports it as a
+CastError instead of storing NaN */
+const toMoney = (value) => {
+    if (value === null || value === undefined || value === '') return value;
+    const amount = Number(value);
+    return Number.isNaN(amount) ? value : Math.round(amount * 100) / 100;
+};
+
+/* The last moment of today, used by the date validator below. An expense records
+money that has already been spent, so a date after this is a mistake. Compared
+against the end of the day rather than the current time, so an expense entered
+this afternoon for today is not read as being in the future */
+const endOfToday = () => {
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    return today;
+};
+
 //Define expenseSchema
 const expenseSchema = new mongoose.Schema({
-    //Field for username 
+    //Field for username
      username: {
         type: String,
         required : [true, 'Username is required']
@@ -16,13 +40,15 @@ const expenseSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Expense title is required'],
         trim: true,
-        maxlength: 100,
+        maxlength: [100, 'Expense title cannot exceed 100 characters'],
     },
     // Field for expense amount
     amount: {
         type: Number,
         required: [true, 'Amount is required'],
         min: [0, 'Amount cannot be negative'],
+        // Rounded to currency precision, matching the form's step='0.01'
+        set: toMoney,
     },
     // Field for expense currency
     currency: {
@@ -36,44 +62,55 @@ const expenseSchema = new mongoose.Schema({
     },
     // Field for converted amount
     convertedAmount: {
-        type: Number,   // Amount converted to trip's base currency
+        /* Amount converted into the parent budget's baseCurrency. Not a form
+        field: the add expense route applies the rate, and leaves this null when
+        the expense is already in the base currency or no rate could be read */
+        type: Number,
         default: null,
+        min: [0, 'Converted amount cannot be negative'],
+        set: toMoney,
     },
     // Field for expense category
     category: {
         type: String,
-        enum: [
-            'accommodation',
-            'transport',
-            'food',
-            'activities',
-            'shopping',
-            'health',
-            'visas',
-            'insurance',
-            'communication',
-            'other',
-        ],
-        required: true,
+        // The same ten keys as categoryLimits below, from one shared list
+        enum: {
+            values: EXPENSE_CATEGORIES,
+            message: `Expense category must be one of: ${EXPENSE_CATEGORIES.join(', ')}`,
+        },
+        required: [true, 'Expense category is required'],
     },
     // Field for expense date
     date: {
         type: Date,
-        required: true,
+        required: [true, 'Expense date is required'],
         default: Date.now,
+        /* The form blocks a future date with a max attribute and checks it
+        again before submitting. Repeated here so a date sent straight to the
+        API cannot record money as spent before it has been */
+        validate: {
+            validator: (value) => value <= endOfToday(),
+            message: 'An expense date cannot be in the future',
+        },
     },
     notes: {
         type: String,
-        maxlength: 300,
+        trim: true,
+        maxlength: [300, 'Notes cannot exceed 300 characters'],
         default: '',
         required: false,
     },
     paymentMethod: {
         type: String,
-        enum: ['cash', 'credit_card', 'debit_card', 'crypto', 'other'],
+        enum: {
+            values: PAYMENT_METHODS,
+            message: `Payment method must be one of: ${PAYMENT_METHODS.join(', ')}`,
+        },
         default: 'cash',
     },
     isPaid: {
+        /* false records a committed but unsettled cost, such as an unpaid
+        deposit, so it is still counted against the budget */
         type: Boolean,
         default: true,
     },
@@ -104,29 +141,31 @@ const budgetSchema = new mongoose.Schema(
             type: Number,
             required: [true, 'Total budget is required'],
             min: [0, 'Budget cannot be negative'],
+            set: toMoney,
         },
         dailyBudget: {
             type: Number,
             min: 0,
             default: null, // Optional — auto-calculated if not set
+            set: toMoney,
         },
         expenses: {
             type: [expenseSchema],
             default: [],
         },
-        // Category-level spending limits
-        categoryLimits: {
-            accommodation: { type: Number, default: null },
-            transport: { type: Number, default: null },
-            food: { type: Number, default: null },
-            activities: { type: Number, default: null },
-            shopping: { type: Number, default: null },
-            health: { type: Number, default: null },
-            visas: { type: Number, default: null },
-            insurance: { type: Number, default: null },
-            communication: { type: Number, default: null },
-            other: { type: Number, default: null },
-        },
+        /* Category-level spending limits, one per expense category. Built from
+        the same list the expense category enum is built from, so a limit
+        always exists for every category an expense can be filed under. null
+        means the category has no cap */
+        categoryLimits: EXPENSE_CATEGORIES.reduce((limits, category) => {
+            limits[category] = {
+                type: Number,
+                default: null,
+                min: [0, 'A category limit cannot be negative'],
+                set: toMoney,
+            };
+            return limits;
+        }, {}),
         alerts: {
             notifyAt80Percent: { type: Boolean, default: true },
             notifyOnExceed: { type: Boolean, default: true },

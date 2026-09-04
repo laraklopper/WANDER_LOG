@@ -34,6 +34,19 @@ export const EXPENSE_CATEGORIES = [
     { key: 'other', label: 'OTHER' },
 ];
 
+/* The five ways an expense can have been paid for, in the order they are shown.
+These are the same keys as the paymentMethod enum on an expense
+(budgetSchema.js), so the add expense form's select is built from this one list.
+The key is what is stored, in snake case the way the schema keeps it, and the
+label is what is shown. */
+export const PAYMENT_METHODS = [
+    { key: 'cash', label: 'CASH' },
+    { key: 'credit_card', label: 'CREDIT CARD' },
+    { key: 'debit_card', label: 'DEBIT CARD' },
+    { key: 'crypto', label: 'CRYPTO' },
+    { key: 'other', label: 'OTHER' },
+];
+
 export const currencyCountries = [
     { code: 'AED', name: 'UAE Dirham', countries: ['United Arab Emirates'] },
     { code: 'AFN', name: 'Afghan Afghani', countries: ['Afghanistan'] },

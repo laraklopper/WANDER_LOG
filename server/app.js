@@ -18,7 +18,7 @@ const userRoutes = require('./routes/userRoutes');
 const vatRoutes = require('./routes/vatRoutes');
 const tripRoutes = require('./routes/tripRoutes');
 const entryRoutes = require('./routes/entryRoutes')
-const expenseRoutes = requir('./routes/expenseRoutes.js')
+const expenseRoutes = require('./routes/expenseRoutes.js')
 // Extract enviromental variables
 const port = process.env.PORT || 3001;
 /* Origin the React dev server runs on. Set CLIENT_URL in .env to point the

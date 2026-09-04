@@ -24,6 +24,18 @@ export const currentDate = () => {
     return new Intl.DateTimeFormat('en-GB', options).format(new Date());// Format the current date
 };
 
+/* Today as 'YYYY-MM-DD', the format a date input reads and writes. Used for the
+max attribute on an input that may not take a future date, and to compare a
+chosen date against today, which sorts correctly as a string in this format.
+Built from the local date parts rather than from toISOString(), which converts to
+UTC first and so reports yesterday for the early hours of a day in SAST. */
+export const todayInputValue = () => {
+    const today = new Date();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${today.getFullYear()}-${month}-${day}`;
+};
+
 //-----------TIME FUNCTIONS-----------
 // Format time as hh:mm:ss
 export const timeDisplay = (dateObj) => {

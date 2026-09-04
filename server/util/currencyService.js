@@ -18,7 +18,7 @@ never stale. If the list cannot be fetched, the static array in
 dataArrays/currencies.js stands in, so the converter's dropdowns still populate
 and /convert still validates its input while Frankfurter is unreachable. */
 
-const { apiCurrencies } = require('../dataArrays/currencies');
+const { apiCurrencies } = require('../serverData/currencies');
 
 // Root of the Frankfurter v2 API
 const FRANKFURTER_BASE_URL = 'https://api.frankfurter.dev/v2';
