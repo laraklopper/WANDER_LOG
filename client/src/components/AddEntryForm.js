@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import '../css/componentCss/FormSetup.css'
 import '../css/componentCss/AddEntryForm.css'
 // IMPORT BOOTSTRAP COMPONENTS
@@ -22,6 +22,7 @@ export default function AddEntryForm(
         addEntry,
         emptyEntry = BLANK_ENTRY
     }) {
+        const [formError, setFormError] = useState(null)
         const [touched, setTouched] = useState({    
             trip: false,
             username: false,
@@ -50,9 +51,24 @@ export default function AddEntryForm(
             if (!confirmClear) return;
             // Reset to the same empty shape the page initialised the form with
             setNewEntryData(emptyEntry)
-
+            setTouched({
+                trip: false,
+                username: false,
+                title: false,
+                body: false,
+                date:false
+            });
+            setFormError(null)
         }
-
+        const titleEmpty = useMemo(
+            () => !String(newEntryData.title || '').trim(), [newEntryData.title]
+        )
+        const bodyEmpty = useMemo(
+            () => !String(newEntryData.body || '').trim(), [newEntryData.body]
+        )
+        const dateEmpty = useMemo(
+            () => !String(newEntryData.date || '').trim(), [newEntryData.date]
+          );
         // =============JSX RENDERING============
   return (
     <form id='addEntryForm' method='POST' aria-labelledby='formTitle' onSubmit={handleAddEntry}>
