@@ -17,6 +17,7 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const vatRoutes = require('./routes/vatRoutes');
 const tripRoutes = require('./routes/tripRoutes');
+const entryRoutes = require('./routes/entryRoutes')
 // Extract enviromental variables
 const port = process.env.PORT || 3001;
 /* Origin the React dev server runs on. Set CLIENT_URL in .env to point the
@@ -58,14 +59,12 @@ proxy's when the app is deployed behind one */
 app.set('trust proxy', 1);
 
 // =========ROUTES===========
-// Login and registration
-app.use('/auth', authRoutes);
-// Current user and user lookups
-app.use('/users', userRoutes);
-// The VAT calculator, and the logged in user's saved calculations
-app.use('/vat', vatRoutes);
-// The logged in user's trips
-app.use('/trip', tripRoutes);
+// Prefix all route modules with their base path.
+app.use('/auth', authRoutes);// Authentication related routes-Login and registration
+app.use('/users', userRoutes);// user related routes - Current user and user lookups
+app.use('/vat', vatRoutes);// VAT related routes- The VAT calculator, and the logged in user's saved calculations
+app.use('/trip', tripRoutes);// Trip related routes -The logged in user's trips
+app.use('/entry', entryRoutes );//Entry related routes
 
 // Lightweight endpoint for checking the API is up
 app.get('/health', (req, res) => {
@@ -91,7 +90,7 @@ app.use((error, req, res, next) => {
     res.status(error.status || 500).json({ message: 'Internal Server Error' });
 });
 
-//-------MONGOOSE CONFIG
+//-------MONGOOSE CONFIG----------------
 /*/ Disable strict populate to prevent errors when
 populating paths that are conditionally defined*/
 mongoose.set('strictPopulate', false)
