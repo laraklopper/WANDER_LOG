@@ -12,8 +12,6 @@ import MainHeader from '../components/MainHeader'
 import RegistrationForm from '../components/RegistrationForm';
 // IMPORT REACT-ROUTER COMPONENTS/HOOKS
 import { useNavigate } from 'react-router-dom';
-// IMPORT API CONFIG FUNCTIONS
-import { errorMessage} from '../api/config';
 
 // Empty form shape, used for the initial state and by the clear button
 const EMPTY_FORM = {
@@ -101,7 +99,13 @@ export default function Register(//Export default Registration function componen
         alert('Registration successful. Please log in with your new details.')
         navigate('/')//Navigate back to Login Page after successful registration
        } else {
-          const message = errorMessage(response, data, 'Registration failed.');
+          /* Falls back through the shapes the API can return: a plain message,
+          an error string, then the status text */
+          const message =
+            data?.message ||
+            data?.error ||
+            response?.statusText ||
+            'Registration failed.';
           // Present on a 400 from Mongoose validation, absent on a 409 or a 500
           if (data.errors) setFieldErrors(data.errors);
           setError?.(message);

@@ -14,8 +14,6 @@ import Footer from '../components/Footer'
 import AddTripForm from '../components/AddTripForm';
 import AddEntryForm from '../components/AddEntryForm';
 import AddExpenseForm from '../components/AddExpenseForm';
-// IMPORT API CONFIG FUNCTIONS
-import { errorMessage } from '../api/config';
 
 /* Empty trip shape, used for the initial state and by the form's clear button.
 The two nested objects mirror the shape tripSchema stores, so the state can be
@@ -91,7 +89,7 @@ export default function Journal(//Export default Journal.js component
           setError?.(null)
           setTripFieldErrors({})
 
-          const response = await fetch('http://localhost:3001//trip/addTrip', {
+          const response = await fetch('http://localhost:3001/trip/addTrip', {
             method: 'POST',
             mode: 'cors',
             headers: {
@@ -115,7 +113,10 @@ export default function Journal(//Export default Journal.js component
             })
           })
 
-          const data = await response.json()
+          /* Safely parse the JSON response. Guarded because the body is empty or
+          is not JSON at all on a 429 from the rate limiter, and response.json()
+          would throw before the status could be reported */
+          const data = await response.json().catch(() => ({}))
 
           if (response.ok) {
             setError?.(null)
@@ -126,7 +127,13 @@ export default function Journal(//Export default Journal.js component
             alert(data.message || 'Trip added successfully.')
             console.log('[SUCCESS: Journal.js] Trip created:', data.trip?._id)
           } else {
-            const message = errorMessage(response, data, 'Could not add the trip.');
+            /* Falls back through the shapes the API can return: a plain
+            message, an error string, then the status text */
+            const message =
+              data?.message ||
+              data?.error ||
+              response?.statusText ||
+              'Could not add the trip.';
             // Present on a 400 from Mongoose validation, absent on a 401 or a 500
             if (data.errors) setTripFieldErrors(data.errors);
             setError?.(message);

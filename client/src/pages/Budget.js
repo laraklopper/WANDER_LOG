@@ -63,8 +63,8 @@ export default function Budget(//Export default Budget.js component
               }
             }) 
             
-            const data = await response.json();//Parse the response as json
-  
+            const data = await response.json().catch(() => ({}));//Parse the response as json
+
             //Conditional rendering to check the request succeeded
             if (!response.ok) {
               console.error('[ERROR: CurrencyConverter.js, loadCurrencies]', data.message || 'Could not load currencies.');//Log an error message in the console for debugging purposes
@@ -98,7 +98,7 @@ export default function Budget(//Export default Budget.js component
             'Authorization': `Bearer ${token}`
           }
         })
-        const data = await response.json()
+        const data = await response.json().catch(() => ({}))
 
          if (!response.ok) {
            console.error(data.message || 'Conversion failed.');//Log an error message in the console for debugging purposes
@@ -162,7 +162,7 @@ export default function Budget(//Export default Budget.js component
         })
       })
 
-      const data = await response.json();//Parse the response as json
+      const data = await response.json().catch(() => ({}));//Parse the response as json
 
       //Conditional rendering to check the request succeeded
       if (!response.ok) {

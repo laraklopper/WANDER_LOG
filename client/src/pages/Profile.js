@@ -14,8 +14,6 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import EditPasswordForm from '../components/EditPasswordForm';
 import EditUserForm from '../components/EditUserForm';
-// IMPORT API CONFIG FUNCTIONS
-import { errorMessage } from '../api/config';
 
 // ======MAIN PROFILE FUNCTION COMPONENT=======
 export default function Profile(//Export the default Profile.js function component
@@ -127,7 +125,13 @@ export default function Profile(//Export the default Profile.js function compone
         alert('Profile updated successfully.')
         setShowEditProfileForm(false)
       } else {
-        const message = errorMessage(response, data, 'Profile update failed.');
+        /* Falls back through the shapes the API can return: a plain message, an
+        error string, then the status text */
+        const message =
+          data?.message ||
+          data?.error ||
+          response?.statusText ||
+          'Profile update failed.';
         // Present on a 400 from Mongoose validation, absent on a 409 or a 500
         if (data.errors) setFieldErrors(data.errors);
         setError?.(message);

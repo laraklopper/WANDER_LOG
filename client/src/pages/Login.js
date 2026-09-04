@@ -10,9 +10,6 @@ import Col from 'react-bootstrap/Col';
 //IMPORT CUSTOM COMPONENTS
 import MainHeader from '../components/MainHeader'
 import LoginForm from '../components/LoginForm';
-// IMPORT API CONFIG FUNCTIONS
-import { errorMessage } from '../api/config'
-;
 import PageFooter from '../components/PageFooter';
 //=======MAIN LOGIN FUNCTION COMPONENT=========
 export default function Login(//Export the default Login function component
@@ -74,8 +71,15 @@ export default function Login(//Export the default Login function component
         setUserData((prev) => ({ ...prev, password: '' }))
       } else {
         /* The API answers a wrong username and a wrong password with the same
-        401 message on purpose, so it is shown to the user as sent */
-        setError(errorMessage(response, data, 'Login failed. Please try again.'));
+        401 message on purpose, so it is shown to the user as sent.
+        Falls back through the shapes the API can return: a plain message, an
+        error string, then the status text */
+        setError(
+          data?.message ||
+          data?.error ||
+          response?.statusText ||
+          'Login failed. Please try again.'
+        );
         console.error(`[ERROR: Login.js] Login failed with status ${response.status}`);
       }
     } catch (error) {
