@@ -20,6 +20,7 @@ import VatCalculator from '../components/VatCalculator';
 import VatCalculationsList from '../components/VatCalculationsList';
 // IMPORT UTILITY FUNCTIONS
 import { EMPTY_CONVERT_FORM, FALLBACK_CURRENCIES } from '../util/currencyFunc';
+import ExpensesList from '../components/ExpensesList';
 
 // ======MAIN BUDGET.js COMPONENT====================
 export default function Budget(//Export default Budget.js component
@@ -43,6 +44,7 @@ export default function Budget(//Export default Budget.js component
   const [conversions, setConversions] = useState([])
   const [conversionsTotal, setConversionsTotal] = useState(0)
   // Toggle Buttons State
+  const [showExpenses, setShowExpenses] = useState(false)
   const [showCalculator, setShowCaculator] = useState(false)
   const [showVatCalc, setShowVatCalc] = useState(false)
   const [showConverter, setShowConverter] = useState(false)
@@ -264,6 +266,13 @@ export default function Budget(//Export default Budget.js component
   },[showVatCalculations, fetchVatCalculations])
 
   //================EVENT LISTENERS========================
+  const toggleExpensesList = useCallback(() => {
+    setShowExpenses(prev => !prev)
+    /* Hide calculation and conversions list but allow 
+    Calculator or Currency converter display*/
+    setShowConversions(false)
+    setShowVatCalculations(false)
+  },[])
   //  Function to toggle general/number calculator
   const toggleCalculator = useCallback(() => {
     setShowCaculator(prev => !prev)
@@ -304,6 +313,31 @@ export default function Budget(//Export default Budget.js component
       <Header currentUser={currentUser} heading={'BUDGET'}/>
         <section id='budget-section1'>
           <div id='section-1-panal'>
+           <Row id='toggleExpListRow'>
+        <Col id='toggleExpListCol1'/>
+        <Col xs={5}>
+          <div id='toggleExpensesListBlock'>
+            <Button 
+            variant='light'
+            id='toggleExpListBtn'
+            type='button'
+            onClick={toggleExpensesList}
+            >
+              {showExpenses ? 'Hide Travel Expenses': 'Show Travel Expenses'}
+            </Button>
+          </div>
+        </Col>
+        <Col id='toggleExpListCol2'/>
+      </Row>
+      {showExpenses && (
+   <div id='expenses-list-panal'>
+  <Row id='expenses-listRow'>
+        <Col md={12} id='expListCol'>
+          <ExpensesList/>
+        </Col>
+      </Row>
+      </div>
+      )}
             <Row id='toggle-btns-row'>
         <Col id='toggle-col1'/>
         <Col xs={5} id='toggle-col'>
