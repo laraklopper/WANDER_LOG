@@ -23,7 +23,6 @@ export default function Expenses({currentUser, logout}) {
         <Col id='expensesListCol'>
             <div id='expensesListBlock'>
                 <ExpensesList/>
-
             </div>
         </Col>
       </Row>
