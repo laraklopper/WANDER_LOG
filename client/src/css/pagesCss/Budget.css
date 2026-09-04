@@ -18,7 +18,14 @@ LAYOUT
     width: 100%;
     padding: 0px;
     margin: 0px;
-    gap: 5px;
+    gap: 10px;
+}
+#budgetPageExpList{
+    display: flex;
+    flex-direction: column;
+    margin: 0px;
+    padding: 10px 0px;
+    width: 100%;
 }
 /* BOOTSTRAP LAYOUT */
 /* GRID: https://react-bootstrap.netlify.app/docs/layout/grid */
@@ -34,9 +41,31 @@ LAYOUT
     padding: 0px;
 }
 #toggle-col1,
-#toggle-col2{
+#toggle-col2,
+#toggleExpListCol1,
+#toggleExpListCol2{
     margin: 0px;
     padding: 0px;
+}
+#toggleExpListRow,
+#expenses-listRow{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#toggleExpListCol{
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+    justify-content: center;
+}
+
+#toggleExpensesListBlock{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 0px;
+    padding: 10px 0px;
 }
 /* STACK: https://react-bootstrap.netlify.app/docs/layout/stack */
 #toggle-btns-stack{
@@ -61,7 +90,8 @@ LAYOUT
 
 #toggleCalcBtn,
 #toggleVatCalcBtn,
-#toggleConverterBtn{
+#toggleConverterBtn,
+#toggleExpListBtn{
     width: 250px;
     height: 40px;
     margin: 0px;
@@ -76,6 +106,7 @@ LAYOUT
     text-transform: uppercase;
     border: solid 2px #323A42;
 }
+#toggleExpListBtn:hover,
 #toggleCalcBtn:hover,
 #toggleVatCalcBtn:hover,
 #toggleConverterBtn:hover{

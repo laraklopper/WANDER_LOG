@@ -313,9 +313,10 @@ export default function Budget(//Export default Budget.js component
       <Header currentUser={currentUser} heading={'BUDGET'}/>
         <section id='budget-section1'>
           <div id='section-1-panal'>
-           <Row id='toggleExpListRow'>
+          <div id='budgetPageExpList'>
+    <Row id='toggleExpListRow'>
         <Col id='toggleExpListCol1'/>
-        <Col xs={5}>
+        <Col xs={5} id='toggleExpListCol'>
           <div id='toggleExpensesListBlock'>
             <Button 
             variant='light'
@@ -338,7 +339,10 @@ export default function Budget(//Export default Budget.js component
       </Row>
       </div>
       )}
-            <Row id='toggle-btns-row'>
+          </div>
+       
+      <div id='calculator-panal'>
+   <Row id='toggle-btns-row'>
         <Col id='toggle-col1'/>
         <Col xs={5} id='toggle-col'>
           <Stack gap={1} id='toggle-btns-stack'>
@@ -418,6 +422,8 @@ export default function Budget(//Export default Budget.js component
         </div>
       )}
       </div>
+      </div>
+         
           </div>
         </section>
         <section id='budget-section2'>

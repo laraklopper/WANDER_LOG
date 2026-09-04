@@ -1,6 +1,13 @@
 /* ===============
 CALCULATORS + CURRENCY CONVERTER DISPLAY/LAYOUT 
 ==============*/
+#calculator-panal{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+    flex-direction: column;
+}
 #calculator-display-panal{
     width: 100%;
     display: flex;

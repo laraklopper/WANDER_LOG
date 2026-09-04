@@ -76,6 +76,24 @@ LAYOUT
     padding: 0px;
     background-color: transparent;
     gap: 10px;
+    width: 100%;
+}
+#add-expense-row{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#addExpCol{
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+#addExpCol1,
+#addExpCol2{
+    margin: 0px;
+    padding: 0px;
 }
 #expensesListCol{
     margin: 0px;
