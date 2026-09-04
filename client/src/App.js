@@ -16,6 +16,7 @@ import Budget from './pages/Budget';
 import Journal from './pages/Journal';
 import Profile from './pages/Profile';
 import Users from './pages/Users';
+import Expenses from './pages/Expenses';
 
 
 /* The login form only ever fills in these two fields, so this is the whole
@@ -177,6 +178,11 @@ export default function App() {
             <Route path='/journal' element={
               <ProtectedUserRoute currentUser={currentUser}>
                 <Journal currentUser={currentUser} logout={logout} setError={setError}/>
+              </ProtectedUserRoute>
+            }/>
+            <Route path='/exp' element={
+              <ProtectedUserRoute currentUser={currentUser}>
+                <Expenses currentUser={currentUser} logout={logout}/>
               </ProtectedUserRoute>
             }/>
             <Route path='/budget' element={

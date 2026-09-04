@@ -56,6 +56,13 @@ export default function Header({heading, currentUser}) {
         )}
       </div>
       <div className="p-2" id='header-nav-block2'>
+      {currentUser && (
+        <li className='link-item'>
+          <NavLink to='/exp' className='refLink'>
+            EXPENSES
+          </NavLink>
+        </li>
+      )}
         {currentUser && (
           <li className="link-item">
             <NavLink to='/budget' className="refLink">
@@ -70,14 +77,16 @@ export default function Header({heading, currentUser}) {
             </NavLink>
           </li>
         )}
-        {currentUser.admin && (
-          <li className="link-item">
-            <NavLink to='/users' className="refLink">
-              USERS
-            </NavLink>
-          </li>
-        )}
       </div>
+        {currentUser.admin && (
+          <div className='p-2' id='admin-nav-block'>
+            <li className="link-item">
+              <NavLink to='/users' className="refLink">
+                USERS
+              </NavLink>
+            </li>
+          </div>
+        )}
     </Stack>
             </ul>
           </nav>
