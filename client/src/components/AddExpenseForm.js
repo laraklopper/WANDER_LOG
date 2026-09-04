@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import '../css/componentCss/FormSetup.css'
 import '../css/componentCss/AddExpenseForm.css'
 import Stack from 'react-bootstrap/Stack';
@@ -6,6 +6,7 @@ import Button from 'react-bootstrap/Button';
 import { Asterisk } from 'lucide-react';
 
 export default function AddExpenseForm({currentUser}) {
+  const [dateMessage, setDateMessage] = useState(false)
   return (
     <form id='add-expense-form' method='POST' aria-labelledby='formHeading'>
       <div id='formHeadingBlock'>
@@ -17,6 +18,7 @@ export default function AddExpenseForm({currentUser}) {
         <div id='addExp-group1'>
         {/* STACK 1 */}
             <Stack gap={3} id='addExpenseStack1'>
+            {/* USERNAME (READ ONLY)*/}
       <div className="p-2" id='addExp-Block1'>
           <div className='addExp-input-div'>
             <label className='addExp-label'>USERNAME:</label>
@@ -29,12 +31,18 @@ export default function AddExpenseForm({currentUser}) {
               <small><Asterisk color='#C22419' fontWeight={700} size={12} aria-hidden='true' focusable='false' /></small>
             </div>
           </div>
+          {/* TRIP */}
           <div className='addExp-input-div'>
             <label className='addExp-label'>TRIP:</label>
             <div className='input-div'>
               <select
                 className='input'
+                required
+                // name=''
+                // value={}
+                // onChange={}
               >
+              {/* MAP ALL TRIPS IN THE DATABASE WITH SELECT AS THE PLACEHOLDER */}
                 <option>SELECT</option>
               </select>
               <small><Asterisk color='#C22419' fontWeight={700} size={12} aria-hidden='true' focusable='false' /></small>
@@ -42,6 +50,7 @@ export default function AddExpenseForm({currentUser}) {
 
           </div>
       </div>
+      {/* TITLE */}
       <div className="p-2" id='addExp-Title-block'>
         <label className='addExp-label'>TITLE:</label>
         <div>
@@ -65,6 +74,7 @@ export default function AddExpenseForm({currentUser}) {
         {/* STACK 2 */}
           <Stack gap={3} id='addExpenseStack2'>
       <div className="p-2" id='addExp-Finance-block1'>
+      {/* AMOUNT */}
       <div className='addExp-input-div'>
 <label className='addExp-label'>AMOUNT:</label>
 <div className='input-div'>
@@ -77,42 +87,65 @@ export default function AddExpenseForm({currentUser}) {
       // name=''
       // value={}
       // onChange={}
+      // ARIA ATTRIBUTES
     />
 <small><Asterisk color='#C22419' fontWeight={700} size={12} aria-hidden='true' focusable='false' /></small>
 </div>
       </div>
+      {/* PAYMENT METHOD */}
         <div className='addExp-input-div'>
           <label className='addExp-label'>PAYMENT METHOD:</label>
           <div className='input-div'>
             <select
               className='input'
               required
+              // name=''
+              // value={}
+              // onChange={}
             >
+            {/* USE SELECT AS THE PLACEHOLDER */}
               <option>SELECT</option>
+              <option>CREDIT CARD</option>
+              <option>DEBIT CARD</option>
+              <option>CRYPTO</option>
+              <option>OTHER</option>
             </select>
             <small><Asterisk color='#C22419' fontWeight={700} size={12} aria-hidden='true' focusable='false' /></small>
           </div>
         </div>
       </div>
       <div className="p-2" id='addExp-Finance-block2'>
+      {/* CURRENCY */}
         <div className='addExp-input-div'>
           <label className='addExp-label'>CURRENCY:</label>
           <div className='input-div'>
             <select
             className='input'
+            required
+            // name=''
+            // value={}
+            // onChange={}
             >
+            {/* MAP ALL CURRENCIES AVAILABLE IN THE CURRENCIES ARRAY
+            WITH SELECT AS THE PLACEHOLDER */}
               <option>SELECT</option>
             </select>
             <small><Asterisk color='#C22419' fontWeight={700} size={12} aria-hidden='true' focusable='false' /></small>
           </div>
         </div>
+        {/* EXPENSE CATEGORY */}
          <div className='addExp-input-div'>
-            <label className='addExp-label'>CATEGORY:</label>
+            <label className='addExp-label'>EXPENSE CATEGORY:</label>
 <div className='input-div'>
             <select
             className='input'
             required
+            // name=''
+            // value={}
+            // onChange={}
             >
+            {/* MAP ALL CATEGORIES IN THE THE EXPENSE_CATEGORIES ARRAY
+            WITH SELECT AS THE PLACEHOLDER */}
               <option>SELECT</option>
             </select>
             <small><Asterisk color='#C22419' fontWeight={700} size={12} aria-hidden='true' focusable='false' /></small>
@@ -137,6 +170,11 @@ export default function AddExpenseForm({currentUser}) {
             // onChange={}
           />
         </div>
+        
+      </div>
+      </div>
+      <div className="p-2" >
+{/* IS PAID */}
         <div className='addExp-input-div'>
           <label className='addExp-label'>IS PAID:</label>
           <div className='input-div'>
@@ -146,8 +184,10 @@ export default function AddExpenseForm({currentUser}) {
           </div>
         </div>
       </div>
-        
-      </div>
+      
+    </Stack>
+    <Stack direction="horizontal" gap={3} id='addExp-dateStack'>
+      {/* DATE: CANNOT BE IN THE FUTURE */}
       <div className="p-2" id='addExp-date-block'>
         <label className='addExp-label'>DATE:</label>
         <div className='input-div'>
@@ -159,11 +199,20 @@ export default function AddExpenseForm({currentUser}) {
             // name=''
             // value={}
             // onChange={}
+            onFocus={() => setDateMessage(true)}
+            onBlur={() => setDateMessage(false)}
             // ARIA ATTRIBUTES:
           />
           <small><Asterisk color='#C22419' fontWeight={700} size={12} aria-hidden='true' focusable='false' /></small>
         </div>
+        
       </div>
+      <div className="p-2 ms-auto"></div>
+      {dateMessage && (
+          <div className='p-2' id='dateMsg'>
+            <p className='infoText'>DATE CANNOT BE IN THE FUTURE</p>
+          </div>
+        )}
     </Stack>
 
         </div>

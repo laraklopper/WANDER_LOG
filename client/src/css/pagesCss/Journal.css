@@ -87,21 +87,44 @@ margin: 0px;
 margin: 0px;
 background-color: #9E9E9E;
 }
+#add-expense-row,
 #addEntry-Row{
     width: 100%;
     margin: 0px;
     padding: 0px;
 }
+
 #addEntryCol{
     display: flex;
     justify-content: center;
     margin: 0px;
     padding: 10px 0px;
 }
-#addEntryCol1,
-#addEntryCol2{
+#addExpCol{
+    display: flex;
+    justify-content: center;
     margin: 0px;
     padding: 0px;
+}
+#addEntryCol1,
+#addEntryCol2,
+#addExpCol1,
+#addExpCol2{
+    margin: 0px;
+    padding: 0px;
+}
+#add-exp-panal{
+    margin: 0px;
+    padding: 10px 0px;
+}
+#addExp-Form-display{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+        padding: 10px 5px;
+    margin: 0px;
+    background-color: #9E9E9E;
 }
 #toggle-addtrip-block,
 #toggle-addEntry-block,
