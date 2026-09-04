@@ -59,6 +59,31 @@ LAYOUT
     margin: 0px;
     padding: 0px;
 }
+#expensesSection2{
+     display: flex;
+   justify-content: center;
+   align-items: center;
+  background-color: #7BA428;
+  width: 100%;
+  
+  padding: 0px;
+}
+#exp-section2-panal{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0px;
+    padding: 0px;
+    background-color: transparent;
+    gap: 10px;
+}
+#expensesListCol{
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
 /* ===============
  BUTTONS https://react-bootstrap.netlify.app/docs/components/buttons 
  =================*/

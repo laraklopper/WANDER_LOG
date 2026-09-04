@@ -15,8 +15,21 @@ export default function Expenses({currentUser, logout}) {
   return (
     <div id='pageContainer'>
         <Header currentUser={currentUser} heading={'EXPENSES'}/>
-            <section id='expensesSection1'>
+         <section id='expensesSection1'>
                 <div id='exp-section1-panal'>
+<Row id='expenses-list-row'>
+        
+        <Col id='expensesListCol'>
+            <div id='expensesListBlock'>
+
+            </div>
+        </Col>
+      </Row>
+
+                </div>
+            </section>
+            <section id='expensesSection2'>
+                <div id='exp-section2-panal'>
                     <Row id='toggleExpFormRow'>
         <Col id='toggleExpFormCol1'/>
         <Col xs={5} id='toggleExpFormCol'>
@@ -55,8 +68,8 @@ export default function Expenses({currentUser, logout}) {
       )}
 
                 </div>
-
             </section>
+           
         <Footer logout={logout}/>
     </div>
   )
