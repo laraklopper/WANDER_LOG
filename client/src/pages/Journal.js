@@ -1,6 +1,6 @@
 // Journal.js Route '/journal'
 //IMPORT REQUIRED MODULES AND PACKAGES
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 // IMPORT CSS STYLESHEETS
 import '../css/pagesCss/PageSetup.css'
 import '../css/pagesCss/Journal.css'
@@ -33,9 +33,13 @@ const EMPTY_TRIP = {
   },
   status: '',
 };
+/* Empty entry shape, used for the initial state and by the form's clear button.
+An entry is filed against a trip by its id, so the select holds tripId rather
+than the trip's title: the API reads the title off the trip document it loads,
+which is what stops a title being stored that disagrees with its own trip.
+The owner is left out for the same reason as EMPTY_TRIP above */
 const EMPTY_ENTRY = {
-  trip: '',
-  username: '',
+  tripId: '',
   title: '',
   body: '',
   date: ''
@@ -61,9 +65,17 @@ export default function Journal(//Export default Journal.js component
       const [tripFieldErrors, setTripFieldErrors] = useState({})
       // =========ADD ENTRY STATE====================
       const [newEntryData, setNewEntryData] = useState(EMPTY_ENTRY)
-      const [submittingEntry, setSubmittingEntry] = useState(false)
       // Blocks a second submit while the first request is in flight
+      const [submittingEntry, setSubmittingEntry] = useState(false)
+      /* Field keyed messages returned by the server when Mongoose validation
+      fails, for example { title: 'Entry title is required' }. Passed to the
+      form so each message can be shown against its own input */
       const [entryFieldErrors, setEntryFieldErrors] = useState({})
+      /* The logged in user's trips, used to fill the add entry form's trip
+      select. An entry is filed against a trip by id, so the form cannot be
+      submitted until these have loaded */
+      const [trips, setTrips] = useState([])
+      const [loadingTrips, setLoadingTrips] = useState(false)
 
 
       //================EVENT HANDLERS=====================
@@ -81,6 +93,53 @@ export default function Journal(//Export default Journal.js component
  
 
       //======================CALLBACKS/REQUEST FUNCTIONS========================
+      /* Loads the logged in user's trips from GET /trip/fetchTrips.
+      The route is behind checkJwtToken and filters on the userId it reads off
+      that token, so the list only ever holds this account's own trips. Called on
+      mount, and again after a trip is added, so a trip created here can be
+      written about without the page being reloaded */
+      const fetchTrips = useCallback(async () => {
+        const token = localStorage.getItem('token');
+        // Conditional rendering to check a session is still stored
+        if (!token) {
+          console.warn('[WARN: Journal.js] No token stored, cannot fetch trips');
+          return;
+        }
+
+        try {
+          setLoadingTrips(true)
+
+          const response = await fetch('http://localhost:3001/trip/fetchTrips', {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+          })
+
+          const data = await response.json().catch(() => ({}))
+
+          if (response.ok) {
+            // Defaulted to an empty array, so the form always maps over a list
+            setTrips(Array.isArray(data.trips) ? data.trips : [])
+            console.log(`[SUCCESS: Journal.js] Loaded ${data.trips?.length || 0} trips`)
+          } else {
+            /* Reported without clearing the trips already on screen, so a failed
+            refresh does not empty a select the user is part way through using */
+            const message = data?.message || response?.statusText || 'Could not load your trips.';
+            setError?.(message)
+            console.error(`[ERROR: Journal.js] Fetch trips failed with status ${response.status}: ${message}`)
+          }
+        } catch (error) {
+          // Only a network level failure reaches here, a 4xx or 5xx is handled above
+          setError?.('Could not reach the server. Please check your connection and try again.')
+          console.error(`[ERROR: Journal.js] Fetch trips request failed: ${error.message}`)
+        } finally {
+          setLoadingTrips(false)
+        }
+      },[setError])
+
       /* Sends the completed form to POST /trip/addTrip.
       The route is behind checkJwtToken, so the stored token is attached to the
       request. The trip's owner is not sent with it: the API reads the userId off
@@ -136,6 +195,9 @@ export default function Journal(//Export default Journal.js component
             // Cleared so the next trip starts from an empty form
             setNewTripData(EMPTY_TRIP)
             setShowAddTripForm(false)
+            /* Reloaded so the new trip is already in the add entry form's trip
+            select, which is filled from this list */
+            fetchTrips()
             alert(data.message || 'Trip added successfully.')
             console.log('[SUCCESS: Journal.js] Trip created:', data.trip?._id)
           } else {
@@ -158,17 +220,29 @@ export default function Journal(//Export default Journal.js component
         } finally {
           setSubmittingTrip(false)
         }
-      },[submittingTrip, newTripData, setError])
+      },[submittingTrip, newTripData, setError, fetchTrips])
 
-      // Send a POST request to a new journal entry
+      /* Sends the completed form to POST /entry/addEntry.
+      The route is behind checkJwtToken, so the stored token is attached to the
+      request. Only the trip's id is sent, not its title: the API loads that trip,
+      checks it belongs to the account on the token, and reads the title off the
+      document. The entry's owner is not sent either, for the same reason the
+      trip's is not: userId and username come from the token and the database */
       const addEntry = useCallback(async () => {
+        if (submittingEntry) return;
+
+        const token = localStorage.getItem('token')
+        // Conditional rendering to check a session is still stored
+        if (!token) {
+          setError?.('Your session has expired. Please log in again.');
+          console.warn('[WARN: Journal.js] No token stored, cannot add an entry');
+          return;
+        }
+
         try {
-          const token = localStorage.getItem('token')
-          if (!token) {
-            setError?.('Your session has expired. Please log in again.');
-            console.warn('[WARN: Journal.js] No token stored, cannot add an entry');
-            return;
-          }
+          setSubmittingEntry(true)
+          setError?.(null)
+          setEntryFieldErrors({})
 
           const response = await fetch('http://localhost:3001/entry/addEntry', {
             method: 'POST',
@@ -178,22 +252,54 @@ export default function Journal(//Export default Journal.js component
               'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify({
-              // REQUEST BODY
+              tripId: newEntryData.tripId,
+              title: newEntryData.title,
+              body: newEntryData.body,
+              date: newEntryData.date,
             })
           })
+
+          /* Safely parse the JSON response. Guarded because the body is empty or
+          is not JSON at all on a 429 from the rate limiter, and response.json()
+          would throw before the status could be reported */
           const data = await response.json().catch(() => ({}))
 
           if (response.ok) {
             setError?.(null)
+            setEntryFieldErrors({})
+            // Cleared so the next entry starts from an empty form
+            setNewEntryData(EMPTY_ENTRY)
+            setShowAddEntryForm(false)
+            alert(data.message || 'Entry added successfully.')
+            console.log('[SUCCESS: Journal.js] Entry created:', data.entry?._id)
           } else {
-            
+            /* Falls back through the shapes the API can return: a plain
+            message, an error string, then the status text */
+            const message =
+              data?.message ||
+              data?.error ||
+              response?.statusText ||
+              'Could not add the entry.';
+            // Present on a 400 from Mongoose validation, absent on a 401, 404 or a 500
+            if (data.errors) setEntryFieldErrors(data.errors);
+            setError?.(message);
+            console.error(`[ERROR: Journal.js] Add entry failed with status ${response.status}: ${message}`);
           }
         } catch (error) {
-          console.error();
-          setError(`Error adding entry: ${error.message}`)
-
+          // Only a network level failure reaches here, a 4xx or 5xx is handled above
+          setError?.('Could not reach the server. Please check your connection and try again.');
+          console.error(`[ERROR: Journal.js] Add entry request failed: ${error.message}`);
+        } finally {
+          setSubmittingEntry(false)
         }
-      },[setError])
+      },[submittingEntry, newEntryData, setError])
+
+      //=====================SIDE EFFECTS=========================
+      /* Loads the trips once, when the page mounts, so the add entry form's trip
+      select is already filled the first time the form is opened */
+      useEffect(() => {
+        fetchTrips()
+      }, [fetchTrips])
   return (
     <div id='pageContainer'>
       <Header currentUser={currentUser} heading={'JOURNAL'}/>
@@ -269,6 +375,15 @@ export default function Journal(//Export default Journal.js component
                 <div id='addEntry-display-block'>
                   <AddEntryForm
                     currentUser={currentUser}
+                    newEntryData={newEntryData}
+                    setNewEntryData={setNewEntryData}
+                    addEntry={addEntry}
+                    submitting={submittingEntry}
+                    fieldErrors={entryFieldErrors}
+                    emptyForm={EMPTY_ENTRY}
+                    // Fills the trip select, an entry is filed against a trip by id
+                    trips={trips}
+                    loadingTrips={loadingTrips}
                   />
                 </div>
               </Col>

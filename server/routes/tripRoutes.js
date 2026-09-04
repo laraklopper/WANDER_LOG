@@ -132,6 +132,35 @@ const parseTripInput = ({ title, purpose, destination = {}, date = {}, status } 
 /*──────────────────────────── GET ROUTES ─────────────────────────────────────
    GET: READ — Used to fetch information from the database
 ────────────────────────────────────────────────────────────────────────────────*/
+/*=====================================
+LIST THE LOGGED IN USER'S TRIPS
+=======================================*/
+/* trip/fetchTrips - Lists every trip belonging to the logged in user.
+
+Filtered on the userId taken from the JWT, so the list can only ever hold the
+caller's own trips. Used by the journal's add entry form, which needs the trips
+to fill its trip select: an entry is filed against a trip by id, so the form
+cannot be completed without them. Sorted newest first, by the date the trip
+starts, so the trip most likely to be written about is nearest the top */
+router.get('/fetchTrips', checkJwtToken, async (req, res) => {
+    try {
+        const userId = req.user?.userId;
+
+        // Conditional rendering to check if userId is present
+        if (!userId) {
+            console.error('[ERROR: tripRoutes.js, GET /fetchTrips] userId missing from token');// Log an error message in the console for debugging purposes
+            return res.status(401).json({ success: false, message: 'Unauthorized' });// Respond with a 401 (Unauthorised) status code
+        }
+
+        const trips = await Trip.find({ userId }).sort({ 'date.startDate': -1 }).exec();
+
+        console.log(`[SUCCESS: tripRoutes.js, GET /fetchTrips] Found ${trips.length} trips for user ${userId}`);// Log a success message in the console for debugging purposes
+        return res.status(200).json({ success: true, count: trips.length, trips });// Respond with a 200 (OK) status code and the list of trips
+    } catch (error) {
+        console.error('[ERROR: tripRoutes.js, GET /fetchTrips]', error.message);// Log an error message in the console for debugging purposes
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });// Respond with a 500 (Internal Server Error) status code
+    }
+})
 
 /*──────────────────────────── POST ROUTES ──────────────────────────────
     POST: Used to create a new resource/submit data to the database
