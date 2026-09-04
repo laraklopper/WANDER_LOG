@@ -13,6 +13,7 @@ import LoginForm from '../components/LoginForm';
 // IMPORT API CONFIG FUNCTIONS
 import { errorMessage } from '../api/config'
 ;
+import PageFooter from '../components/PageFooter';
 //=======MAIN LOGIN FUNCTION COMPONENT=========
 export default function Login(//Export the default Login function component
   {//PROPS PASSED FROM PARENT COMPONENT (App.js)
@@ -115,6 +116,7 @@ export default function Login(//Export the default Login function component
         <Col id='login-col2'/>
       </Row>
       </section>
+      <PageFooter/>
     </div>
   )
 }
