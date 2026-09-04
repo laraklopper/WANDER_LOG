@@ -248,11 +248,15 @@ export default function Journal(//Export default Journal.js component
         {showAddExpForm && (
           <div id='add-exp-panal'>
             <Row id='add-expense-row'>
-              <Col>
-                <div>
-                  <AddExpenseForm/>
+              <Col/>
+              <Col xs={12} md={8}>
+                <div id='addExp-Form-display'>
+                  <AddExpenseForm
+                    currentUser={currentUser}
+                  />
                 </div>
               </Col>
+              <Col/>
             </Row>
           </div>
         )}
