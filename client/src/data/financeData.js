@@ -16,6 +16,24 @@ conversion's stored codes in the calculations panal.
 The country lists are the currency's own issuing states and territories, not
 every country that happens to accept it. Four codes are traded metals and one is
 an IMF reserve asset, so they carry a note in place of a country. */
+/* The ten expense categories, in the order they are shown. These are the same
+keys as the category enum on an expense (budgetSchema.js) and the categoryLimits
+sub-document, so the budget form's limit inputs and the add expense form's
+category select are built from this one list rather than typed out twice. The
+key is what is stored, the label is what is shown. */
+export const EXPENSE_CATEGORIES = [
+    { key: 'accommodation', label: 'ACCOMMODATION' },
+    { key: 'transport', label: 'TRANSPORT' },
+    { key: 'food', label: 'FOOD' },
+    { key: 'activities', label: 'ACTIVITIES' },
+    { key: 'shopping', label: 'SHOPPING' },
+    { key: 'health', label: 'HEALTH' },
+    { key: 'visas', label: 'VISAS' },
+    { key: 'insurance', label: 'INSURANCE' },
+    { key: 'communication', label: 'COMMUNICATION' },
+    { key: 'other', label: 'OTHER' },
+];
+
 export const currencyCountries = [
     { code: 'AED', name: 'UAE Dirham', countries: ['United Arab Emirates'] },
     { code: 'AFN', name: 'Afghan Afghani', countries: ['Afghanistan'] },

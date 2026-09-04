@@ -1,0 +1,153 @@
+/* BUDGET FORM
+Layout only, to the same pattern as EditUserForms.css: the form is a column of
+panelled groups, and each group is a stack of blocks. Shared pieces (.input,
+.input-div, .infoText, .formErrorBlock, #requiredInfo, #clearFormBtn) come from
+FormSetup.css and are not repeated here. */
+#budget-form{
+    display: flex;
+    flex-direction: column;
+    background-color: #A8AEB3;
+    align-items: center;
+    margin: 0px;
+    padding: 10px 0px;
+    gap: 10px;
+    width: 100%;
+}
+/* ============
+LAYOUT
+==========*/
+#budget-input{
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    margin: 0px;
+    padding: 10px;
+    gap: 10px;
+    background-color: #BFBFBF;
+}
+/* GROUP 1: TRIP, BASE CURRENCY, TOTAL AND DAILY BUDGET */
+#budget-group1,
+#budget-group2,
+#budget-group3{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 0px;
+    padding: 10px;
+    border: solid #323A42 2px;
+    background: #D6D6D6;
+    border-radius: 8px;
+}
+#budget-stack1,
+#budget-stack3,
+#budget-stack4{
+    width: 100%;
+    display: flex;
+    margin: 0px;
+    padding: 0px;
+}
+#budget-trip-block,
+#budget-daily-block{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+    gap: 5px;
+}
+#budget-stack2{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+    align-items: flex-start;
+}
+#budget-basecurrency-block,
+#budget-total-block{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin: 0px;
+    padding: 0px;
+    gap: 5px;
+}
+/* The base currency label is long enough to need the wider control */
+#budgetBaseCurrency{
+    width: 250px;
+}
+/* GROUP 2: CATEGORY LIMITS, TWO PER ROW */
+#budget-category-limits-row{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+.budget-category-col{
+    margin: 0px;
+    padding: 0px;
+}
+.budget-category-block{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0px;
+    gap: 10px;
+}
+/* GROUP 3: ALERTS */
+#budget-alert-80-block,
+#budget-alert-exceed-block{
+    display: flex;
+    align-items: center;
+    margin: 0px;
+    padding: 0px;
+    gap: 10px;
+}
+.budget-checkbox{
+    width: 20px;
+    height: 20px;
+    border: solid black 2px;
+    border-radius: 3px;
+    margin: 0px;
+    padding: 0px;
+    accent-color: #323A42;
+}
+/* LABELS */
+.budget-label{
+    color: #000000;
+    font-weight: 700;
+    margin: 0px;
+    padding: 0px;
+    font-family: "Fira Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+/* GROUP 4: LEGEND AND BUTTONS */
+#budget-group4{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#budget-stack5{
+    width: 90%;
+    margin: 0px;
+    padding: 0px;
+}
+#budgetBtn{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0px;
+    padding: 0px;
+    width: 180px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    color: #000;
+    text-transform: uppercase;
+    border: solid 2px #323A42;
+}
+#budgetBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
+}
