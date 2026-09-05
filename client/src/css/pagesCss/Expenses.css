@@ -21,7 +21,8 @@ LAYOUT
     background-color: transparent;
     gap: 10px;
 }
-#toggle-addexp-block{
+#toggle-addexp-block,
+#toggleAddBudgetBlock{
     display: flex;
     justify-content: center;
     margin: 0px;

@@ -362,10 +362,20 @@ export default function Journal(//Export default Journal.js component
                     emptyForm={EMPTY_TRIP}
                   />
                   <div id='tripBudgetLinkBlock'>
-                  {/* LINK TO EXPENSES PAGE AND DISPLAY BUDGET FORM
-                  the budgetForm must be open
-                   */}
-                  <Link className='reflink' id='addBudgetLink'>
+                  {/* LINK TO EXPENSES PAGE AND DISPLAY BUDGET FORM.
+                  A budget belongs to a trip, so it can only be set once the
+                  trip has been added, and the form that sets one lives on the
+                  expenses page. openBudgetForm is carried on the location
+                  rather than in the path, so the page is reached at its own
+                  route and opens its budget panel on arrival */}
+                  <Link
+                    className='reflink'
+                    id='addBudgetLink'
+                    to='/exp'
+                    state={{ openBudgetForm: true }}
+                    // ARIA ATTRIBUTES:
+                    aria-label='Add a trip budget on the expenses page'
+                  >
                     ADD TRIP BUDGET
                   </Link>
                   </div>

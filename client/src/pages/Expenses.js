@@ -1,6 +1,8 @@
 // Expenses.js Route '/exp'
 //IMPORT REQUIRED MODULES AND PACKAGES
 import React, { useCallback, useEffect, useState } from 'react'
+// IMPORT ROUTING HOOKS
+import { useLocation, useNavigate } from 'react-router-dom'
 // IMPORT CSS STYLESHEETS
 import '../css/pagesCss/Expenses.css'
 import '../css/pagesCss/PageSetup.css'
@@ -51,9 +53,22 @@ export default function Expenses(//Export default Expenses.js component
     logout,
     setError
   }) {
+    // ========ROUTING=============================
+    /* The journal's ADD TRIP BUDGET link navigates here with
+    { openBudgetForm: true } on the location, because a budget can only be set
+    for a trip that already exists and the form that sets one is on this page.
+    location is read for that flag and navigate is used to clear it again */
+    const location = useLocation()
+    const navigate = useNavigate()
+
     // ========STATE VARIABLES=============================
     const [showAddExp, setShowAddExp] = useState(false)
-    const [showAddBudget, setShowAddBudget] = useState(false)
+    /* Read off the location on the first render rather than in an effect, so a
+    page reached from that link opens with the budget form already showing
+    instead of rendering the closed page for a frame first */
+    const [showAddBudget, setShowAddBudget] = useState(
+      Boolean(location.state?.openBudgetForm)
+    )
     // ============ADD EXPENSE STATE=============
     const [newExpenseData, setNewExpenseData] = useState(EMPTY_EXPENSE)
     // Blocks a second submit while the first request is in flight
@@ -331,6 +346,24 @@ export default function Expenses(//Export default Expenses.js component
     },[submittingExpense, newExpenseData, setError, fetchBudgets, fetchExpenses])
 
     //=====================SIDE EFFECTS=========================
+    /* Opens the budget form when the page was reached from the journal's ADD
+    TRIP BUDGET link, which sets openBudgetForm on the location. Kept as an
+    effect as well as an initial state, because the link is also reachable from
+    a journal already sitting on this route, where the component is not
+    remounted and only the location changes.
+
+    The flag is then replaced out of the history entry, so reloading the page or
+    coming back to it does not reopen a form the user has since closed */
+    useEffect(() => {
+      if (!location.state?.openBudgetForm) return;
+
+      setShowAddBudget(true)
+      // Closed, the two panels are shown one at a time
+      setShowAddExp(false)
+      navigate(location.pathname, { replace: true, state: null })
+      console.log('[INFO: Expenses.js] Opened the budget form from the journal link')
+    }, [location.state, location.pathname, navigate])
+
     /* Loads the budgets once, when the page mounts, so the add expense form's
     trip select is already filled the first time the form is opened */
     useEffect(() => {
@@ -389,15 +422,19 @@ export default function Expenses(//Export default Expenses.js component
                 {showAddExp ? 'Hide Form': 'Add Trip Expense'}
                 </Button>
       </div>
-      <div className="p-2">
-        <Button 
+      <div className="p-2" id='toggleAddBudgetBlock'>
+        <Button
         variant='light'
         id='toggleAddBudgetBtn'
         onClick={toggleAddBudgetForm}
         type='button'
         // ARIA ATTRIBUTES:
+        aria-controls='add-budget-panal'
+        aria-label={showAddBudget ? 'Hide Form' : 'Add Trip Budget'}
+        aria-pressed={showAddBudget}
+        aria-expanded={showAddBudget}
         >
-          ADD TRIP BUDGET
+          {showAddBudget ? 'HIDE FORM' : 'ADD TRIP BUDGET'}
         </Button>
       </div>
      
