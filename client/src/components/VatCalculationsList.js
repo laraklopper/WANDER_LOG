@@ -20,8 +20,8 @@ export default function VatCalculationsList(
 ) {
   const username = currentUser.username
   return (
-    <div>
-      <div>
+    <div id='vat-calculations-list'>
+      <div id='vat-list-block'>
         <table>
           <thead>
             <thead>
