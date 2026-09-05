@@ -393,7 +393,13 @@ export default function Budget(//Export default Budget.js component
         variant='light'
         type='button'
         onClick={toggleConverter} 
-        id='toggleConverterBtn'>
+        id='toggleConverterBtn'
+        // ARIA ATTRIBUTES:
+        aria-label={showConverter ? 'Close Converter': 'Show Currency Converter'}
+        aria-pressed={showConverter}
+        aria-expanded={showConverter}
+        aria-controls='currency-converter-panal'
+        >
           {showConverter ? 'Close Converter': 'Show Currency Converter'}
         </Button>
       </div>
@@ -401,7 +407,9 @@ export default function Budget(//Export default Budget.js component
         </Col>
         <Col id='toggle-col2'/>
       </Row>
+      {/* ======CALCULATORS + CURRENCY CONVERTER DISPLAY======= */}
       <div id='calculator-display-panal'>
+      {/* TOGGLE THE CALCULATOR */}
       {showCalculator && (
         <div id='basic-calculator-panal'>
           <Row id='basic-calculator-row'>
@@ -415,6 +423,7 @@ export default function Budget(//Export default Budget.js component
       </Row>
         </div>
       )}
+      {/* TOGGLE THE VAT CALCULATOR */}
       {showVatCalc && (
         <div id='vat-calculator-panal'>
           <Row id='vat-calculator-row'>
@@ -428,6 +437,7 @@ export default function Budget(//Export default Budget.js component
           </Row>
         </div>
       )}
+      {/* TOGGLE THE CURRENCY CONVERTER */}
       {showConverter && (
         <div id='currency-converter-panal'>
         <Row id='currency-converter-row'>
@@ -502,6 +512,7 @@ export default function Budget(//Export default Budget.js component
         <Col id='toggle-calculations-col2'/>
         </Row>
         <div id='calculations-panal'>
+        {/* TOGGLE VAT CALCULATIONS LIST */}
         {showVatCalculations && (
           <div id='vat-calculations-panal'>
             <Row id='vatCalculationsRow'>
@@ -523,6 +534,7 @@ export default function Budget(//Export default Budget.js component
             </Row>
           </div>
         )}
+        {/* TOGGLE CONVERSIONS LIST */}
         {showConversions && (
           <div id='conversions-list-panal'>
           <Row id='conversions-list-Row'>
