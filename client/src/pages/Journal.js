@@ -13,6 +13,7 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import AddTripForm from '../components/AddTripForm';
 import AddEntryForm from '../components/AddEntryForm';
+import { Link } from 'react-router-dom';
 
 
 /* Empty trip shape, used for the initial state and by the form's clear button.
@@ -360,6 +361,14 @@ export default function Journal(//Export default Journal.js component
                     fieldErrors={tripFieldErrors}
                     emptyForm={EMPTY_TRIP}
                   />
+                  <div id='tripBudgetLinkBlock'>
+                  {/* LINK TO EXPENSES PAGE AND DISPLAY BUDGET FORM
+                  the budgetForm must be open
+                   */}
+                  <Link className='reflink' id='addBudgetLink'>
+                    ADD TRIP BUDGET
+                  </Link>
+                  </div>
                 </div>
               </Col>
               <Col id='addTripCol2'/>
