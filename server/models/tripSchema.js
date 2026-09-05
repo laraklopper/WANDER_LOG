@@ -78,6 +78,7 @@ const tripSchema = new mongoose.Schema({
         default: 0,
         min: 0,
     },
+    // add trip budget 
 }, {
     timestamps: true,
     toJSON: { virtuals: true },
