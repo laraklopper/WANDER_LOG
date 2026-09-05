@@ -1,20 +1,4 @@
 // BudgetForm.js
-/* WIREFRAME. The markup, ids and layout of the budget form only: there is no
-state, no validation and no request in here yet. Every input is uncontrolled
-(defaultValue, no onChange) so the shape can be looked at and styled before the
-behaviour is written, and submit is swallowed so the page cannot navigate.
-
-What is still to be added, per section 9 of Documents/FORMS.md:
-  - the form state, owned by Budget.js, and one change handler for the nested
-    categoryLimits and alerts paths
-  - the touched state, the field messages and the component level rules
-  - POST /budgets to create, and the PATCH to edit, neither of which exists
-    (expenseRoutes.js is empty, see KNOWN GAPS)
-
-One budget per trip, so the same form does both: it creates a budget for a trip
-that has none, and edits the budget thereafter. mode says which, and the only
-field that behaves differently is tripId, which cannot be moved once a budget
-exists because tripId is unique on the schema. */
 //IMPORT REQUIRED MODULES AND PACKAGES
 import React from 'react'
 // IMPORT CSS STYLESHEETS
@@ -22,8 +6,6 @@ import '../css/componentCss/BudgetForm.css'
 import '../css/componentCss/FormSetup.css'
 // IMPORT BOOTSTRAP COMPONENTS
 import Stack from 'react-bootstrap/Stack';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 // IMPORT ICONS
 import { Asterisk, Bug } from 'lucide-react';
@@ -83,11 +65,11 @@ export default function BudgetForm({
       <div id='budget-input'>
         {/* GROUP 1: THE TRIP, THE CURRENCY AND THE TWO AMOUNTS */}
         <div id='budget-group1'>
-          <Stack gap={3} id='budget-stack1'>
-            {/* TRIP SELECT */}
-            <div className='p-2' id='budget-trip-block'>
-              <label className='budget-label' htmlFor='budgetTripId'>TRIP:</label>
-              <div className='input-div'>
+        {/* STACK 1 */}
+           <Stack direction="horizontal" gap={3}>
+      <div className="p-2" id='budget-trip-block'>
+        <label className='budget-label' htmlFor='budgetTripId'>TRIP:</label>
+        <div className='input-div'>
                 <select
                   className='input'
                   id='budgetTripId'
@@ -113,16 +95,20 @@ export default function BudgetForm({
                 </select>
                 <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
               </div>
-              <small id={tripHelpId} className='infoText'>
+             
+      </div>
+      <div className="p-2 ms-auto"/>
+      <div className="p-2"> <small id={tripHelpId} className='infoText'>
                 {isEdit
                   ? 'A budget cannot be moved to another trip'
                   : 'Only trips that do not have a budget yet are listed'}
-              </small>
-            </div>
-            {/* BASE CURRENCY AND TOTAL BUDGET */}
-            <Stack direction='horizontal' gap={3} id='budget-stack2'>
-              {/* BASE CURRENCY SELECT */}
-              <div className='p-2' id='budget-basecurrency-block'>
+              </small></div>
+    </Stack>
+        <Stack gap={3} id='budget-stack1'>
+      
+      <div className="p-2" id='budget-block2'>
+        {/* BASE CURRENCY SELECT */}
+              <div  id='budget-basecurrency-block'>
                 <label className='budget-label' htmlFor='budgetBaseCurrency'>BASE CURRENCY:</label>
                 <div className='input-div'>
                   <select
@@ -151,9 +137,19 @@ export default function BudgetForm({
                   The budget and its totals are reported in this currency
                 </small>
               </div>
-              {/* TOTAL BUDGET INPUT */}
-              <div className='p-2 ms-auto' id='budget-total-block'>
-                <label className='budget-label' htmlFor='budgetTotalBudget'>TOTAL BUDGET:</label>
+              
+              <div  id='budget-total-block'>
+                
+              </div>
+      </div>
+            
+    </Stack>
+        <Stack gap={3}>
+      <div className="p-2">First item</div>
+      <div className="p-2" id='budget-basecurrency-block'>Second item</div>
+      {/* TOTAL BUDGET INPUT */}
+      <div className="p-2" id='budget-total-block'>
+        <label className='budget-label' htmlFor='budgetTotalBudget'>TOTAL BUDGET:</label>
                 <div className='input-div'>
                   <input
                     className='input'
@@ -172,10 +168,11 @@ export default function BudgetForm({
                   />
                   <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
                 </div>
-              </div>
-            </Stack>
-            {/* DAILY BUDGET INPUT */}
-            <div className='p-2' id='budget-daily-block'>
+      </div>
+    </Stack>
+
+           <Stack direction="horizontal" gap={3}>
+      <div className='p-2' id='budget-daily-block'>
               <label className='budget-label' htmlFor='budgetDailyBudget'>DAILY BUDGET:</label>
               <div className='input-div'>
                 <input
@@ -196,27 +193,34 @@ export default function BudgetForm({
                   )}
                 />
               </div>
-              {/* Left blank, the schema's pre('save') hook divides the total
+             
+            </div>
+      <div className="p-2 ms-auto"/>
+      <div className="p-2">
+         {/* Left blank, the schema's pre('save') hook divides the total
               by the trip's day count */}
               <small id={dailyBudgetHelpId} className='infoText'>
                 Optional. Left blank, this is worked out from the total and the length of the trip
               </small>
-            </div>
-          </Stack>
+      </div>
+    </Stack>
+
         </div>
         {/* GROUP 2: CATEGORY LIMITS, ONE PER EXPENSE CATEGORY */}
         <div id='budget-group2'>
+        <span id='form-category-span'>
           <h4 className='formSectionHeading'>CATEGORY LIMITS</h4>
-          <small id={categoryLimitsHelpId} className='infoText'>
+          <small id={categoryLimitsHelpId}>
             All optional. A category left blank has no cap of its own
           </small>
-          <Stack gap={3} id='budget-stack3'>
+         </span>
+         {/* STACK 2 */}
             {/* The ten keys are read from EXPENSE_CATEGORIES, the same list the
             add expense form's category select is built from */}
-            <Row id='budget-category-limits-row'>
+            <Stack id='budget-category-div'>
               {EXPENSE_CATEGORIES.map(({ key, label }) => (
-                <Col xs={6} key={key} className='budget-category-col'>
-                  <div className='p-2 budget-category-block'>
+                <div key={key} className='budget-category-col'>
+                  <div className=' budget-category-block'>
                     <label className='budget-label' htmlFor={`budgetLimit-${key}`}>{label}:</label>
                     <div className='input-div'>
                       <input
@@ -238,14 +242,15 @@ export default function BudgetForm({
                       />
                     </div>
                   </div>
-                </Col>
+                </div>
               ))}
-            </Row>
-          </Stack>
+            </Stack>
+       
         </div>
         {/* GROUP 3: ALERTS, BOTH ON BY DEFAULT */}
         <div id='budget-group3'>
           <h4 className='formSectionHeading'>ALERTS</h4>
+          {/* STACK 3 */}
           <Stack gap={3} id='budget-stack4'>
             <div className='p-2' id='budget-alert-80-block'>
               <div className='input-div'>
@@ -303,7 +308,8 @@ export default function BudgetForm({
       )}
       {/* GROUP 4: REQUIRED FIELDS LEGEND AND SUBMISSION BUTTONS */}
       <div id='budget-group4'>
-        <Stack direction='horizontal' gap={3} id='budget-stack5'>
+      {/* STACK 4 */}
+        <Stack direction='horizontal' gap={3} id='budget-stack4'>
           {/* REQUIRED INFO MESSAGE */}
           <div className='p-2' id='requiredInfo'>
             <p className='infoMsg'>

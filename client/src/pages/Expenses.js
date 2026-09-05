@@ -16,6 +16,7 @@ import ExpensesList from '../components/ExpensesList';
 // IMPORT UTILITY FUNCTIONS AND SHARED DATA
 import { FALLBACK_CURRENCIES } from '../util/currencyFunc';
 import { todayInputValue } from '../util/dateFunctions';
+import BudgetForm from '../components/BudgetForm';
 
 /* Empty expense shape, used for the initial state and by the form's clear
 button. The trip is held as tripId, because that is what the API finds the parent
@@ -279,7 +280,12 @@ export default function Expenses(//Export default Expenses.js component
             </Row>
         </div>
       )}
+<Row style={{width: '100%'}}>
+      <Col style={{width: '100%'}}>
+        <BudgetForm/>
 
+      </Col>
+</Row>
                 </div>
             </section>
 
