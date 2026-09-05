@@ -39,7 +39,7 @@ LAYOUT
     background: #D6D6D6;
     border-radius: 8px;
 }
-/* STACK 1 */
+/* STACK 1: https://react-bootstrap.netlify.app/docs/layout/stack */
 #budget-stack1{
     width: 100%;
     display: flex;
@@ -53,12 +53,17 @@ LAYOUT
     padding: 0px;
     gap: 5px;
 }
-/* STACK 2 */
+/* STACK 2 : https://react-bootstrap.netlify.app/docs/layout/stack */
 #budget-stack2{
+    display: flex;
+    align-items: baseline;
     width: 100%;
     margin: 0px;
     padding: 0px;
-    align-items: flex-start;
+}
+/* The base currency label is long enough to need the wider control */
+#budgetBaseCurrency{
+    width: 250px;
 }
 .budget-infoText{
         display: block;
@@ -86,11 +91,7 @@ LAYOUT
     padding: 0px;
     gap: 5px;
 }
-/* The base currency label is long enough to need the wider control */
-#budgetBaseCurrency{
-    width: 250px;
-}
-/* GROUP 2: CATEGORY LIMITS, TWO PER ROW */
+/* GROUP 2: CATEGORY LIMITS */
 #budget-group2{
     display: flex;
     flex-direction: column;
@@ -102,9 +103,17 @@ LAYOUT
     background: #D6D6D6;
     border-radius: 8px;
 }
+#form-category-div{
+    display: flex;
+    flex-direction: column;
+    margin: 0px;
+    padding: 0px;
+}
+/* TEXT  */
+/* LAYOUT */
 #form-category-span{
-        display: flex;
-        flex-direction: column;
+    display: flex;
+    flex-direction: column;
     font-family: "Open Sans", sans-serif;
     font-size: 12px;
     letter-spacing: 1px;
@@ -129,8 +138,23 @@ LAYOUT
     margin: 0px;
     padding: 0px;
     text-transform: uppercase;
-
 }
+/* STACK: CATEGORIES 
+https://react-bootstrap.netlify.app/docs/layout/stack
+*/
+#budget-category-stack{
+    width: 100%;
+    margin: 0px;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    border: solid 2px #404040;
+    border-radius: 8px;
+    background-color: silver;
+}
+
+
 .budget-category-col{
     margin: 0px;
     padding: 0px;
@@ -145,24 +169,32 @@ LAYOUT
     gap: 10px;
     width: 100%;
 }
-#budget-category-div{
-    width: 100%;
-    margin: 0px;
-    padding: 0px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
+
 /* GROUP 3: ALERTS */
 #budget-group3{
     display: flex;
     flex-direction: column;
-    width: 100%;
+    align-items: center;
+    width: 80%;
     margin: 0px;
     padding: 10px;
     border: solid #323A42 2px;
     background: #D6D6D6;
     border-radius: 8px;
+    gap: 5px;
+}
+#budgetAlerts{
+    display: flex;
+    width: 80%;
+    margin: 0px;
+    padding: 0px;
+}
+/* STACK 6: https://react-bootstrap.netlify.app/docs/layout/stack  */
+#budget-stack6{
+    display: flex;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
 }
 #budget-alert-80-block,
 #budget-alert-exceed-block{

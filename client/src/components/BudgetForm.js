@@ -210,17 +210,22 @@ export default function BudgetForm({
         </div>
         {/* GROUP 2: CATEGORY LIMITS, ONE PER EXPENSE CATEGORY */}
         <div id='budget-group2'>
-        <span id='form-category-span'>
+        <div id='form-category-div'>
+<span id='form-category-span'>
           <h4 className='formSectionHeading'>CATEGORY LIMITS</h4>
-          <span className='budgetCategorySpan' id={categoryLimitsHelpId} >
-            <p className='budgetCategoryInfo'>Optional</p>
-            <p className='budgetCategoryInfo'>A category left blank has no cap of its own</p>
-          </span>
+         
          </span>
-         {/* STACK 2 */}
+          <span className='budgetCategorySpan' id={categoryLimitsHelpId} >
+            <p className='budgetCategoryInfo'><u>A category left blank has no cap of its own</u></p>
+            
+          </span>
+        </div>
+        
+         {/* STACK 5: BUDGET CATEGORIES */}
             {/* The ten keys are read from EXPENSE_CATEGORIES, the same list the
             add expense form's category select is built from */}
-            <Stack id='budget-category-div'>
+            <Stack id='budget-category-stack'>
+            <i><p className='budgetCategoryInfo'>Optional</p></i>
               {EXPENSE_CATEGORIES.map(({ key, label }) => (
                 <div key={key} className='budget-category-col'>
                   <div className=' budget-category-block'>
@@ -248,13 +253,13 @@ export default function BudgetForm({
                 </div>
               ))}
             </Stack>
-       
         </div>
         {/* GROUP 3: ALERTS, BOTH ON BY DEFAULT */}
         <div id='budget-group3'>
           <h4 className='formSectionHeading'>ALERTS</h4>
-          {/* STACK 3 */}
-          <Stack gap={3} id='budget-stack4'>
+          <div id='budgetAlerts'>
+{/* STACK 6 */}
+          <Stack gap={3} id='budget-stack6'>
             <div className='p-2' id='budget-alert-80-block'>
               <div className='input-div'>
                 <input
@@ -286,6 +291,8 @@ export default function BudgetForm({
               </div>
             </div>
           </Stack>
+          </div>
+          
         </div>
       </div>
       {/* FORM LEVEL ERROR, to be raised by the submit handler when submit is blocked */}
