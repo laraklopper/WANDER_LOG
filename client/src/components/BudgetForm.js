@@ -65,8 +65,8 @@ export default function BudgetForm({
       <div id='budget-input'>
         {/* GROUP 1: THE TRIP, THE CURRENCY AND THE TWO AMOUNTS */}
         <div id='budget-group1'>
-        {/* STACK 1 */}
-           <Stack direction="horizontal" gap={3}>
+        {/* STACK 1: TRIP */}
+           <Stack direction="horizontal" gap={3} id='budget-stack1'>
       <div className="p-2" id='budget-trip-block'>
         <label className='budget-label' htmlFor='budgetTripId'>TRIP:</label>
         <div className='input-div'>
@@ -94,21 +94,21 @@ export default function BudgetForm({
                   ))}
                 </select>
                 <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
-              </div>
-             
+        </div>
       </div>
       <div className="p-2 ms-auto"/>
-      <div className="p-2"> <small id={tripHelpId} className='infoText'>
+      <div className="p-2"> 
+          <small id={tripHelpId} className='budget-infoText'>
                 {isEdit
                   ? 'A budget cannot be moved to another trip'
                   : 'Only trips that do not have a budget yet are listed'}
-              </small></div>
+              </small>
+            </div>
     </Stack>
-        <Stack gap={3} id='budget-stack1'>
-      
-      <div className="p-2" id='budget-block2'>
+    {/* STACK 2: BASE-CURRENCY */}
+        <Stack gap={3} direction="horizontal" id='budget-stack2' >
         {/* BASE CURRENCY SELECT */}
-              <div  id='budget-basecurrency-block'>
+              <div className="p-2" id='budget-basecurrency-block'>
                 <label className='budget-label' htmlFor='budgetBaseCurrency'>BASE CURRENCY:</label>
                 <div className='input-div'>
                   <select
@@ -133,21 +133,17 @@ export default function BudgetForm({
                   </select>
                   <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
                 </div>
-                <small id={baseCurrencyHelpId} className='infoText'>
+                 </div>
+                <div className="p-2 ms-auto"/>
+                <div className="p-2">
+                 <small id={baseCurrencyHelpId} className='budget-infoText'>
                   The budget and its totals are reported in this currency
                 </small>
-              </div>
-              
-              <div  id='budget-total-block'>
-                
-              </div>
-      </div>
-            
+                </div>          
     </Stack>
-        <Stack gap={3}>
-      <div className="p-2">First item</div>
-      <div className="p-2" id='budget-basecurrency-block'>Second item</div>
-      {/* TOTAL BUDGET INPUT */}
+    {/* STACK 3: TOTAL BUDGET */}
+        <Stack gap={3} direction="horizontal" id='budget-stack3' >
+        {/* TOTAL BUDGET INPUT */}
       <div className="p-2" id='budget-total-block'>
         <label className='budget-label' htmlFor='budgetTotalBudget'>TOTAL BUDGET:</label>
                 <div className='input-div'>
@@ -169,9 +165,12 @@ export default function BudgetForm({
                   <small><Asterisk color='#C22419' fontWeight={700} size={14} aria-hidden='true' focusable='false' /></small>
                 </div>
       </div>
+      <div className="p-2 ms-auto"></div>
+      <div className="p-2" id='budget-basecurrency-block'></div>
     </Stack>
-
-           <Stack direction="horizontal" gap={3}>
+    {/* STACK 4: DAILY BUDGET */}
+      <Stack direction="horizontal" gap={3} id='budget-stack4'>
+      {/* DAILY BUDGED */}
       <div className='p-2' id='budget-daily-block'>
               <label className='budget-label' htmlFor='budgetDailyBudget'>DAILY BUDGET:</label>
               <div className='input-div'>
@@ -195,24 +194,28 @@ export default function BudgetForm({
               </div>
              
             </div>
-      <div className="p-2 ms-auto"/>
-      <div className="p-2">
+      <div className="p-2 " >
+        <small>
+          Optional. 
+        </small>
+      </div>
+      <div className="p-2 ms-auto" >
          {/* Left blank, the schema's pre('save') hook divides the total
               by the trip's day count */}
-              <small id={dailyBudgetHelpId} className='infoText'>
-                Optional. Left blank, this is worked out from the total and the length of the trip
+              <small id={dailyBudgetHelpId} className='budget-infoText'>
+                Left blank, this is worked out from the total and the length of the trip
               </small>
       </div>
     </Stack>
-
         </div>
         {/* GROUP 2: CATEGORY LIMITS, ONE PER EXPENSE CATEGORY */}
         <div id='budget-group2'>
         <span id='form-category-span'>
           <h4 className='formSectionHeading'>CATEGORY LIMITS</h4>
-          <small id={categoryLimitsHelpId}>
-            All optional. A category left blank has no cap of its own
-          </small>
+          <span className='budgetCategorySpan' id={categoryLimitsHelpId} >
+            <p className='budgetCategoryInfo'>Optional</p>
+            <p className='budgetCategoryInfo'>A category left blank has no cap of its own</p>
+          </span>
          </span>
          {/* STACK 2 */}
             {/* The ten keys are read from EXPENSE_CATEGORIES, the same list the
@@ -309,7 +312,7 @@ export default function BudgetForm({
       {/* GROUP 4: REQUIRED FIELDS LEGEND AND SUBMISSION BUTTONS */}
       <div id='budget-group4'>
       {/* STACK 4 */}
-        <Stack direction='horizontal' gap={3} id='budget-stack4'>
+        <Stack direction='horizontal' gap={3} id='budgetBtnStack'>
           {/* REQUIRED INFO MESSAGE */}
           <div className='p-2' id='requiredInfo'>
             <p className='infoMsg'>
