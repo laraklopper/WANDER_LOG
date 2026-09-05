@@ -462,6 +462,7 @@ export default function Budget(//Export default Budget.js component
               <Col id='vatCalculationsCol'>
                 <div id='vat-calculations-display-block'>
                   <VatCalculationsList
+                  currentUser={currentUser}
                     vatCalculationsTotal={vatCalculationsTotal}
                     loggedIn={loggedIn}
                     vatCalculations={vatCalculations}
