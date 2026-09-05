@@ -340,6 +340,11 @@ export default function Budget(//Export default Budget.js component
             id='toggleExpListBtn'
             type='button'
             onClick={toggleExpensesList}
+            // ARIA ATTRIBUTES
+            aria-label={showExpenses ? 'Hide Travel Expenses': 'Show Travel Expenses'}
+            aria-pressed={showExpenses}
+            aria-expanded={showExpenses}
+            aria-controls='expenses-list-panal'
             >
               {showExpenses ? 'Hide Travel Expenses': 'Show Travel Expenses'}
             </Button>
@@ -357,19 +362,31 @@ export default function Budget(//Export default Budget.js component
       </div>
       )}
           </div>
-       
       <div id='calculator-panal'>
    <Row id='toggle-btns-row'>
         <Col id='toggle-col1'/>
         <Col xs={5} id='toggle-col'>
           <Stack gap={1} id='toggle-btns-stack'>
       <div id='toggle-calculator-block'>
-        <Button variant='light' onClick={toggleCalculator} id='toggleCalcBtn'>
+        <Button 
+          variant='light' 
+          onClick={toggleCalculator} 
+          id='toggleCalcBtn'
+          type='button'
+          // ARIA ATTRIBUTES:
+          aria-label={showCalculator ? 'Hide Calculator': 'Show Calculator'}
+          aria-pressed={showCalculator}
+          aria-expanded={showCalculator}
+          aria-controls='basic-calculator-panal'
+          >
           {showCalculator ? 'Hide Calculator': 'Show Calculator'}
         </Button>
       </div>
       <div id='toggle-vatcalculator-block'>
-        <Button variant='light' id='toggleVatCalcBtn' onClick={toggleVatCalculator}>SHOW VAT CALCULATOR</Button>
+        <Button 
+          variant='light' 
+          id='toggleVatCalcBtn' 
+          onClick={toggleVatCalculator}>{showVatCalc ? 'Hide Calculator': 'Show Vat Calculator'}</Button>
       </div>
       <div id='toggle-converter-block'>
         <Button 
@@ -432,7 +449,6 @@ export default function Budget(//Export default Budget.js component
             setResult={setResult}
           /> 
           </div>
-          
         </Col>
         <Col id='currency-convert-col2'/>
       </Row>
@@ -440,9 +456,11 @@ export default function Budget(//Export default Budget.js component
       )}
       </div>
       </div>
-         
           </div>
         </section>
+        {/* ====================
+        SECTION 2
+        ========== */}
         <section id='budget-section2'>
         <div id='budget-section2-panal'>
           <Row id='toggle-calculations-row'>
@@ -454,6 +472,12 @@ export default function Budget(//Export default Budget.js component
         variant='light'
         onClick={toggleVatCalculations}
         id='toggleVatCalculationsBtn'
+        type='button'
+        // ARIA ATTRIBUTES:
+        aria-label={showVatCalculations ? 'Hide Vat Calculations':'SHOW VAT CALCULATIONS'}
+        aria-pressed={showVatCalculations}
+        aria-expanded={showVatCalculations}
+        aria-controls='vat-calculations-panal'
         >
           {showVatCalculations ? 'Hide Vat Calculations':'SHOW VAT CALCULATIONS'}
         </Button>
@@ -464,6 +488,11 @@ export default function Budget(//Export default Budget.js component
         onClick={toggleConversions}
         type='button'
         id='toggleConversionsBtn'
+        // ARIA ATTRIBUTES:
+        aria-label={showConversions ? 'Hide Conversions' : 'Show Conversions'}
+        aria-pressed={showConversions}
+        aria-expanded={showConversions}
+        aria-controls='conversions-list-panal'
         >
           {showConversions ? 'Hide Conversions' : 'Show Conversions'}
         </Button>
