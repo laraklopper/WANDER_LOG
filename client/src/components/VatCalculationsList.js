@@ -41,13 +41,14 @@ export default function VatCalculationsList(
             </thead>
           </thead>
           <tbody>
-            
+
           </tbody>
         </table>
       </div>
       {/* DISPLAY PANAL: panal to display the data for */}
       <div id='vatListPanal'>
-        <Stack direction="horizontal" gap={3}>
+        <div>
+          <Stack direction="horizontal" gap={3}>
       <div className="p-2">First item</div>
       <div className="p-2 ms-auto"> 
       </div>
@@ -64,7 +65,28 @@ export default function VatCalculationsList(
         </Button>
       </div>
     </Stack>
-
+        </div>
+        <div>
+          {/* DATA PANAL */}
+        </div>
+        <div>
+          <Stack direction="horizontal" gap={3}>
+      <div className="p-2">First item</div>
+      <div className="p-2 ms-auto">Second item</div>
+      <div className="vr" />
+      <div className="p-2">
+      {/* BUTTON TO DELETE ITEM FROM LIST */}
+        <Button
+        variant='danger'
+        id='deleteItemBtn'
+        type='button'
+        // ARIA ATTRIBUTES:
+        >
+          DELETE
+        </Button>
+      </div>
+    </Stack>
+        </div>
       </div>
     </div>
   )
