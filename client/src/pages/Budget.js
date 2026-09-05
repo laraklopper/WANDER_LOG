@@ -36,6 +36,11 @@ export default function Budget(//Export default Budget.js component
   const [vatCalculations, setVatCalculations] = useState([])
   const [vatCalculationsTotal, setVatCalculationsTotal] = useState(0)
   const [vatCalculationsError, setVatCalculationsError] = useState('')
+  /* Whether the saved calculations request is in flight. Kept so the list can
+  tell a user who has saved nothing apart from a list that has not arrived yet:
+  the two look identical as an empty array, and an empty table with no message
+  reads as a failure rather than as an empty history. */
+  const [loadingVatCalculations, setLoadingVatCalculations] = useState(false)
   // CURRENCY CONVERTER VARIABLES
   const [currencyOptions, setCurrencyOptions] = useState(FALLBACK_CURRENCIES)
   const [form, setForm] = useState(EMPTY_CONVERT_FORM)
@@ -188,9 +193,12 @@ export default function Budget(//Export default Budget.js component
         const fetchVatCalculations = useCallback(async () => {
           try {
             const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
-            // Nothing to fetch without a session, and the endpoint would answer 401
+            /* Nothing to fetch without a session, and the endpoint would answer
+            401. Returned before the loading flag is raised, so a signed out
+            user never sees the list report a request that was never sent. */
             if (!token) return;
 
+            setLoadingVatCalculations(true)// The list shows a loading row until this clears
             const response = await fetch(`http://localhost:3001/vat/history`,{
               method: 'GET',//HTTP request method
               mode: 'cors',//Enable Cross-Origin Resource Sharing
@@ -220,6 +228,10 @@ export default function Budget(//Export default Budget.js component
           } catch (error) {
             console.error('[ERROR: Budget.js, fetchVatCalculations]', error.message);//Log an error message in the console for debugging purposes
             setVatCalculationsError(`Error fetching VAT calculations, ${error.message}`)
+          } finally {
+            /* Cleared in a finally, so a failed or rejected request leaves the
+            list showing its error rather than a loading row that never ends */
+            setLoadingVatCalculations(false)
           }
         },[])
 
@@ -229,7 +241,7 @@ export default function Budget(//Export default Budget.js component
         const deleteVatCalculation = useCallback(async (calculationId) => {
           try {
             const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
-            if (!token) return;
+            if (!token) return false;
 
             const response = await fetch(`http://localhost:3001/vat/history/${calculationId}`,{
               method: 'DELETE',//HTTP request method
@@ -246,15 +258,20 @@ export default function Budget(//Export default Budget.js component
               const message = data.message || 'Could not remove the VAT calculation.';
               console.error('[ERROR: Budget.js, deleteVatCalculation]', message);//Log an error message in the console for debugging purposes
               setVatCalculationsError(message);// Set the error state to display the error in the UI
-              return;
+              return false;
             }
 
             setVatCalculationsError('');//Clear any previous error messages
             console.log('[SUCCESS: Budget.js, deleteVatCalculation] Deleted VAT calculation', calculationId);
-            fetchVatCalculations();// Refresh the list so the removal is visible straight away
+            /* Awaited, so the caller's delete stays busy until the refreshed
+            list has arrived rather than only until the DELETE answered. The
+            panel is closed by the record leaving the list, which happens here. */
+            await fetchVatCalculations();// Refresh the list so the removal is visible straight away
+            return true;
           } catch (error) {
             console.error('[ERROR: Budget.js, deleteVatCalculation]', error.message);//Log an error message in the console for debugging purposes
             setVatCalculationsError(`Error removing the VAT calculation, ${error.message}`)
+            return false;
           }
         },[fetchVatCalculations])
 
@@ -466,6 +483,7 @@ export default function Budget(//Export default Budget.js component
                     vatCalculationsTotal={vatCalculationsTotal}
                     loggedIn={loggedIn}
                     vatCalculations={vatCalculations}
+                    loadingVatCalculations={loadingVatCalculations}
                     vatCalculationError={vatCalculationsError}
                     setVatCalculationsError={setVatCalculationsError}
                     fetchVatCalculations={fetchVatCalculations}

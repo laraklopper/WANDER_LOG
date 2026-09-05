@@ -57,7 +57,11 @@ button reports the same thing to a screen reader. */
     border-left: solid 4px #323A42;
     font-weight: 700;
 }
-/* Stands in for the table body when the user has saved nothing yet */
+/* Stands in for the table body while the first request is in flight, and when
+the user has saved nothing yet. The two say different things but occupy the same
+row, so they are sized identically and the table does not jump as one replaces
+the other. */
+.vat-list-loading,
 .vat-list-empty{
     font-family: "Fira Mono", monospace;
     font-weight: 700;
@@ -94,6 +98,13 @@ LIST ACTIONS AND MESSAGES
 #refreshVatListBtn:hover{
     color: #E8F0F6;
     background-color: #323A42;
+}
+/* Disabled while its request is in flight. Dimmed rather than only relabelled,
+so the button reads as unavailable at a glance as well as through aria-disabled. */
+#refreshVatListBtn:disabled{
+    color: #444;
+    background-color: #BFBFBF;
+    border: solid 2px #444;
 }
 .viewCalculationBtn{
     font-family: "Fira Mono", monospace;

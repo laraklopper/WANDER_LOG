@@ -25,6 +25,7 @@ export default function VatCalculationsList(
       currentUser,
         loggedIn,
         vatCalculations = [],
+        loadingVatCalculations = false,
         vatCalculationsTotal = 0,
         setVatCalculationsError,
         vatCalculationError,
@@ -65,25 +66,37 @@ export default function VatCalculationsList(
   },[])
 
   /* Refetches the list. The error is cleared first, so a failure that has since
-  been fixed does not leave its message sitting above a list that just loaded. */
+  been fixed does not leave its message sitting above a list that just loaded.
+  Ignored while a request is already running, so a second press cannot start a
+  fetch that would race the first and answer out of order. */
   const handleRefresh = useCallback(() => {
+    if (loadingVatCalculations) return;
     setVatCalculationsError('')
     fetchVatCalculations()
-  },[fetchVatCalculations, setVatCalculationsError])
+  },[fetchVatCalculations, setVatCalculationsError, loadingVatCalculations])
 
-  /* Removes the calculation the panel is showing. Budget.js refetches the list
-  on a successful delete, which drops the record and so closes the panel through
-  `selectedCalculation`; on a failure it sets the error instead and the panel
-  stays open with the message shown. */
+  /* Removes the calculation the panel is showing.
+
+  `deleteVatCalculation` reports whether the record actually went: on success
+  Budget.js has already refetched, so the record is gone from the list and the
+  panel closes itself through `selectedCalculation`. On a failure it set the
+  error instead, and the panel is deliberately left open on the calculation the
+  user was trying to delete, so the message is read against the record it
+  concerns and the button can simply be pressed again. */
   const handleDelete = useCallback(async () => {
     if (!selectedCalculation) return;// Nothing on screen to delete
+    if (deletingId) return;// A delete is already running
     setDeletingId(selectedCalculation._id)
     try {
-      await deleteVatCalculation(selectedCalculation._id)
+      const removed = await deleteVatCalculation(selectedCalculation._id)
+      /* Cleared explicitly on success rather than relying on the record leaving
+      the list, so the panel closes even if a refetch failed and left the
+      deleted calculation on screen */
+      if (removed) setSelectedId(null)
     } finally {
       setDeletingId(null)
     }
-  },[deleteVatCalculation, selectedCalculation])
+  },[deleteVatCalculation, selectedCalculation, deletingId])
 
   //=================JSX RENDERING================
   /* The endpoint takes the user from the token, so there is nothing to list
@@ -102,7 +115,10 @@ export default function VatCalculationsList(
   return (
     <div id='vat-calculations-list'>
       <div id='vat-list-block'>
-        <table id='vat-calculations-table'>
+        {/* aria-busy reports a refresh of a list that already has rows: those
+        rows are deliberately left on screen rather than replaced by the loading
+        row, so nothing else on the table says a request is running */}
+        <table id='vat-calculations-table' aria-busy={loadingVatCalculations}>
           <thead>
             <tr>
               <th colSpan={7}>
@@ -121,9 +137,17 @@ export default function VatCalculationsList(
           </thead>
           <tbody>
             {/* Conditional rendering to tell an empty history apart from a list
-            that has not loaded: an empty table with no message reads as a
-            failure rather than as a user who has saved nothing yet */}
-            {vatCalculations.length === 0 ? (
+            that has not loaded: both are an empty array, and an empty table
+            with no message reads as a failure rather than as a user who has
+            saved nothing yet. The request in flight is reported first, so
+            'NOTHING SAVED' is only ever shown once the answer is actually in. */}
+            {loadingVatCalculations && vatCalculations.length === 0 ? (
+              <tr>
+                <td colSpan={7} className='vat-list-loading'>
+                  LOADING YOUR SAVED VAT CALCULATIONS...
+                </td>
+              </tr>
+            ) : vatCalculations.length === 0 ? (
               <tr>
                 <td colSpan={7} className='vat-list-empty'>
                   NO SAVED VAT CALCULATIONS YET
@@ -183,10 +207,12 @@ export default function VatCalculationsList(
             id='refreshVatListBtn'
             type='button'
             onClick={handleRefresh}
+            disabled={loadingVatCalculations}
             // ARIA ATTRIBUTES:
             aria-label='Reload your saved VAT calculations'
+            aria-disabled={loadingVatCalculations}
           >
-            REFRESH
+            {loadingVatCalculations ? 'LOADING...' : 'REFRESH'}
           </Button>
         </div>
       </div>
