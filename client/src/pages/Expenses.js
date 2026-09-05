@@ -67,6 +67,10 @@ export default function Expenses(//Export default Expenses.js component
     be spent against and the form cannot be submitted until these have loaded */
     const [budgets, setBudgets] = useState([])
     const [loadingBudgets, setLoadingBudgets] = useState(false)
+    /* Every expense the logged in user has logged, across all of their trips,
+    gathered out of their budgets by the API. What the list is built from */
+    const [expenses, setExpenses] = useState([])
+    const [loadingExpenses, setLoadingExpenses] = useState(false)
     /* Offered by the currency select until GET /api/currencies answers, and kept
     if it never does. The same list the currency converter falls back to */
     const [currencyOptions] = useState(FALLBACK_CURRENCIES)
@@ -132,6 +136,112 @@ export default function Expenses(//Export default Expenses.js component
       }
     },[setError])
 
+    /* Loads every expense the logged in user has logged from
+    GET /expense/fetchExpenses.
+    The route is behind checkJwtToken and filters on the userId it reads off that
+    token, so the list only ever holds this account's own expenses. An expense is
+    embedded in the budget of its trip, so the API gathers them out of the
+    caller's budgets and returns them as one list, newest spend first, each
+    carrying the trip it was filed against and the currency it was converted
+    into. Called on mount, and again after an expense is added */
+    const fetchExpenses = useCallback(async () => {
+      const token = localStorage.getItem('token');
+      // Conditional rendering to check a session is still stored
+      if (!token) {
+        console.warn('[WARN: Expenses.js] No token stored, cannot fetch expenses');
+        return;
+      }
+
+      try {
+        setLoadingExpenses(true)
+
+        const response = await fetch('http://localhost:3001/expense/fetchExpenses', {
+          method: 'GET',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        })
+
+        const data = await response.json().catch(() => ({}))
+
+        if (response.ok) {
+          // Defaulted to an empty array, so the list always maps over one
+          setExpenses(Array.isArray(data.expenses) ? data.expenses : [])
+          console.log(`[SUCCESS: Expenses.js] Loaded ${data.expenses?.length || 0} expenses`)
+        } else {
+          /* Reported without clearing the expenses already on screen, so a
+          failed refresh does not empty a list the user is reading */
+          const message = data?.message || response?.statusText || 'Could not load your expenses.';
+          setError?.(message)
+          console.error(`[ERROR: Expenses.js] Fetch expenses failed with status ${response.status}: ${message}`)
+        }
+      } catch (error) {
+        // Only a network level failure reaches here, a 4xx or 5xx is handled above
+        setError?.('Could not reach the server. Please check your connection and try again.')
+        console.error(`[ERROR: Expenses.js] Fetch expenses request failed: ${error.message}`)
+      } finally {
+        setLoadingExpenses(false)
+      }
+    },[setError])
+
+    /* Loads one expense from GET /expense/fetchExpense/:id.
+    The id is the one Mongo gave the embedded expense, and the route matches it
+    against the account on the token, so another user's expense is reported as
+    missing rather than returned. Used to fill the edit form with what is
+    currently stored, rather than editing the copy the list is holding, which
+    may have been changed since it was loaded.
+
+    Returns the expense so the caller can put it straight into the form, or null
+    when it could not be read */
+    const fetchExpense = useCallback(async (expenseId) => {
+      // Conditional rendering to check an expense was identified
+      if (!expenseId) {
+        console.warn('[WARN: Expenses.js] No expense id given, cannot fetch the expense');
+        return null;
+      }
+
+      const token = localStorage.getItem('token');
+      // Conditional rendering to check a session is still stored
+      if (!token) {
+        setError?.('Your session has expired. Please log in again.');
+        console.warn('[WARN: Expenses.js] No token stored, cannot fetch the expense');
+        return null;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:3001/expense/fetchExpense/${expenseId}`, {
+          method: 'GET',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        })
+
+        const data = await response.json().catch(() => ({}))
+
+        if (response.ok) {
+          console.log('[SUCCESS: Expenses.js] Loaded expense', data.expense?._id)
+          return data.expense ?? null
+        }
+
+        /* A 400 for a malformed id, a 404 for an expense that is not on this
+        account, and a 401 once the session has gone all arrive with their own
+        message, so it is reported as it was given */
+        const message = data?.message || response?.statusText || 'Could not load that expense.';
+        setError?.(message)
+        console.error(`[ERROR: Expenses.js] Fetch expense failed with status ${response.status}: ${message}`)
+        return null
+      } catch (error) {
+        // Only a network level failure reaches here, a 4xx or 5xx is handled above
+        setError?.('Could not reach the server. Please check your connection and try again.')
+        console.error(`[ERROR: Expenses.js] Fetch expense request failed: ${error.message}`)
+        return null
+      }
+    },[setError])
+
     /* Sends the completed form to POST /expense/addExpense.
     The route is behind checkJwtToken, so the stored token is attached to the
     request. Only the trip's id is sent, not its budget: the API finds that
@@ -192,6 +302,10 @@ export default function Expenses(//Export default Expenses.js component
           /* Reloaded because the budget's totals move with every expense, and
           they are what the trip select and the list are built from */
           fetchBudgets()
+          /* Reloaded rather than appending the returned expense, so the list is
+          re-sorted by date and the new expense lands where it belongs rather
+          than on the end */
+          fetchExpenses()
           alert(data.message || 'Expense added successfully.')
           console.log('[SUCCESS: Expenses.js] Expense added:', data.expense?._id)
         } else {
@@ -214,7 +328,7 @@ export default function Expenses(//Export default Expenses.js component
       } finally {
         setSubmittingExpense(false)
       }
-    },[submittingExpense, newExpenseData, setError, fetchBudgets])
+    },[submittingExpense, newExpenseData, setError, fetchBudgets, fetchExpenses])
 
     //=====================SIDE EFFECTS=========================
     /* Loads the budgets once, when the page mounts, so the add expense form's
@@ -222,6 +336,13 @@ export default function Expenses(//Export default Expenses.js component
     useEffect(() => {
       fetchBudgets()
     }, [fetchBudgets])
+
+    /* Loads the expenses once, when the page mounts, so the list is filled
+    before the user opens anything. Kept separate from the budgets so a failure
+    to read one does not stop the other being loaded */
+    useEffect(() => {
+      fetchExpenses()
+    }, [fetchExpenses])
 
     //======================================================
   return (
@@ -233,7 +354,15 @@ export default function Expenses(//Export default Expenses.js component
 
         <Col id='expensesListCol'>
             <div id='expensesListBlock'>
-                <ExpensesList/>
+                <ExpensesList
+                    expenses={expenses}
+                    loadingExpenses={loadingExpenses}
+                    /* Reads one expense back from the API by its id, for
+                    editing it against what is currently stored */
+                    fetchExpense={fetchExpense}
+                    fetchExpenses={fetchExpenses}
+                    setError={setError}
+                />
             </div>
         </Col>
       </Row>

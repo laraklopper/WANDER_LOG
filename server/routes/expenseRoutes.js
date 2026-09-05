@@ -190,6 +190,32 @@ const parseExpenseInput = ({
 }
 
 /*=====================================
+EXPENSE OUTPUT SHAPING
+=======================================*/
+/* One embedded expense flattened into the shape a page reads it in, with the
+context it is only meaningful alongside.
+
+An expense is stored inside the budget of its trip, so on its own it says what
+was spent but not what it was spent against: the trip it belongs to, and the
+currency its convertedAmount is expressed in. Both are read off the parent here,
+so a page does not have to walk the budget to display one expense, and the id of
+the parent goes with it, which is what an edit or a delete is addressed to.
+
+The trip is expected to have been populated by the caller with its title, and
+comes back null when the trip has since been deleted. Such an expense is still
+listed, unlike in /fetchBudgets where a trip that is gone is dropped: that list
+fills a select and must not offer a trip an expense cannot be filed to, while
+this one is a record of money already spent. */
+const shapeExpense = (budget, expense) => ({
+    ...expense.toObject(),
+    budgetId: budget._id,
+    // The currency convertedAmount is in, so an amount can be labelled with it
+    baseCurrency: budget.baseCurrency,
+    tripId: budget.tripId?._id ?? null,
+    tripTitle: budget.tripId?.title ?? 'Trip no longer available',
+})
+
+/*=====================================
 CONVERTED AMOUNT
 =======================================*/
 /* The expense amount in the parent budget's baseCurrency, so every expense on a
@@ -280,8 +306,117 @@ router.get('/fetchBudgets', checkJwtToken, async (req, res) => {
         return res.status(500).json({ success: false, message: 'Internal Server Error' });// Respond with a 500 (Internal Server Error) status code
     }
 })
-// expense/fetchExpenses - fetch all expenses
-// expense/fetchExpense/:id - fetch a single expense by id
+/*=====================================
+LIST THE LOGGED IN USER'S EXPENSES
+=======================================*/
+/* expense/fetchExpenses - Lists every expense belonging to the logged in user,
+across all of their trips.
+
+An expense is embedded in the budget of its trip rather than stored on its own,
+so there is no expense collection to query: the caller's budgets are read and
+the expenses they hold are flattened into one list. Filtered on the userId taken
+from the JWT, so the list can only ever hold the caller's own expenses.
+
+Sorted after they are gathered rather than by the database, because they arrive
+grouped by the budget they came out of and the page shows them as one list,
+newest spend first. */
+router.get('/fetchExpenses', checkJwtToken, async (req, res) => {
+    try {
+        const userId = req.user?.userId;
+
+        // Conditional rendering to check if userId is present
+        if (!userId) {
+            console.error('[ERROR: expenseRoutes.js, GET /fetchExpenses] userId missing from token');// Log an error message in the console for debugging purposes
+            return res.status(401).json({ success: false, message: 'Unauthorized' });// Respond with a 401 (Unauthorised) status code
+        }
+
+        /* Only the fields an expense is displayed with are read, not the
+        budget's own figures, which the list does not report on */
+        const budgets = await Budget.find({ userId })
+            .select('tripId baseCurrency expenses')
+            // The trip's title is stored on the trip, so it is read off that document
+            .populate('tripId', 'title')
+            .exec();
+
+        const expenses = budgets
+            .flatMap((budget) => budget.expenses.map((expense) => shapeExpense(budget, expense)))
+            // Newest spend first, so the most recent expense is nearest the top
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        console.log(`[SUCCESS: expenseRoutes.js, GET /fetchExpenses] Found ${expenses.length} expenses for user ${userId}`);// Log a success message in the console for debugging purposes
+        return res.status(200).json({ success: true, count: expenses.length, expenses });// Respond with a 200 (OK) status code and the list of expenses
+    } catch (error) {
+        console.error('[ERROR: expenseRoutes.js, GET /fetchExpenses]', error.message);// Log an error message in the console for debugging purposes
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });// Respond with a 500 (Internal Server Error) status code
+    }
+})
+
+/*=====================================
+FETCH A SINGLE EXPENSE
+=======================================*/
+/* expense/fetchExpense/:id - Fetches one expense by its own id.
+
+The id is the one Mongo gave the embedded subdocument, not a document of its
+own, so the parent is found by the expense it holds and the expense is then read
+off it. The budget is matched on that id and the owner together, so another
+account's expense is not found at all rather than found and then refused —
+which is also why a missing one is reported as a 404 either way, and never says
+whether it exists on someone else's account.
+
+Used to fill the edit form with what is currently stored, so the trip and the
+base currency travel with it the same way they do in the list. */
+router.get('/fetchExpense/:id', checkJwtToken, async (req, res) => {
+    try {
+        const userId = req.user?.userId;
+
+        // Conditional rendering to check if userId is present
+        if (!userId) {
+            console.error('[ERROR: expenseRoutes.js, GET /fetchExpense/:id] userId missing from token');// Log an error message in the console for debugging purposes
+            return res.status(401).json({ success: false, message: 'Unauthorized' });// Respond with a 401 (Unauthorised) status code
+        }
+
+        const expenseId = String(req.params.id ?? '').trim();
+
+        /* Checked before the budget is looked up, so a malformed id is reported
+        as a 400 rather than reaching Mongoose as a CastError and being reported
+        as a 500 */
+        if (!mongoose.Types.ObjectId.isValid(expenseId)) {
+            console.warn('[WARN: expenseRoutes.js, GET /fetchExpense/:id] Invalid expense id', expenseId);// Log a warning message in the console for debugging purposes
+            return res.status(400).json({ success: false, message: 'That expense id is not valid' });// Respond with a 400 (Bad Request) status code
+        }
+
+        /* Matched on the expense and the owner together, so a budget belonging
+        to another account is not found at all */
+        const budget = await Budget.findOne({ userId, 'expenses._id': expenseId })
+            .select('tripId baseCurrency expenses')
+            // The trip's title is stored on the trip, so it is read off that document
+            .populate('tripId', 'title')
+            .exec();
+
+        // Conditional rendering to check an expense with that id exists on this account
+        if (!budget) {
+            console.warn('[WARN: expenseRoutes.js, GET /fetchExpense/:id] No expense found for id', expenseId, 'and user', userId);// Log a warning message in the console for debugging purposes
+            return res.status(404).json({ success: false, message: 'That expense could not be found on your account' });// Respond with a 404 (Not Found) status code
+        }
+
+        // The subdocument itself, read off the parent the query matched it in
+        const expense = budget.expenses.id(expenseId);
+
+        /* The query already matched the budget on this expense, so it is only
+        missing if it was removed between the two, which is still nothing to
+        return */
+        if (!expense) {
+            console.warn('[WARN: expenseRoutes.js, GET /fetchExpense/:id] Expense', expenseId, 'not present on budget', budget._id);// Log a warning message in the console for debugging purposes
+            return res.status(404).json({ success: false, message: 'That expense could not be found on your account' });// Respond with a 404 (Not Found) status code
+        }
+
+        console.log('[SUCCESS: expenseRoutes.js, GET /fetchExpense/:id] Found expense', expenseId, 'on budget', budget._id);// Log a success message in the console for debugging purposes
+        return res.status(200).json({ success: true, expense: shapeExpense(budget, expense) });// Respond with a 200 (OK) status code and the expense
+    } catch (error) {
+        console.error('[ERROR: expenseRoutes.js, GET /fetchExpense/:id]', error.message);// Log an error message in the console for debugging purposes
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });// Respond with a 500 (Internal Server Error) status code
+    }
+})
 /*──────────────────────────── POST ROUTES ─────────────────────────────────────
    POST: CREATE — Used to send information to the server
 ────────────────────────────────────────────────────────────────────────────────*/
