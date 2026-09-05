@@ -27,7 +27,8 @@ LAYOUT
     margin: 0px;
     padding: 10px 0px;
 }
-#addExp-Form-display{
+#addExp-Form-display,
+#addBudget-form-display{
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -36,7 +37,8 @@ LAYOUT
     margin: 0px;
     background-color: #9E9E9E;
 }
-#add-exp-panal{
+#add-exp-panal,
+#add-budget-panal{
     margin: 0px;
     padding: 10px 0px;
     width: 100%;
@@ -78,11 +80,13 @@ LAYOUT
     gap: 10px;
     width: 100%;
 }
-#add-expense-row{
+#add-expense-row,
+#addBudgetRow{
     width: 100%;
     margin: 0px;
     padding: 0px;
 }
+
 #addExpCol{
     margin: 0px;
     padding: 0px;
@@ -105,7 +109,8 @@ LAYOUT
 /* ===============
  BUTTONS https://react-bootstrap.netlify.app/docs/components/buttons 
  =================*/
-#toggleAddExpBtn{
+#toggleAddExpBtn,
+#toggleAddBudgetBtn{
     margin: 0px;
     padding: 0px;
     color: #000000;

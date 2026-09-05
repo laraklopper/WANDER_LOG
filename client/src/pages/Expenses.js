@@ -8,6 +8,7 @@ import '../css/pagesCss/PageSetup.css'
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
+import Stack from 'react-bootstrap/Stack';
 // IMPORT CUSTOM COMPONENTS
 import Header from '../components/Header'
 import Footer from '../components/Footer'
@@ -52,6 +53,7 @@ export default function Expenses(//Export default Expenses.js component
   }) {
     // ========STATE VARIABLES=============================
     const [showAddExp, setShowAddExp] = useState(false)
+    const [showAddBudget, setShowAddBudget] = useState(false)
     // ============ADD EXPENSE STATE=============
     const [newExpenseData, setNewExpenseData] = useState(EMPTY_EXPENSE)
     // Blocks a second submit while the first request is in flight
@@ -68,11 +70,17 @@ export default function Expenses(//Export default Expenses.js component
     /* Offered by the currency select until GET /api/currencies answers, and kept
     if it never does. The same list the currency converter falls back to */
     const [currencyOptions] = useState(FALLBACK_CURRENCIES)
-
+    
     //================EVENT HANDLERS=====================
     // Function to toggle AddExpenseForm
     const toggleAddExpForm = useCallback(() => {
       setShowAddExp(prev => (!prev))
+      setShowAddBudget(false)
+    },[])
+    // Function to toggle AddBudgetForm
+    const toggleAddBudgetForm = useCallback(() => {
+      setShowAddBudget(prev => (!prev))
+      setShowAddExp(false)
     },[])
 
     //======================CALLBACKS/REQUEST FUNCTIONS========================
@@ -215,6 +223,7 @@ export default function Expenses(//Export default Expenses.js component
       fetchBudgets()
     }, [fetchBudgets])
 
+    //======================================================
   return (
     <div id='pageContainer'>
         <Header currentUser={currentUser} heading={'EXPENSES'}/>
@@ -236,8 +245,9 @@ export default function Expenses(//Export default Expenses.js component
                     <Row id='toggleExpFormRow'>
         <Col id='toggleExpFormCol1'/>
         <Col xs={5} id='toggleExpFormCol'>
-            <div id='toggle-addexp-block'>
-                <Button
+         <Stack gap={3}>
+      <div className="p-2" id='toggle-addexp-block'>
+         <Button
                 variant='light'
                 id='toggleAddExpBtn'
                 onClick={toggleAddExpForm}
@@ -249,7 +259,20 @@ export default function Expenses(//Export default Expenses.js component
                 >
                 {showAddExp ? 'Hide Form': 'Add Trip Expense'}
                 </Button>
-            </div>
+      </div>
+      <div className="p-2">
+        <Button 
+        variant='light'
+        id='toggleAddBudgetBtn'
+        onClick={toggleAddBudgetForm}
+        type='button'
+        // ARIA ATTRIBUTES:
+        >
+          ADD TRIP BUDGET
+        </Button>
+      </div>
+     
+    </Stack>
         </Col>
         <Col id='toggleExpFormCol2'/>
       </Row>
@@ -280,12 +303,20 @@ export default function Expenses(//Export default Expenses.js component
             </Row>
         </div>
       )}
+      {/* TOGGLE ADD BUDGET PANAL */}
+      {showAddBudget && (
+        <div id='add-budget-panal'>
 <Row style={{width: '100%'}}>
       <Col style={{width: '100%'}}>
-        <BudgetForm/>
-
+      <div id='addBudget-form-display'>
+ <BudgetForm/>
+      </div>
+       
       </Col>
 </Row>
+        </div>
+      )}
+
                 </div>
             </section>
 
