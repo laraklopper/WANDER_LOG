@@ -9,3 +9,189 @@
     margin: 0px;
     padding: 0px;
 }
+/* ===============
+SAVED CALCULATIONS TABLE
+==============*/
+#vat-calculations-table{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+    border-collapse: collapse;
+    border: solid 2px #323A42;
+    background-color: #D6D6D6;
+}
+/* The panel heading and the column labels. Both live in the thead, so they are
+styled together and the whole head reads as one block. */
+#vat-calculations-table thead th{
+    background-color: #5F9B9E;
+    color: #000;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    padding: 8px 6px;
+    border: solid 2px #323A42;
+}
+#vat-calculations-table tbody td{
+    font-family: "Open Sans", sans-serif;
+    color: #000;
+    text-align: center;
+    padding: 6px;
+    border: solid 1px #323A42;
+}
+/* Row striping: STYLES.md 1.5. TABLES. The two shades carry no meaning of their
+own - they only keep the eye on one row across six money columns. */
+.evenRow{
+    background-color: #D6D6D6;
+}
+.oddRow{
+    background-color: #BFBFBF;
+}
+/* The row the display panel is showing. Marked by a left border as well as a
+background, so the link between the row and the panel is still visible to a user
+who cannot tell the three backgrounds apart; aria-pressed on the row's VIEW
+button reports the same thing to a screen reader. */
+.selectedRow{
+    background-color: #E8F0F6;
+    border-left: solid 4px #323A42;
+    font-weight: 700;
+}
+/* Stands in for the table body when the user has saved nothing yet */
+.vat-list-empty{
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    padding: 15px 6px;
+}
+/* ===============
+LIST ACTIONS AND MESSAGES
+==============*/
+#vat-list-actions{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 0px;
+    padding: 10px 0px;
+}
+#refreshVatListBtn{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 180px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #000;
+    margin: 0px;
+    padding: 0px;
+    border: solid 2px #323A42;
+}
+#refreshVatListBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
+}
+.viewCalculationBtn{
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #000;
+    margin: 0px;
+    padding: 2px 12px;
+    border: solid 2px #323A42;
+}
+.viewCalculationBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
+}
+#vat-list-truncated{
+    font-family: "Open Sans", sans-serif;
+    text-align: center;
+    margin: 0px;
+    padding: 8px 0px;
+}
+.vat-list-error{
+    text-transform: uppercase;
+    color: #C22419;
+    text-align: center;
+    font-weight: 700;
+    margin: 0px;
+    padding: 10px 0px;
+    font-family: "Open Sans", sans-serif;
+}
+/* ===============
+DISPLAY PANAL: ONE SAVED CALCULATION
+==============*/
+#vatListPanal{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 10px 0px 0px 0px;
+    padding: 10px;
+    background-color: #A8AEB3;
+    border: solid 2px #323A42;
+    border-radius: 8px;
+    font-family: "Fira Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+#closePanalBtn,
+#deleteItemBtn{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 180px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #000;
+    margin: 0px;
+    padding: 0px;
+    border: solid 2px #323A42;
+}
+/* The stored figures. A description list rather than a second table, because
+each row is one label against one value rather than a grid to be read across. */
+#vat-panal-data{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 0px;
+    padding: 10px 0px;
+}
+.vat-panal-row{
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin: 0px;
+    padding: 6px 4px;
+    border-bottom: solid 1px #323A42;
+}
+.vat-panal-row dt{
+    font-weight: 700;
+    color: #000;
+    margin: 0px;
+    padding: 0px;
+}
+.vat-panal-row dd{
+    font-family: "Courier Prime", monospace;
+    color: #000;
+    text-align: right;
+    margin: 0px;
+    padding: 0px;
+}
+/* The amount including VAT, which is the figure the other rows add up to */
+.vat-panal-row--total{
+    background-color: #D6D6D6;
+    border: solid 2px #323A42;
+    font-weight: 700;
+}
+.vat-panal-row--total dd{
+    font-weight: 700;
+}
