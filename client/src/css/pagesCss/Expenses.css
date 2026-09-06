@@ -21,6 +21,22 @@ LAYOUT
     background-color: transparent;
     gap: 10px;
 }
+#toggleListsRow{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#toggleListCol{
+    display: flex;
+    justify-content: center;
+    margin: 0px;
+    padding: 0px;
+}
+#toggleListCol1,
+#toggleListCol2{
+    margin: 0px;
+    padding: 0px;
+}
 #toggle-addexp-block,
 #toggleAddBudgetBlock{
     display: flex;

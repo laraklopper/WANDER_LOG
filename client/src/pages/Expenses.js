@@ -62,6 +62,10 @@ export default function Expenses(//Export default Expenses.js component
     const navigate = useNavigate()
 
     // ========STATE VARIABLES=============================
+    // Variables to to toggle expense and budget Lists and details
+    const [showBudgetList, setShowBudgetList] = useState(false)
+    const [showExpList, setShowExpList] = useState(false)
+    // State to toggle addExpenseForms and BudgetForms
     const [showAddExp, setShowAddExp] = useState(false)
     /* Read off the location on the first render rather than in an effect, so a
     page reached from that link opens with the budget form already showing
@@ -91,6 +95,21 @@ export default function Expenses(//Export default Expenses.js component
     const [currencyOptions] = useState(FALLBACK_CURRENCIES)
     
     //================EVENT HANDLERS=====================
+    // TOGGLE FUNCTIONS
+    // Function to toggle ExpensesList
+    const toggleExpList = useCallback(() => {
+      setShowExpList(prev => (!prev))
+      setShowBudgetList(false)
+      setShowAddBudget(false)
+      // Allow AddExpenseForm display if Expenses List is open
+    },[])
+    // Function to toggle BudgetList
+    const toggleBudgetList = useCallback(() => {
+      setShowBudgetList(prev => (!prev))
+      setShowExpList(false)
+      setShowAddExp(false)
+      // Allow BudgetFormDisplay if Budget List is open
+    },[])
     // Function to toggle AddExpenseForm
     const toggleAddExpForm = useCallback(() => {
       setShowAddExp(prev => (!prev))
@@ -379,29 +398,89 @@ export default function Expenses(//Export default Expenses.js component
 
     //======================================================
   return (
-    <div id='pageContainer'>
+    <div id='pageContainer' role='main' aria-labelledby='pageTitle'>
+    <p className='visually-hidden' id='pageTitle'>EXPENSES PAGE</p>
         <Header currentUser={currentUser} heading={'EXPENSES'}/>
          <section id='expensesSection1'>
-                <div id='exp-section1-panal'>
-<Row id='expenses-list-row'>
-
-        <Col id='expensesListCol'>
-            <div id='expensesListBlock'>
-                <ExpensesList
-                    expenses={expenses}
-                    loadingExpenses={loadingExpenses}
-                    /* Reads one expense back from the API by its id, for
-                    editing it against what is currently stored */
-                    fetchExpense={fetchExpense}
-                    fetchExpenses={fetchExpenses}
-                    setError={setError}
-                />
-            </div>
+            <div id='exp-section1-panal' aria-describedby='ExpSection1Descrip'>
+                {/* -------Section Screen Reader Description------------ */}
+                  <p className='visually-hidden' id='ExpSection1Descrip'>
+                    ExpensesList and Trip BudgetList display with toggle list display buttons
+                  </p>
+                <Row id='toggleListsRow'>
+            <Col id='toggleListCol1'/>
+        <Col xs={5} id='toggleListCol'>
+        {/* TOGGLE LISTS BUTTONS STACK */}
+  <Stack gap={3} id='toggleListsBtnsStack'>
+      <div className="p-2" id='toggleExpLis'>
+        <Button 
+        variant='light'  
+        id='toggleExpListBtn'
+        type='button'
+        onClick={toggleExpList}
+        // ARIA ATTRIBUTES
+        aria-label={showExpList ? 'Hide Expenses': 'Show Expenses'}
+        aria-pressed={showExpList}
+        aria-expanded={showExpList}
+        aria-controls=''
+        >
+        {showExpList ? 'Hide Expenses': 'Show Expenses'}
+        </Button>
+      </div>
+      <div className="p-2" id='toggleBudgetListBlock'>
+        <Button 
+        variant='light'
+        onClick={toggleBudgetList}
+        id='toggleBudgetListBtn'
+        type='button'
+        // ARIA ATTRIBUTES
+        aria-label={showBudgetList ? 'Hide Trip Budgets': 'Show Budgets'}
+        aria-pressed={showBudgetList}
+        aria-expanded={showBudgetList}
+        aria-controls=''
+        >
+        {showBudgetList ? 'Hide Trip Budgets': 'Show Budgets'}
+        </Button>
+      </div>
+    </Stack>
         </Col>
+        <Col id='toggleListCol2'/>
       </Row>
-
+      <div>
+ {showExpList && (
+        <div id='expenses-list-panal'>
+          <Row id='expenses-list-row'>
+            <Col id='expensesListCol'>
+                <div id='expensesListBlock'>
+                    <ExpensesList
+                        expenses={expenses}
+                        loadingExpenses={loadingExpenses}
+                        /* Reads one expense back from the API by its id, for
+                        editing it against what is currently stored */
+                        fetchExpense={fetchExpense}
+                        fetchExpenses={fetchExpenses}
+                        setError={setError}
+                    />
+                </div>
+            </Col>
+          </Row>
+        </div>
+      )}
+      {showBudgetList && (
+        <div>
+          <Row>
+            <Col>
+              <div>
+                TRIP BUDGET
+              </div>
+            </Col>
+          </Row>
+        </div>
+      )}
+      </div>
                 </div>
             </section>
+            {/* SECTION 2 : ADD EXPENSE FORM + BUDGET FORM */}
             <section id='expensesSection2'>
                 <div id='exp-section2-panal'>
                     <Row id='toggleExpFormRow'>
