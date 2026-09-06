@@ -72,13 +72,18 @@ const tripSchema = new mongoose.Schema({
         default: 'upcoming',
         required: [true, 'trip status is required'],
     },
+    /* Indicate whether or not the trip 
+    has a budget added*/
+    hasBudget: {
+        type: Boolean,
+        default:false,
+    },
     // Auto-incremented by entrySchema post-save/delete hooks
     entryCount: {
         type: Number,
         default: 0,
         min: 0,
     },
-    // add trip budget 
 }, {
     timestamps: true,
     toJSON: { virtuals: true },
