@@ -123,6 +123,11 @@ LAYOUT
     display: flex;
     justify-content: center;
 }
+#toggleExpListBlock,
+#toggleBudgetListBlock{
+display:flex;
+justify-content: center;
+}
 /* ===============
  BUTTONS https://react-bootstrap.netlify.app/docs/components/buttons 
  =================*/

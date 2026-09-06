@@ -412,7 +412,7 @@ export default function Expenses(//Export default Expenses.js component
         <Col xs={5} id='toggleListCol'>
         {/* TOGGLE LISTS BUTTONS STACK */}
   <Stack gap={3} id='toggleListsBtnsStack'>
-      <div className="p-2" id='toggleExpLis'>
+      <div className="p-2" id='toggleExpListBlock'>
         <Button 
         variant='light'  
         id='toggleExpListBtn'
