@@ -110,4 +110,26 @@ text-transform: uppercase;
     display: flex;
     align-items: baseline;
     width: 100%;
+    border: solid;
+}
+#trip-details-panal{
+    width: 100%;
+    border: solid;
+}
+#tripDetailsHeading{
+    width: 100%;
+}
+#trip-details-stack1,
+#trip-details-stack2{
+        width: 50%;
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+}
+#tripDetailsBlock1,
+#tripDetailsBlock2,
+#tripDetailsBlock3,
+#tripDetailsBlock4{
+    width: 100%;
+    display: flex;
 }

@@ -66,15 +66,15 @@ export default function TripsList(
     </Stack>
             </div>
             <div id='trip-details-body'>
-            <Stack direction="horizontal" gap={3}>
-      <div className="p-2">
+            <Stack direction="horizontal" gap={3} id='trip-details-stack1'>
+      <div className="p-2" id='tripDetailsBlock1'>
         {/* Title */}
         <div className='details-group'>
             <p className='details-label'>TITLE:</p>
             <p className='details-value'></p>
         </div>
       </div>
-      <div className="p-2">
+      <div className="p-2" id='tripDetailsBlock2'>
         {/* DESTINATION */}
         <div className='details-group'>
         <span><p className='nested-details-label'>DESTINATION:</p></span>
@@ -95,14 +95,14 @@ export default function TripsList(
         </div>
         </div>
       </div>
-      <div className="p-2">
+      <div className="p-2" id='tripDetailsBlock3'>
         {/* STATUS */}
         <div className='details-group'>
             <p className='details-label'>STATUS:</p>
             <p className='details-value'></p>
         </div>
       </div>
-      <div className="p-2">
+      <div className="p-2" id='tripDetailsBlock4'>
         {/* ENTRY COUNT */}
          <div className='details-group'>
             <p className='details-label'>ENTRY COUNT:</p>
