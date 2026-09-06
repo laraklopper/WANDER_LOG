@@ -19,8 +19,8 @@ export default function ExportForm() {
   return (
     <form>
     <p className='visually-hidden' id='formTitle'>
-            {/* EXPORT TITLE: e.g Export  */}
-            {/* {`EXPORT ${exportConfig.label}`} */}
+            {/* EXPORT TITLE: e.g Export Trips */}
+            {/* {`EXPORT ${}`} */}
         </p>
        <Stack direction="horizontal" gap={3}>
       <div className="p-2">
