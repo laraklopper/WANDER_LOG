@@ -318,16 +318,15 @@ Two things are decided by the record rather than by the form, and are worth sett
 
 ## 14. FILTER FORMS
 
-**Empty files, one scaffold.** Six components, one per list, all created and none written:
+**Empty files, one scaffold.** 3 components, one per list, all created and none written:
 
 | Component | Filters the list of | Rendered by |
 |---|---|---|
 | [FilterTrips.js](../client/src/components/FilterTrips.js) | Trips | — |
 | [FilterEntries.js](../client/src/components/FilterEntries.js) | Journal entries | — |
 | [FilterExpenses.js](../client/src/components/FilterExpenses.js) | Expenses | — |
-| [FilterBudgets.js](../client/src/components/FilterBudgets.js) | Trip budgets | — |
-| [FilterConversions.js](../client/src/components/FilterConversions.js) | Saved currency conversions | — |
-| [FilterCalculations.js](../client/src/components/FilterCalculations.js) | Saved VAT calculations | — |
+
+
 
 Only `FilterExpenses.js` has anything in it, a component returning `<div>FilterExpenses</div>`. The rest are zero bytes, and the shared [FilterForms.css](../client/src/css/componentCss/FilterForms.css) is empty as well.
 
