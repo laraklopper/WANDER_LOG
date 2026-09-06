@@ -91,7 +91,9 @@ LAYOUT
 #toggleCalcBtn,
 #toggleVatCalcBtn,
 #toggleConverterBtn,
-#toggleExpListBtn{
+#toggleExpListBtn,
+#toggleVatCalculationsBtn,
+#toggleConversionsBtn{
     width: 250px;
     height: 40px;
     margin: 0px;
@@ -109,7 +111,9 @@ LAYOUT
 #toggleExpListBtn:hover,
 #toggleCalcBtn:hover,
 #toggleVatCalcBtn:hover,
-#toggleConverterBtn:hover{
+#toggleConverterBtn:hover,
+#toggleVatCalculationsBtn:hover,
+#toggleConversionsBtn:hover{
     color: #E8F0F6;
     background-color: #323A42;
 }

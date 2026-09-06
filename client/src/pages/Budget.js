@@ -352,6 +352,7 @@ export default function Budget(//Export default Budget.js component
         </Col>
         <Col id='toggleExpListCol2'/>
       </Row>
+      {/* TOGGLE THE USER EXPENSES LIST */}
       {showExpenses && (
    <div id='expenses-list-panal'>
   <Row id='expenses-listRow'>
