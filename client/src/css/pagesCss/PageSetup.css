@@ -7,6 +7,21 @@
     padding: 0px;
     gap: 10px;
 }
+#toggleFilterBtn{
+   display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 180px;
+    gap: 3px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #000;
+    margin: 0px;
+    padding: 0px;
+    border: solid 2px #323A42;
+}
 /* ========================= 
 Accessibility helpers 
  ARIA : Accessible Rich Internet Applications
