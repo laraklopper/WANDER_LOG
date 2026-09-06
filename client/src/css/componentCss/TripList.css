@@ -8,10 +8,17 @@
     padding: 0px;
     gap: 5px;
 }
-#filterForm{
+#filterTripsDisplay{
     width: 100%;
     margin: 0px;
     padding: 0px;
+}
+#trip-filter-block{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+        display: flex;
+    justify-content: center;
 }
 #tripListBlock{
     display: flex;

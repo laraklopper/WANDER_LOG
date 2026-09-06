@@ -6,6 +6,7 @@ import Button from 'react-bootstrap/Button';
 import { ArrowDownAZ } from 'lucide-react';
 // IMPORT UTILITY FUNCTIONS
 import { NOT_AVAILABLE, rowClass, toLongDate } from '../util/formatCalculations';
+import FilterTrips from './FilterTrips';
 /* The travel log's trip list. The request itself lives on TravelLog.js, which
 owns the list state, and arrives here as `userTrips` with `fetchUserTrips` to
 reload it - the same arrangement as VatCalculationsList.js */
@@ -18,6 +19,11 @@ export default function TripsList(
 
     }
 ) {
+    const [showFilter, setShowFilter] = useState(false)
+
+    const toggleFilter = useCallback(() => {
+        setShowFilter(prev => !prev)
+    },[])
     const username = currentUser?.username || '';
 
     /* Which trip the details panel is showing, held as an id rather than as the
@@ -57,7 +63,7 @@ export default function TripsList(
 
   return (
     <div id='tripListDisplay'>
-        <div id='filterForm'>
+        <div id='filterTripsDisplay'>
         <Stack direction="horizontal" gap={3}>
       <div className="p-2"/>
       <div className="p-2 ms-auto">
@@ -78,11 +84,27 @@ export default function TripsList(
         </Button>
       </div>
       <div className="p-2 ">
-        <Button id='toggleFilterBtn' variant='light'>FILTER <ArrowDownAZ fontWeight={700} aria-hidden='true' focusable='false'/></Button>
+        <Button id='toggleFilterBtn' variant='light' onClick={toggleFilter}>
+        {showFilter ? (
+            <>
+                Hide Filter
+            </>
+        ):(
+            <>
+                Filter Trips<ArrowDownAZ fontWeight={700} aria-hidden='true' focusable='false'/>
+            </>
+        )}
+         </Button>
       </div>
     </Stack>
-    {/* TOGGLE FILTER TRIPS  FORM 
-    <div></div>   */}
+    {/* TOGGLE FILTER TRIPS  FORM */}
+    {showFilter && (
+        <div id='filter-trip-panal'>
+            <div id='trip-filter-block'>
+                <FilterTrips/>
+            </div>
+        </div>
+    )}
         </div>
         
         <div id='tripListBlock'>

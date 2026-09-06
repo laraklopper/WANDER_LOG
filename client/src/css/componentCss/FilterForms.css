@@ -1,0 +1,49 @@
+#filterForm{
+    width: 90%;
+    margin: 0px;
+    gap: 5px;
+    border-radius: 5px;
+    background-color: #6C757E;
+    padding: 10px;
+    display: flex;
+    border: solid;
+    flex-direction: column;
+}
+.filter-group{
+    display: flex;
+    align-items: baseline;
+    margin: 0px;
+    padding: 0px;
+    gap: 10px;
+}
+.filter-input{
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    
+}
+.filterLabel{
+ color: #000000;
+    font-weight: 700;
+    margin: 0px;
+    padding: 0px;
+    font-family: "Fira Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+#applyFiltersBtn,
+#clearFiltersBtn{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 200px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #000;
+    margin: 0px;
+    letter-spacing: 2px;
+    padding: 0px;
+    border: solid 2px #323A42;
+}
