@@ -1,4 +1,6 @@
 import React from 'react'
+import '../css/componentCss/TripList.css'
+import '../css/componentCss/DetailsPanal.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
 import { ArrowDownAZ } from 'lucide-react';
@@ -53,7 +55,10 @@ export default function TripsList(
       </div>
       <div className="p-2 ms-auto">
       {/* TOGGLE EDIT TRIP FORM */}
-        <Button>
+        <Button
+        variant='warning'
+        id='toggleEditTripBtn'
+        >
             EDIT
         </Button>
       </div>
@@ -110,15 +115,15 @@ export default function TripsList(
         </div>
       </div>
     </Stack>
-<Stack direction="horizontal" gap={3}>
-      <div className="p-2">
+<Stack direction="horizontal" gap={3} id='trip-details-stack2'>
+      <div className="p-2" id='tripDetailsBlock5'>
       {/* PURPOSE */}
         <div className='details-group'>
-            <p className='details-label'>ENTRY COUNT:</p>
+            <p className='details-label'>PURPOSE:</p>
             <p className='details-value'></p>
         </div>
       </div>
-      <div className="p-2">
+      <div className="p-2" id='tripDetailsBlock6'>
       {/* DATE */}
         <div className='details-group'>
         <span><p className='nested-details-label'>DATE:</p></span>
@@ -135,7 +140,7 @@ export default function TripsList(
             </div>
         </div>
       </div>
-      <div className="p-2">
+      <div className="p-2" id='tripDetailsBlock7'>
         <div className='details-group'>
             <p className='details-label'>HAS BUDGET:</p>
             <p className='details-value'>:</p>

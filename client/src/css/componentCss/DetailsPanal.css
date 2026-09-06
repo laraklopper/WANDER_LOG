@@ -1,0 +1,13 @@
+#detailsHeadStack,
+#detailsFooterStack{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+
+}
+.details-group{
+        display: flex;
+        gap: 5px;
+        margin: 0px;
+        width: 100%;
+}

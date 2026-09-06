@@ -1,0 +1,97 @@
+/* ======TRIP LIST========== */
+#tripListDisplay{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+    gap: 5px;
+}
+#filterForm{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#tripListBlock{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 0px;
+    padding: 10px 0px;
+}
+#tripsListTable{
+    width: 80%;
+    margin: 0px;
+    padding: 0px;
+    border-collapse: collapse;
+    border: solid 2px #323A42;
+    background-color: #D6D6D6;
+    text-align: center;
+}
+
+
+
+#tripsListMainHead{
+text-transform: uppercase;
+    letter-spacing: 2px;
+    border: solid #000 1px;
+}
+#tripsListHeadRow th{
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+    margin: 0px;
+    padding: 0px;
+}
+/* DETAILS PANAL */
+#trip-details-body{
+    display: flex;
+    align-items: baseline;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#trip-details-panal{
+    width: 100%;
+    margin: 0px;
+
+}
+#tripDetailsHeading{
+    width: 100%;
+}
+/* STACK */
+#trip-details-stack1,
+#trip-details-stack2{
+        width: 50%;
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+        flex-direction: column;
+}
+#tripDetailsBlock1,
+#tripDetailsBlock2,
+#tripDetailsBlock3,
+#tripDetailsBlock4,
+#tripDetailsBlock5,
+#tripDetailsBlock6,
+#tripDetailsBlock7{
+    width: 100%;
+    display: flex;
+}
+
+#toggleEditTripBtn{
+     display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 150px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #000;
+    margin: 0px;
+    letter-spacing: 2px;
+    padding: 0px;
+    border: solid 2px #323A42;
+}
