@@ -119,7 +119,7 @@ These apply to every table below, so they are not repeated in each one.
 
 | Method | Endpoint | Auth | Status | Description |
 |---|---|---|---|---|
-| `GET` | [`/trip/fetchTrips`](../server/routes/tripRoutes.js#L145) | JWT | Implemented | Lists every trip belonging to the logged in user, newest start date first |
+| `GET` | [`/trip/fetchTrips`](../server/routes/tripRoutes.js#L145) | JWT | Implemented | Lists every trip belonging to the logged in user, newest start date first, each with a resolved `hasBudget` |
 | `GET` | `/trip/fetchTrip/:id` | JWT | Planned | Get one trip (optionally with its entries) |
 | `POST` | [`/trip/addTrip`](../server/routes/tripRoutes.js#L180) | JWT | Implemented | Creates one trip for the logged in user |
 | `PATCH` | `/trip/editTrip/:id` | JWT | Planned | Update a trip |
@@ -129,7 +129,7 @@ These apply to every table below, so they are not repeated in each one.
 
 | Endpoint | Body / params | Other |
 |---|---|---|
-| `GET /trip/fetchTrips` | — | Returns `{ success, count, trips }`. Fills the journal's add-entry trip select |
+| `GET /trip/fetchTrips` | — | Returns `{ success, count, trips }`, each trip whole. Fills the journal's add-entry trip select and the travel log's trip list. `hasBudget` is answered off the caller's budgets rather than read from the flag stored on the trip, which no route writes to |
 | `POST /trip/addTrip` | `title`, `purpose`, `destination.destinationType`, `destination.tripLocation`, `destination.country`, `date.startDate`, `date.endDate`, `status` | `userId` and `username` come from the token and the database, never the body. `purpose` is `Holiday` \| `Business`, `destinationType` is `Domestic` \| `International`, `status` is `upcoming` \| `ongoing` \| `completed` (default `upcoming`) — all matched case-insensitively. `country` is required for an international trip and dropped from a domestic one. `entryCount` is maintained by the hooks on `entrySchema` |
 
 ### 1.6. ENTRIES

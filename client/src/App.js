@@ -174,7 +174,10 @@ export default function App() {
             }/>
             <Route path='/travelLog' element={
               <ProtectedUserRoute currentUser={currentUser}>
-                <TravelLog currentUser={currentUser} logout={logout}/>
+                {/* setError is passed through because the trip list loads
+                itself from /trip/fetchTrips: a failed request is reported in
+                the global error block above, the same as the other pages */}
+                <TravelLog currentUser={currentUser} logout={logout} setError={setError}/>
               </ProtectedUserRoute>
             }/>
             <Route path='/journal' element={

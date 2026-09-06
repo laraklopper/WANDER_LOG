@@ -16,6 +16,10 @@ require('dotenv').config();
 const express = require('express');
 const Trip = require('../models/tripSchema');
 const User = require('../models/userSchema');
+/* Read only, and only for hasBudget on the trip list below: a budget is filed
+against the trip it was set for, so whether one exists is answered by the budget
+collection rather than by the flag stored on the trip */
+const Budget = require('../models/budgetSchema');
 const { checkJwtToken } = require('./middleware');
 const router = express.Router()
 
@@ -140,8 +144,16 @@ LIST THE LOGGED IN USER'S TRIPS
 Filtered on the userId taken from the JWT, so the list can only ever hold the
 caller's own trips. Used by the journal's add entry form, which needs the trips
 to fill its trip select: an entry is filed against a trip by id, so the form
-cannot be completed without them. Sorted newest first, by the date the trip
-starts, so the trip most likely to be written about is nearest the top */
+cannot be completed without them. Also used by the travel log's trip list, which
+displays the whole trip, which is why every field is returned rather than only
+the few the select reads. Sorted newest first, by the date the trip starts, so
+the trip most likely to be written about is nearest the top.
+
+hasBudget is answered here rather than read off the stored flag. The field
+defaults to false on tripSchema and no route ever writes to it, so a trip that
+has been given a budget still carries false: the ids of the caller's budgets are
+read and each trip is reported against them, so the list cannot say NO about a
+trip whose budget the expenses page is already spending against */
 router.get('/fetchTrips', checkJwtToken, async (req, res) => {
     try {
         const userId = req.user?.userId;
@@ -152,10 +164,29 @@ router.get('/fetchTrips', checkJwtToken, async (req, res) => {
             return res.status(401).json({ success: false, message: 'Unauthorized' });// Respond with a 401 (Unauthorised) status code
         }
 
-        const trips = await Trip.find({ userId }).sort({ 'date.startDate': -1 }).exec();
+        /* Both filtered on the owner, and requested together because neither
+        needs the other's answer: the budgets are only read for their tripId */
+        const [trips, budgets] = await Promise.all([
+            Trip.find({ userId }).sort({ 'date.startDate': -1 }).exec(),
+            Budget.find({ userId }).select('tripId').exec(),
+        ]);
 
-        console.log(`[SUCCESS: tripRoutes.js, GET /fetchTrips] Found ${trips.length} trips for user ${userId}`);// Log a success message in the console for debugging purposes
-        return res.status(200).json({ success: true, count: trips.length, trips });// Respond with a 200 (OK) status code and the list of trips
+        /* Held as strings, because the ids are ObjectIds and two of those are
+        never equal to each other by identity even when they are the same id */
+        const budgetedTripIds = new Set(
+            budgets.filter((budget) => budget.tripId).map((budget) => String(budget.tripId))
+        );
+
+        /* Converted with toObject so hasBudget can be replaced, which a Mongoose
+        document would otherwise reject as a write to a loaded field. Virtuals
+        are kept, since the schema is set to return them */
+        const userTrips = trips.map((trip) => ({
+            ...trip.toObject({ virtuals: true }),
+            hasBudget: budgetedTripIds.has(String(trip._id)),
+        }));
+
+        console.log(`[SUCCESS: tripRoutes.js, GET /fetchTrips] Found ${userTrips.length} trips for user ${userId}`);// Log a success message in the console for debugging purposes
+        return res.status(200).json({ success: true, count: userTrips.length, trips: userTrips });// Respond with a 200 (OK) status code and the list of trips
     } catch (error) {
         console.error('[ERROR: tripRoutes.js, GET /fetchTrips]', error.message);// Log an error message in the console for debugging purposes
         return res.status(500).json({ success: false, message: 'Internal Server Error' });// Respond with a 500 (Internal Server Error) status code

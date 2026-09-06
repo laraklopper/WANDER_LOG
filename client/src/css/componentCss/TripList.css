@@ -44,6 +44,57 @@ text-transform: uppercase;
     margin: 0px;
     padding: 0px;
 }
+#tripsListTable td{
+    font-family: "Fira Mono", monospace;
+    text-align: center;
+    padding: 8px 6px;
+    border: solid 1px #323A42;
+}
+/* Row striping: STYLES.md 1.5. TABLES. Applied by rowClass() in
+formatCalculations.js, the same as the saved calculation lists */
+.evenRow{
+    background-color: #D6D6D6;
+}
+.oddRow{
+    background-color: #BFBFBF;
+}
+/* The two single cell rows the table shows in place of any trips: a request in
+flight, and an account that has not logged one yet */
+.trips-list-loading,
+.trips-list-empty{
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    padding: 15px 6px;
+}
+#refreshTripsBtn{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 150px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #000;
+    margin: 0px;
+    letter-spacing: 2px;
+    padding: 0px;
+    border: solid 2px #323A42;
+}
+#refreshTripsBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
+}
+/* Disabled while its request is in flight. Dimmed rather than only relabelled,
+so the button reads as unavailable at a glance as well as through aria-disabled */
+#refreshTripsBtn:disabled{
+    color: #444;
+    background-color: #BFBFBF;
+    border: solid 2px #444;
+}
 /* DETAILS PANAL */
 #trip-details-body{
     display: flex;
