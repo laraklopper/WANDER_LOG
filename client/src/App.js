@@ -189,7 +189,10 @@ export default function App() {
             }/>
             <Route path='/budget' element={
               <ProtectedUserRoute currentUser={currentUser}>
-                <Budget currentUser={currentUser} logout={logout} setError={setError} error={error}/>
+                {/* loggedIn is passed through because the saved VAT calculations
+                list gates itself on it: /vat/history takes the user from the
+                token, so without a session there is nothing to list */}
+                <Budget currentUser={currentUser} logout={logout} setError={setError} error={error} loggedIn={loggedIn}/>
               </ProtectedUserRoute>
             }/>
             <Route path='/profile' element={

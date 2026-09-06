@@ -9,7 +9,7 @@ const vatSchema = new mongoose.Schema({
     calculations when two users share a name. */
      user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'user',
+        ref: 'User',// The name userSchema.js registers the model under; a ref is case sensitive
         required: [true, 'user is required'],
         index: true,
     },

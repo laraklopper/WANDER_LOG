@@ -23,11 +23,24 @@ const editPasswordLimiter = rateLimit({
 
 /* Route to GET the currently logged in user.
 This is the endpoint the React app calls after login, and on every reload, to
-turn the stored token back into a user object. authenticate has already loaded
-the account, so no second lookup is needed */
+turn the stored token back into a user object.
+
+checkJwtToken assigns the DECODED TOKEN to req.user, not a loaded account, so the
+account is looked up here on the id signToken put in the payload. The document is
+what carries toPublicJSON, which strips the password before the response. */
 router.get('/me', checkJwtToken, async (req, res) => {
     try {
-        return res.status(200).json(req.user.toPublicJSON());
+        const user = await User.findById(req.user?.userId).exec();
+
+        /* Conditional rendering to check the user on the token still exists: a
+        deleted account leaves a token that still verifies, and a 401 tells the
+        client to end the session rather than reporting a server fault */
+        if (!user) {
+            console.warn('[WARN: userRoutes.js "/me"] No user found for id', req.user?.userId);
+            return res.status(401).json({ message: 'Invalid token. Please login again.' });
+        }
+
+        return res.status(200).json(user.toPublicJSON());
     } catch (error) {
         console.error('[ERROR: userRoutes.js "/me"]:', error.message);//Log an error message in the console for debugging purposes
         return res.status(500).json({ message: 'Internal server Error' });
