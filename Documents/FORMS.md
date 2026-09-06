@@ -320,11 +320,11 @@ Two things are decided by the record rather than by the form, and are worth sett
 
 **Empty files, one scaffold.** 3 components, one per list, all created and none written:
 
-| Component | Filters the list of | Rendered by |
-|---|---|---|
-| [FilterTrips.js](../client/src/components/FilterTrips.js) | Trips | — |
-| [FilterEntries.js](../client/src/components/FilterEntries.js) | Journal entries | — |
-| [FilterExpenses.js](../client/src/components/FilterExpenses.js) | Expenses | — |
+| Component | Filters the list of | Rendered by | Filtered By |
+|---|---|---|---|
+| [FilterTrips.js](../client/src/components/FilterTrips.js) | Trips | TripsList.js | Purpose, status, hasBudget, destinationType  |
+| [FilterEntries.js](../client/src/components/FilterEntries.js) | Journal entries | EntriesList.js | Trip|
+| [FilterExpenses.js](../client/src/components/FilterExpenses.js) | Expenses | ExpensesList.js | Currency, paymentMethod, category, isPaid, trip |
 
 
 
