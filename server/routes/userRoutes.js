@@ -60,7 +60,7 @@ router.get('/findUsers', checkJwtToken, async (req, res) => {
 /* Route to PATCH the password of one account.
 checkPassword runs before the handler and already reads newPassword, so a weak
 password is rejected as a 400 before the database is touched */
-router.patch('/:id/editPassword', checkJwtToken, editPasswordLimiter, checkPassword, async (req, res) => {
+router.patch('/editPassword/:id', checkJwtToken, editPasswordLimiter, checkPassword, async (req, res) => {
     try {
         const { id } = req.params;
         const { currentPassword, newPassword } = req.body || {};
