@@ -158,35 +158,13 @@ export default function BudgetList(
     //===============JSX RENDERING==============
   return (
     <div id='budgetListDiv'>
-        <div id='refreshBudgetsDisplay'>
-        <Stack direction='horizontal' gap={3}>
-      <div className='p-2'/>
-      <div className='p-2 ms-auto'/>
-      <div className='p-2'>
-        {/* Reloads the list from the API. Ignored while a request is already
-        running, so a second press cannot start a fetch that would race the
-        first and answer out of order */}
-        <Button
-        id='refreshBudgetsBtn'
-        variant='light'
-        type='button'
-        onClick={fetchBudgets}
-        disabled={loadingBudgets}
-        // ARIA ATTRIBUTES:
-        aria-label='Reload your trip budgets'
-        aria-disabled={loadingBudgets}
-        >
-          {loadingBudgets ? 'LOADING...' : 'REFRESH'}
-        </Button>
-      </div>
-    </Stack>
-        </div>
+       
         <div id='budgetTableblock'>
             {/* aria-busy reports a refresh of a list that already has rows:
             those rows are deliberately left on screen rather than replaced by
             the loading row, so nothing else on the table says a request is
             running */}
-            <table id='budgetListTable' style={{width: '100%'}} aria-busy={loadingBudgets}>
+            <table id='budgetListTable' style={{width: ''}} aria-busy={loadingBudgets}>
                 <thead>
                     <tr>
                         <th colSpan={6} id='budgetTableHeadRow'>
@@ -271,6 +249,25 @@ export default function BudgetList(
                     )}
                 </tbody>
             </table>
+        </div>
+         <div id='refreshBudgetsDisplay'>
+       
+        {/* Reloads the list from the API. Ignored while a request is already
+        running, so a second press cannot start a fetch that would race the
+        first and answer out of order */}
+        <Button
+        id='refreshBudgetsBtn'
+        variant='light'
+        type='button'
+        onClick={fetchBudgets}
+        disabled={loadingBudgets}
+        // ARIA ATTRIBUTES:
+        aria-label='Reload your trip budgets'
+        aria-disabled={loadingBudgets}
+        >
+          {loadingBudgets ? 'LOADING...' : 'REFRESH'}
+        </Button>
+      
         </div>
         {/* DETAILS PANAL: panal to display the data for one trip budget.
         Only rendered once a row's VIEW has been pressed and the budget behind it
