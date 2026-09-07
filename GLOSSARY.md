@@ -31,7 +31,7 @@
 |`MERN`| **MONGODB, EXPRESS.JS, REACT, NODE.JS** | The full-stack JavaScript architecture this application is built on. |
 |`MIME`| **MULTIPURPOSE INTERNET MAIL EXTENSIONS** | A standard that extends the format of email and web content to support text in character sets other than ASCII, as well as attachments such as images and files. On the web, MIME types (e.g. `image/jpeg`, `image/png`) describe the nature and format of a document or file. Used in this application to validate uploaded profile pictures via MIME type checking before storing them on Cloudinary. |
 |`MVC`| **MODEL VIEW CONTROLLER** | An architectural pattern that separates an application into three layers: data (Model), UI (View), and business logic (Controller). |
-|`MVP`| **MVP**  ||
+|`MVP`| **MVP**  | The smallest set of features needed to ship a working version of the application|
 |`NoSQL`| **NOT ONLY SQL / NON-RELATIONAL DATABASE** | A class of database that stores data in formats other than the traditional relational (tabular) model. MongoDB, used in this application, is a document-oriented NoSQL database that stores records as JSON-like BSON documents. |
 |`NPM`| **NODE PACKAGE MANAGER** | The default package manager for Node.js, used to install and manage project dependencies. |
 |`ODM`| **OBJECT DOCUMENT MAPPER** | A library (Mongoose in this project) that maps JavaScript objects to MongoDB documents, providing schema validation and query helpers. |
