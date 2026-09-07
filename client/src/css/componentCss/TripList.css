@@ -164,7 +164,13 @@ the table above it rather than reading as more of the list */
     width: 100%;
     display: flex;
 }
-
+#tripDetailsBlock7 .details-group{
+    display: flex;
+    align-items: baseline;
+    margin: 0px;
+    padding: 0px;
+    gap: 10px;
+}
 #toggleEditTripBtn,
 #closeTripDetailsBtn{
      display: flex;

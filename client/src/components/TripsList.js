@@ -4,6 +4,7 @@ import '../css/componentCss/DetailsPanal.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
 import { ArrowDownAZ } from 'lucide-react';
+import {Link} from 'react-router-dom'
 // IMPORT UTILITY FUNCTIONS
 import { NOT_AVAILABLE, rowClass, toLongDate } from '../util/formatCalculations';
 import FilterTrips from './FilterTrips';
@@ -312,6 +313,9 @@ export default function TripsList(
         <div className='details-group'>
             <p className='details-label'>HAS BUDGET:</p>
             <p className='details-value'>{selectedTrip.hasBudget ? 'YES' : 'NO'}</p>
+          
+                <Link>ADD BUDGET</Link>
+           
         </div>
       </div>
     </Stack>
