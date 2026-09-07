@@ -188,6 +188,14 @@ the table above it rather than reading as more of the list */
     padding: 0px;
     border: solid 2px #323A42;
 }
+/* ACTIVE FORM BUTTON */
+#toggleEditTripBtn:active,
+#closeTripDetailsBtn:active{
+    background-color: #323A42;
+    color: #E8F0F6;
+    border: solid 2px #000;
+    text-decoration: underline;
+}
 /* The panel's own heading, which carries the title of the trip on screen */
 #trip-details-heading{
     font-family: "Fira Mono", monospace;

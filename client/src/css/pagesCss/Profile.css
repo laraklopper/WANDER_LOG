@@ -134,3 +134,11 @@ BUTTONS: https://react-bootstrap.netlify.app/docs/components/buttons
     color: #E8F0F6;
     background-color: #323A42;
 }
+/* ACTIVE FORM BUTTON */
+#editUserToggleBtn:active,
+#editPswdToggleBtn:active{
+    background-color: #323A42;
+    color: #E8F0F6;
+    border: solid 2px #000;
+    text-decoration: underline;
+}
