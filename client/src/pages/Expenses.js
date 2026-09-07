@@ -19,6 +19,7 @@ import ExpensesList from '../components/ExpensesList';
 // IMPORT UTILITY FUNCTIONS AND SHARED DATA
 import { FALLBACK_CURRENCIES } from '../util/currencyFunc';
 import { todayInputValue } from '../util/dateFunctions';
+import { EXPENSE_CATEGORIES } from '../data/financeData';
 import BudgetForm from '../components/BudgetForm';
 
 /* Empty expense shape, used for the initial state and by the form's clear
@@ -45,6 +46,58 @@ const EMPTY_EXPENSE = {
   paymentMethod: 'cash',
   isPaid: true,
 };
+
+/* Empty budget shape, used for the initial state and by the budget form's clear
+button. The trip is held as tripId, which is what the API sets the budget against
+and what makes it unique: one budget per trip.
+
+The nested categoryLimits and alerts are held as objects keyed the way the schema
+keys them, so the form's inputs can be named by their schema path —
+'categoryLimits.food', 'alerts.notifyOnExceed' — and one change handler covers
+every one of them. The ten limit keys are read from EXPENSE_CATEGORIES rather
+than typed out, the same list the add expense form's category select is built
+from.
+
+The two alerts are pre-filled with the schema's own defaults, so an untouched
+form submits what it would have stored anyway. The daily budget and the ten
+limits open blank on purpose: a blank limit means the category has no cap, and a
+blank daily budget is what the schema's pre('save') hook works out from the total
+and the length of the trip.
+
+The owner is left out, the API takes the userId from the token, and so are the
+totals: totalSpent, remaining and percentUsed are virtuals worked out from the
+expenses rather than typed. */
+const EMPTY_BUDGET = {
+  tripId: '',
+  baseCurrency: 'ZAR',
+  totalBudget: '',
+  dailyBudget: '',
+  categoryLimits: EXPENSE_CATEGORIES.reduce((limits, { key }) => ({ ...limits, [key]: '' }), {}),
+  alerts: { notifyAt80Percent: true, notifyOnExceed: true },
+};
+
+/* A saved budget in the shape the form holds it, for opening an edit against
+what is currently stored.
+
+An amount that is not set is stored as null — that is what the schema means by no
+daily budget and by a category with no cap — and a null in a controlled number
+input would make React warn and the field uncontrolled, so each one is turned
+back into the empty string the input represents it with. The alerts are read as
+booleans for the same reason: a checkbox is controlled by checked. */
+const budgetToForm = (budget) => ({
+  tripId: String(budget?.tripId ?? ''),
+  baseCurrency: budget?.baseCurrency || 'ZAR',
+  totalBudget: budget?.totalBudget ?? '',
+  dailyBudget: budget?.dailyBudget ?? '',
+  categoryLimits: EXPENSE_CATEGORIES.reduce((limits, { key }) => ({
+    ...limits,
+    [key]: budget?.categoryLimits?.[key] ?? '',
+  }), {}),
+  alerts: {
+    notifyAt80Percent: budget?.alerts?.notifyAt80Percent ?? true,
+    notifyOnExceed: budget?.alerts?.notifyOnExceed ?? true,
+  },
+});
 
 // ============MAIN EXPENSES COMPONENT============
 export default function Expenses(//Export default Expenses.js component
@@ -90,6 +143,27 @@ export default function Expenses(//Export default Expenses.js component
     gathered out of their budgets by the API. What the list is built from */
     const [expenses, setExpenses] = useState([])
     const [loadingExpenses, setLoadingExpenses] = useState(false)
+    // ============BUDGET STATE=============
+    /* The logged in user's trips, used to fill the budget form's trip select. A
+    budget is set for a trip, and each trip carries a hasBudget flag the API
+    answers from the caller's budgets, so create mode can offer only the trips
+    that do not have one yet */
+    const [trips, setTrips] = useState([])
+    const [loadingTrips, setLoadingTrips] = useState(false)
+    const [newBudgetData, setNewBudgetData] = useState(EMPTY_BUDGET)
+    // Blocks a second submit while the first request is in flight
+    const [submittingBudget, setSubmittingBudget] = useState(false)
+    /* Field keyed messages returned by the server, keyed by schema path, for
+    example { 'categoryLimits.food': 'A category limit cannot be negative' }.
+    Passed to the form so each message can be shown against its own input */
+    const [budgetFieldErrors, setBudgetFieldErrors] = useState({})
+    // Form level message for the budget form, separate from the page's error
+    const [budgetFormError, setBudgetFormError] = useState(null)
+    /* The budget being edited, or null while a new one is being set. One budget
+    per trip, so the same form does both jobs and this is what decides which:
+    non-null puts the form in edit mode and its id is what the PATCH is
+    addressed to */
+    const [editingBudget, setEditingBudget] = useState(null)
     /* Offered by the currency select until GET /api/currencies answers, and kept
     if it never does. The same list the currency converter falls back to */
     const [currencyOptions] = useState(FALLBACK_CURRENCIES)
@@ -119,7 +193,15 @@ export default function Expenses(//Export default Expenses.js component
     const toggleAddBudgetForm = useCallback(() => {
       setShowAddBudget(prev => (!prev))
       setShowAddExp(false)
+      /* Closed and reopened as a create, so the toggle does not reopen a form
+      still filled in with the budget that was last edited in it. The messages go
+      with it: they belong to a submission that is no longer on screen */
+      setEditingBudget(null)
+      setNewBudgetData(EMPTY_BUDGET)
+      setBudgetFieldErrors({})
+      setBudgetFormError(null)
     },[])
+
 
     //======================CALLBACKS/REQUEST FUNCTIONS========================
     /* Loads the logged in user's budgets from GET /expense/fetchBudgets.
@@ -364,6 +446,335 @@ export default function Expenses(//Export default Expenses.js component
       }
     },[submittingExpense, newExpenseData, setError, fetchBudgets, fetchExpenses])
 
+    /* Loads the logged in user's trips from GET /trip/fetchTrips.
+    The route is behind checkJwtToken and filters on the userId it reads off that
+    token, so the list only ever holds this account's own trips. Each carries a
+    hasBudget flag the route answers from the caller's budgets rather than from
+    the stored field, which no route writes to — so the budget form's create
+    select can offer only the trips that do not have one yet. Called on mount,
+    and again after a budget is created so the trip that just got one drops out
+    of that select */
+    const fetchTrips = useCallback(async () => {
+      const token = localStorage.getItem('token');
+      // Conditional rendering to check a session is still stored
+      if (!token) {
+        console.warn('[WARN: Expenses.js] No token stored, cannot fetch trips');
+        return;
+      }
+
+      try {
+        setLoadingTrips(true)
+
+        const response = await fetch('http://localhost:3001/trip/fetchTrips', {
+          method: 'GET',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        })
+
+        const data = await response.json().catch(() => ({}))
+
+        if (response.ok) {
+          // Defaulted to an empty array, so the form always maps over a list
+          setTrips(Array.isArray(data.trips) ? data.trips : [])
+          console.log(`[SUCCESS: Expenses.js] Loaded ${data.trips?.length || 0} trips`)
+        } else {
+          /* Reported without clearing the trips already on screen, so a failed
+          refresh does not empty a select the user is part way through using */
+          const message = data?.message || response?.statusText || 'Could not load your trips.';
+          setError?.(message)
+          console.error(`[ERROR: Expenses.js] Fetch trips failed with status ${response.status}: ${message}`)
+        }
+      } catch (error) {
+        // Only a network level failure reaches here, a 4xx or 5xx is handled above
+        setError?.('Could not reach the server. Please check your connection and try again.')
+        console.error(`[ERROR: Expenses.js] Fetch trips request failed: ${error.message}`)
+      } finally {
+        setLoadingTrips(false)
+      }
+    },[setError])
+
+    /* Sends the completed form to POST /budget/addBudget.
+    The route is behind checkJwtToken, so the stored token is attached to the
+    request. Only the trip's id is sent, not the owner: the route takes the
+    userId from that token and matches the trip on it, which is what stops a
+    budget being set against someone else's trip.
+
+    The amounts go as they were typed. Every one of them is coerced and checked
+    by the route before a document is built, and a blank one is stored as null —
+    which is what a category having no cap means, and what makes the schema's
+    pre('save') hook work the daily budget out from the length of the trip. The
+    totals are not sent at all: they are virtuals worked out from the expenses */
+    const addBudget = useCallback(async () => {
+      if (submittingBudget) return;
+
+      const token = localStorage.getItem('token');
+      // Conditional rendering to check a session is still stored
+      if (!token) {
+        setBudgetFormError('Your session has expired. Please log in again.');
+        console.warn('[WARN: Expenses.js] No token stored, cannot add a budget');
+        return;
+      }
+
+      try {
+        setSubmittingBudget(true)
+        setBudgetFormError(null)
+        setBudgetFieldErrors({})
+
+        const response = await fetch('http://localhost:3001/budget/addBudget', {
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            tripId: newBudgetData.tripId,
+            baseCurrency: newBudgetData.baseCurrency,
+            totalBudget: newBudgetData.totalBudget,
+            dailyBudget: newBudgetData.dailyBudget,
+            // Sent nested, the way the schema keys them
+            categoryLimits: newBudgetData.categoryLimits,
+            /* Sent as booleans rather than left to the checkboxes, so an
+            unticked box arrives as false instead of being dropped from the
+            body and defaulting back to true on the schema */
+            alerts: {
+              notifyAt80Percent: Boolean(newBudgetData.alerts?.notifyAt80Percent),
+              notifyOnExceed: Boolean(newBudgetData.alerts?.notifyOnExceed),
+            },
+          })
+        })
+
+        /* Safely parse the JSON response. Guarded because the body is empty or
+        is not JSON at all on a 429 from the rate limiter, and response.json()
+        would throw before the status could be reported */
+        const data = await response.json().catch(() => ({}))
+
+        if (response.ok) {
+          setBudgetFormError(null)
+          setBudgetFieldErrors({})
+          // Cleared so the next budget starts from an empty form
+          setNewBudgetData(EMPTY_BUDGET)
+          setShowAddBudget(false)
+          /* Reloaded so the trip that has just been given a budget drops out of
+          the create select, which lists only the trips whose hasBudget is false */
+          fetchTrips()
+          /* Reloaded because this is the budget an expense is filed against, and
+          the add expense form's trip select is built from that list — a trip
+          with no budget is not offered by it at all */
+          fetchBudgets()
+          alert(data.message || 'Budget created successfully.')
+          console.log('[SUCCESS: Expenses.js] Budget created:', data.budget?._id)
+        } else {
+          /* Falls back through the shapes the API can return: a plain message,
+          an error string, then the status text */
+          const message =
+            data?.message ||
+            data?.error ||
+            response?.statusText ||
+            'Could not create the budget.';
+          /* Present on a 400 from Mongoose validation and on the 409 for a trip
+          that already has a budget, which is keyed on tripId. Absent on a 401,
+          404 or a 500 */
+          if (data.errors) setBudgetFieldErrors(data.errors);
+          setBudgetFormError(message);
+          console.error(`[ERROR: Expenses.js] Add budget failed with status ${response.status}: ${message}`);
+        }
+      } catch (error) {
+        // Only a network level failure reaches here, a 4xx or 5xx is handled above
+        setBudgetFormError('Could not reach the server. Please check your connection and try again.');
+        console.error(`[ERROR: Expenses.js] Add budget request failed: ${error.message}`);
+      } finally {
+        setSubmittingBudget(false)
+      }
+    },[submittingBudget, newBudgetData, fetchTrips, fetchBudgets])
+
+    /* Sends the edited form to PATCH /budget/editBudget/:id.
+    The id is the budget's own, and the route matches it against the account on
+    the token, so another user's budget is reported as missing rather than
+    written to.
+
+    A PATCH, so only what the form owns is sent. tripId is left out on purpose:
+    a budget cannot be moved to another trip, the select is disabled in edit mode
+    and the route refuses a body that carries a different one. baseCurrency is
+    still sent, but the route refuses a change to it once the budget holds
+    expenses — each was converted into the old currency as it was added — and
+    answers 409 keyed on baseCurrency, which the form shows against the select */
+    const editBudget = useCallback(async () => {
+      if (submittingBudget) return;
+
+      const budgetId = editingBudget?._id;
+      // Conditional rendering to check a budget is open for editing
+      if (!budgetId) {
+        setBudgetFormError('No budget is open for editing.');
+        console.warn('[WARN: Expenses.js] No budget id, cannot edit a budget');
+        return;
+      }
+
+      const token = localStorage.getItem('token');
+      // Conditional rendering to check a session is still stored
+      if (!token) {
+        setBudgetFormError('Your session has expired. Please log in again.');
+        console.warn('[WARN: Expenses.js] No token stored, cannot edit a budget');
+        return;
+      }
+
+      try {
+        setSubmittingBudget(true)
+        setBudgetFormError(null)
+        setBudgetFieldErrors({})
+
+        const response = await fetch(`http://localhost:3001/budget/editBudget/${budgetId}`, {
+          method: 'PATCH',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            baseCurrency: newBudgetData.baseCurrency,
+            totalBudget: newBudgetData.totalBudget,
+            /* Sent even when it is blank, which clears it back to null and lets
+            the schema's pre('save') hook work it out from the trip again */
+            dailyBudget: newBudgetData.dailyBudget,
+            categoryLimits: newBudgetData.categoryLimits,
+            alerts: {
+              notifyAt80Percent: Boolean(newBudgetData.alerts?.notifyAt80Percent),
+              notifyOnExceed: Boolean(newBudgetData.alerts?.notifyOnExceed),
+            },
+          })
+        })
+
+        const data = await response.json().catch(() => ({}))
+
+        if (response.ok) {
+          setBudgetFormError(null)
+          setBudgetFieldErrors({})
+          // Closed back to a create, so the toggle does not reopen this edit
+          setEditingBudget(null)
+          setNewBudgetData(EMPTY_BUDGET)
+          setShowAddBudget(false)
+          /* Reloaded because the base currency and the total are what the add
+          expense form's select reports against the trip it offers */
+          fetchBudgets()
+          alert(data.message || 'Budget updated successfully.')
+          console.log('[SUCCESS: Expenses.js] Budget updated:', data.budget?._id)
+        } else {
+          const message =
+            data?.message ||
+            data?.error ||
+            response?.statusText ||
+            'Could not update the budget.';
+          // Present on a 400 from validation and on the 409 for a locked base currency
+          if (data.errors) setBudgetFieldErrors(data.errors);
+          setBudgetFormError(message);
+          console.error(`[ERROR: Expenses.js] Edit budget failed with status ${response.status}: ${message}`);
+        }
+      } catch (error) {
+        // Only a network level failure reaches here, a 4xx or 5xx is handled above
+        setBudgetFormError('Could not reach the server. Please check your connection and try again.');
+        console.error(`[ERROR: Expenses.js] Edit budget request failed: ${error.message}`);
+      } finally {
+        setSubmittingBudget(false)
+      }
+    },[submittingBudget, editingBudget, newBudgetData, fetchBudgets])
+
+    /* Loads one budget from GET /budget/fetchBudget/:id.
+    The route matches the id against the account on the token, so another user's
+    budget is reported as missing rather than returned.
+
+    Used to open the edit form against what is currently stored rather than
+    against the copy /expense/fetchBudgets is holding, which carries only the
+    four fields that list's trip select reads: an edit submits every field the
+    form owns, so opening it from that copy would write ten blank category
+    limits over the stored ones.
+
+    Returns the budget so the caller can put it straight into the form, or null
+    when it could not be read */
+    const fetchBudget = useCallback(async (budgetId) => {
+      // Conditional rendering to check a budget was identified
+      if (!budgetId) {
+        console.warn('[WARN: Expenses.js] No budget id given, cannot fetch the budget');
+        return null;
+      }
+
+      const token = localStorage.getItem('token');
+      // Conditional rendering to check a session is still stored
+      if (!token) {
+        setError?.('Your session has expired. Please log in again.');
+        console.warn('[WARN: Expenses.js] No token stored, cannot fetch the budget');
+        return null;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:3001/budget/fetchBudget/${budgetId}`, {
+          method: 'GET',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        })
+
+        const data = await response.json().catch(() => ({}))
+
+        if (response.ok) {
+          console.log('[SUCCESS: Expenses.js] Loaded budget', data.budget?._id)
+          return data.budget ?? null
+        }
+
+        /* A 400 for a malformed id, a 404 for a budget that is not on this
+        account, and a 401 once the session has gone all arrive with their own
+        message, so it is reported as it was given */
+        const message = data?.message || response?.statusText || 'Could not load that budget.';
+        setError?.(message)
+        console.error(`[ERROR: Expenses.js] Fetch budget failed with status ${response.status}: ${message}`)
+        return null
+      } catch (error) {
+        // Only a network level failure reaches here, a 4xx or 5xx is handled above
+        setError?.('Could not reach the server. Please check your connection and try again.')
+        console.error(`[ERROR: Expenses.js] Fetch budget request failed: ${error.message}`)
+        return null
+      }
+    },[setError])
+
+    /* Opens the budget form as an edit, filled in with the budget as it is
+    currently stored. One budget per trip, so an existing one cannot be created
+    again — its trip is not offered by the create select at all, and the POST
+    answers 409 for it, which is why editing is the only way to change one.
+
+    The budget is read back by its id first rather than taken from the list,
+    which holds only part of it. Nothing on screen changes until it arrives, so
+    a read that failed leaves the form as it was instead of opening an edit of
+    a budget that could not be loaded */
+    const startBudgetEdit = useCallback(async (budgetId) => {
+      const budget = await fetchBudget(budgetId);
+
+      // Conditional rendering to check the budget was read back
+      if (!budget) {
+        console.warn('[WARN: Expenses.js] Could not load budget', budgetId, 'so the edit form was not opened');
+        return;
+      }
+
+      setEditingBudget(budget)
+      setNewBudgetData(budgetToForm(budget))
+      setBudgetFieldErrors({})
+      setBudgetFormError(null)
+      setShowAddBudget(true)
+      setShowAddExp(false)
+      console.log('[INFO: Expenses.js] Editing budget', budget._id)
+    },[fetchBudget])
+
+    /* One budget per trip, so one form does both jobs and this is what the form
+    submits to. Which request runs is decided by the same editingBudget the form
+    reads its mode from, so the two cannot disagree */
+    const saveBudget = useCallback(() => {
+      if (editingBudget?._id) return editBudget();
+      return addBudget();
+    },[editingBudget, addBudget, editBudget])
+
     //=====================SIDE EFFECTS=========================
     /* Opens the budget form when the page was reached from the journal's ADD
     TRIP BUDGET link, which sets openBudgetForm on the location. Kept as an
@@ -395,6 +806,14 @@ export default function Expenses(//Export default Expenses.js component
     useEffect(() => {
       fetchExpenses()
     }, [fetchExpenses])
+
+    /* Loads the trips once, when the page mounts, so the budget form's trip
+    select is already filled the first time the form is opened — including when
+    the page is reached from the journal's ADD TRIP BUDGET link, which opens it
+    on the first render */
+    useEffect(() => {
+      fetchTrips()
+    }, [fetchTrips])
 
     //======================================================
   return (
@@ -467,11 +886,44 @@ export default function Expenses(//Export default Expenses.js component
         </div>
       )}
       {showBudgetList && (
-        <div>
+        <div id='budget-list-panal'>
           <Row>
             <Col>
-              <div>
-                TRIP BUDGET
+              {/* The trip budgets, read from the same GET /expense/fetchBudgets
+              the add expense form's trip select is filled from. Stands in until
+              BudgetList.js is built, so the edit form has something to be opened
+              from: an existing budget cannot be created again, so a PATCH is the
+              only way to change one.
+
+              Each row only carries the four fields that list returns, so EDIT
+              reads the whole budget back by its id before it opens the form */}
+              <div id='budgetListBlock'>
+                <h4 className='formSectionHeading'>TRIP BUDGETS</h4>
+                {loadingBudgets && <p className='infoText'>LOADING BUDGETS...</p>}
+                {!loadingBudgets && budgets.length === 0 && (
+                  <p className='infoText'>NO BUDGETS YET. SET ONE FOR A TRIP BELOW.</p>
+                )}
+                {!loadingBudgets && budgets.map(({ budgetId, tripTitle, baseCurrency, totalBudget }) => (
+                  <Stack direction='horizontal' gap={3} key={budgetId} className='budgetListRow'>
+                    <div className='p-2'><p className='infoText'>{tripTitle}</p></div>
+                    <div className='p-2 ms-auto'>
+                      <p className='infoText'>{`${baseCurrency} ${totalBudget}`}</p>
+                    </div>
+                    <div className='p-2'>
+                      <Button
+                        variant='light'
+                        type='button'
+                        className='editBudgetBtn'
+                        onClick={() => startBudgetEdit(budgetId)}
+                        // ARIA ATTRIBUTES:
+                        aria-label={`Edit the budget for ${tripTitle}`}
+                        aria-controls='add-budget-panal'
+                      >
+                        EDIT
+                      </Button>
+                    </div>
+                  </Stack>
+                ))}
               </div>
             </Col>
           </Row>
@@ -552,7 +1004,28 @@ export default function Expenses(//Export default Expenses.js component
 <Row style={{width: '100%'}}>
       <Col style={{width: '100%'}}>
       <div id='addBudget-form-display'>
- <BudgetForm/>
+        <BudgetForm
+          /* One budget per trip, so the same form creates and edits. The mode
+          follows whichever budget startBudgetEdit opened, if any */
+          mode={editingBudget ? 'edit' : 'create'}
+          budget={editingBudget}
+          /* Create mode offers only the trips that do not have a budget yet:
+          a second one cannot be set for the same trip, and the POST answers
+          409 for it. Edit mode is passed the whole list so the disabled
+          select can still show the title of the trip it belongs to */
+          trips={editingBudget ? trips : trips.filter(({ hasBudget }) => !hasBudget)}
+          loadingTrips={loadingTrips}
+          currencyOptions={currencyOptions}
+          budgetData={newBudgetData}
+          setBudgetData={setNewBudgetData}
+          saveBudget={saveBudget}
+          /* An edit resets to the budget as it is stored, a create clears to
+          the empty shape */
+          emptyForm={editingBudget ? budgetToForm(editingBudget) : EMPTY_BUDGET}
+          submitting={submittingBudget}
+          formError={budgetFormError}
+          fieldErrors={budgetFieldErrors}
+        />
       </div>
        
       </Col>
