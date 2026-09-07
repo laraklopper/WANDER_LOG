@@ -203,8 +203,8 @@ The intended shape, for when the router is written:
 
 | Endpoint | Body / params | Other |
 |---|---|---|
-| `POST /vat/calculate` | `amount`, `mode` (default `exclusive`), `isZeroRated` (default `false`) | A `POST` rather than a `GET` so it takes the same JSON body as `/vat/save` and the client does not have to build a query string for one and a body for the other |
-| `POST /vat/save` | Same three fields | The net, VAT and gross amounts are **recomputed** server-side rather than read off the body, so a stored record always holds figures the server worked out |
+| `POST /vat/calculate` | `amount`, `mode` (default `exclusive`), `isZeroRated` (default `false`), `ratePercent` (default `15`) | A `POST` rather than a `GET` so it takes the same JSON body as `/vat/save` and the client does not have to build a query string for one and a body for the other. `ratePercent` is optional: any rate from 0 to 100 is accepted, and one left out or sent empty falls back to the SARS standard rate. `isZeroRated` overrides it to 0. `400` on a rate outside those bounds |
+| `POST /vat/save` | Same four fields | The net, VAT and gross amounts are **recomputed** server-side rather than read off the body, so a stored record always holds figures the server worked out |
 | `GET /vat/history` | — | Returns `{ success, total, limit, calculations }`. Capped at the newest **100** records; `total` is reported separately so the client can tell a truncated view from the whole history. Nothing is recalculated — each record holds the rate it was worked out at |
 | `DELETE /vat/history/:id` | `:id` | The id and the user are matched in a single query, so another user's calculation behaves exactly like one that does not exist. `400` on a malformed id, `404` when not found |
 

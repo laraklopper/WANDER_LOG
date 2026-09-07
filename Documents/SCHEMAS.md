@@ -256,7 +256,7 @@ Defined in [vatSchema.js](../server/models/vatSchema.js). A saved record of a VA
 |`username`| String | Yes | - |-|Denormalised copy of the owner's username|
 |`mode`| String | Yes | - | enum: `VAT_MODES` (`exclusive`, `inclusive`) |Which direction the calculation ran in. `exclusive` means the amount entered was the price before VAT and VAT was added on top; `inclusive` means it was the price after VAT and the VAT in it was stripped back out. The three amounts below are the same either way — this is what says which of them the user typed|
 |`isZeroRated`| Boolean | No | `false`| - |Whether the item was flagged as zero-rated (0%) rather than levied at the standard rate. A zero-rated supply is still a taxable supply, which is why it is recorded as a rate of nil rather than as no calculation at all|
-|`ratePercent`| Number |Yes|-| min-0 max-100 |The rate the VAT was worked out at, as a percentage: the SARS standard rate, or 0 for a zero-rated item. Stored rather than derived, so a record saved at 14% or 15% still reproduces itself after the rate changes|
+|`ratePercent`| Number |Yes|-| min-0 max-100 |The rate the VAT was worked out at, as a percentage: the rate entered on the calculator (the SARS standard 15% unless it was changed), or 0 for a zero-rated item. Stored rather than derived, so a record saved at 14%, 15% or a foreign rate still reproduces itself after the rate changes|
 |`netAmount`| Number | Yes| - | min-0 (*cannot be negative*)| The amount excluding VAT |
 |`vatAmount`| Number |Yes|-| min-0 (*cannot be negative*)|The VAT portion itself, nil on a zero-rated item|
 |`grossAmount`| Number |Yes|-| min-0 (*cannot be negative*)|The amount including VAT|

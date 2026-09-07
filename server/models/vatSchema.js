@@ -38,9 +38,11 @@ const vatSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
-     /* The rate the VAT was worked out at, as a percentage: the SARS standard
-    rate, or 0 for a zero-rated item. Stored rather than derived, so a record
-    saved at 14% or 15% still reproduces itself after the rate changes. */
+     /* The rate the VAT was worked out at, as a percentage: the rate entered on
+    the calculator, which defaults to the SARS standard rate but may be any rate
+    from 0 to 100, or 0 for a zero-rated item. Stored rather than derived, so a
+    record saved at 14%, 15% or a foreign rate still reproduces itself after the
+    rate changes. */
     ratePercent: {
         type: Number,
         required: [true, 'rate percent is required'],

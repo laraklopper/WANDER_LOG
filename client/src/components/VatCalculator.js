@@ -4,7 +4,13 @@ import '../css/componentCss/VatCalculator.css'
 import '../css/componentCss/FormSetup.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
-import { SARS_VAT_RATE, ZERO_RATED_CATEGORIES, toVatModeLabel  } from '../util/vatFunctions';
+import {
+  SARS_VAT_RATE,
+  DEFAULT_VAT_RATE_PERCENT,
+  MAX_VAT_RATE_PERCENT,
+  ZERO_RATED_CATEGORIES,
+  toVatModeLabel,
+} from '../util/vatFunctions';
 import { formatCurrency } from '../util/currencyFunc';
 
 
@@ -12,12 +18,22 @@ import { formatCurrency } from '../util/currencyFunc';
 export default function VatCalculator() {
     const [amount, setAmount] = useState('')
     const [mode, setMode] = useState('exclusive')// 'exclusive' (add VAT) | 'inclusive' (remove VAT)
+  /* The rate to work at, as a typed percentage. Starts at the SARS standard
+  rate, which is what most users want, but any rate up to
+  MAX_VAT_RATE_PERCENT can be entered - a traveller buys in more than one
+  country, and VAT is not 15% in all of them. Held as a string rather than a
+  number so the field can be cleared while typing without becoming NaN. */
+  const [ratePercent, setRatePercent] = useState(String(DEFAULT_VAT_RATE_PERCENT));
   const [isZeroRated, setIsZeroRated] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState(null);
   const [saveError, setSaveError] = useState('');
+
+  /* Which of the two number fields the message on screen is about, so only the
+  field actually at fault is marked invalid and reddened rather than both. */
+  const rateHasError = error.startsWith('VAT rate');
 
   /* Bootstrap variant for the save button, so its colour reports the outcome of
   the save rather than staying neutral once it is disabled. */
@@ -56,6 +72,18 @@ export default function VatCalculator() {
       return;
     }
 
+    /* Checked here as well as on the server. A zero-rated item is levied at nil
+    whatever the field says, so the rate is only validated when it will actually
+    be used - an empty field is allowed either way and falls back to the
+    standard rate. */
+    if (!isZeroRated && ratePercent !== '') {
+      const parsedRate = parseFloat(ratePercent);
+      if (isNaN(parsedRate) || parsedRate < 0 || parsedRate > MAX_VAT_RATE_PERCENT) {
+        setError(`VAT rate must be a number between 0 and ${MAX_VAT_RATE_PERCENT}.`);
+        return;
+      }
+    }
+
     setLoading(true)
     try {
       const token = localStorage.getItem('token')
@@ -66,10 +94,11 @@ export default function VatCalculator() {
           'Content-Type': 'application/json',// Specify that we're sending JSON data in the request body
           'Authorization': `Bearer ${token}`// Attach the token in the Authorization header
         },
-        body: JSON.stringify({// Send the calculation's three inputs in the request body as JSON
+        body: JSON.stringify({// Send the calculation's inputs in the request body as JSON
           amount,
           mode,
           isZeroRated,
+          ratePercent,// Sent as typed; empty falls back to the SARS standard rate server-side
         })
       })
 
@@ -84,20 +113,22 @@ export default function VatCalculator() {
       }
 
       setResult(data.calculation);
-      console.log('[SUCCESS: VatCalculator.js, calculateVat] Calculated', mode, 'VAT on', amount);
+      console.log('[SUCCESS: VatCalculator.js, calculateVat] Calculated', mode, 'VAT on', amount, 'at', data.calculation?.ratePercent + '%');
     } catch (error) {
       console.error('[ERROR: VatCalculator.js, calculateVat]', error.message);//Log an error message in the console for debugging purposes
       setError('Failed to calculate the VAT. Please try again.');//Set the error state to display a message in the UI
     } finally {
       setLoading(false)
     }
-  },[amount, mode, isZeroRated])
+  },[amount, mode, isZeroRated, ratePercent])
 
   // Function to save vat calculation
-  /* Only the three inputs are sent. The server recalculates from them, so the
-  figures cannot be edited on the way to the database, and the record it returns
-  is what was actually stored. Throws on failure so the button that called it
-  can report the outcome. */
+  /* Only the inputs are sent, and they are taken from the RESULT rather than
+  from the form, so the rate saved is the one the figures on screen were worked
+  out at even if the field has since been retyped. The server recalculates from
+  them, so the figures cannot be edited on the way to the database, and the
+  record it returns is what was actually stored. Throws on failure so the button
+  that called it can report the outcome. */
   const saveVatCalculation = useCallback(async (calculation) => {
       const token = localStorage.getItem('token')
       const response = await fetch('http://localhost:3001/vat/save', {
@@ -111,6 +142,7 @@ export default function VatCalculator() {
           amount: calculation.enteredAmount,
           mode: calculation.mode,
           isZeroRated: calculation.isZeroRated,
+          ratePercent: calculation.ratePercent,
         })
       })
 
@@ -133,6 +165,24 @@ export default function VatCalculator() {
     setAmount(value);
     /* The result on screen was worked out from the old inputs, so it is cleared
     rather than left to be read against figures that have moved on */
+    setResult(null);
+    setError('');
+    resetSaveStatus();
+  };
+
+  /* The rate is taken as typed rather than coerced here, so the field can be
+  cleared and retyped. It is validated when the calculation is asked for, and an
+  empty field falls back to the SARS standard rate. */
+  const handleRateChange = (e) => {
+    setRatePercent(e.target.value);
+    setResult(null);
+    setError('');
+    resetSaveStatus();
+  };
+
+  // Puts the rate field back to the SARS standard rate the form loads with
+  const resetRate = () => {
+    setRatePercent(String(DEFAULT_VAT_RATE_PERCENT));
     setResult(null);
     setError('');
     resetSaveStatus();
@@ -164,6 +214,7 @@ export default function VatCalculator() {
   const clearForm = () => {
     setAmount('');
     setMode('exclusive');
+    setRatePercent(String(DEFAULT_VAT_RATE_PERCENT));// Back to the SARS standard rate, not to an empty field
     setIsZeroRated(false);
     setResult(null);
     setError('');
@@ -206,13 +257,55 @@ export default function VatCalculator() {
                       <i><p className="form-text">
         South African standard rate: {SARS_VAT_RATE * 100}% (SARS)
       </p></i>
+      {/* The rate the calculation runs at. Loads at the SARS standard rate,
+      which is what most users want, but is editable rather than fixed: a
+      traveller buys in more than one country and VAT is not 15% everywhere.
+      Disabled while zero-rated is ticked, because a zero-rated supply is
+      levied at nil whatever is typed here. */}
       <div id='vatPercentageDiv'>
-        <label className="vat-calculator-label">PERCENTAGE:</label>
+        <label className="vat-calculator-label" htmlFor='vat-rate'>PERCENTAGE:</label>
         <input
+          id='vat-rate'
+          type='number'
           className='input'
-          placeholder='15%'//Set to 15% default value
+          min='0'
+          max={MAX_VAT_RATE_PERCENT}
+          step='0.01'
+          name='ratePercent'
+          placeholder={String(DEFAULT_VAT_RATE_PERCENT)}//Falls back to 15% when left empty
+          value={ratePercent}
+          onChange={handleRateChange}
+          disabled={isZeroRated}
+          // ARIA ATTRIBUTES:
+          aria-invalid={rateHasError}
+          aria-describedby='vat-rate-hint'
+          aria-disabled={isZeroRated}
         />
+        {/* Only offered once the rate has been moved off the standard one, so
+        it is a way back rather than a button that does nothing */}
+        {!isZeroRated && ratePercent !== String(DEFAULT_VAT_RATE_PERCENT) && (
+          <Button
+            variant='link'
+            type='button'
+            size='sm'
+            id='resetVatRateBtn'
+            onClick={resetRate}
+            // ARIA ATTRIBUTES:
+            aria-label={`Reset the VAT rate to ${DEFAULT_VAT_RATE_PERCENT}%`}
+          >
+            Use {DEFAULT_VAT_RATE_PERCENT}%
+          </Button>
+        )}
       </div>
+      {/* Says which rate the amount will actually be worked out at, which the
+      field alone does not when it is empty or overridden by zero-rating */}
+      <p className='vat-calculator-hint' id='vat-rate-hint'>
+        {isZeroRated
+          ? 'Zero-rated: VAT is worked out at 0%, whatever rate is entered.'
+          : ratePercent === ''
+          ? `Left empty, VAT is worked out at the standard ${DEFAULT_VAT_RATE_PERCENT}%.`
+          : `VAT is worked out at ${ratePercent}%. Any rate from 0 to ${MAX_VAT_RATE_PERCENT}% can be entered.`}
+      </p>
                   </div>
       <div className="p-2" id='vat-calculator-block1'>
           <label className="vat-calculator-label" htmlFor="vat-amount">
@@ -232,7 +325,7 @@ export default function VatCalculator() {
                 onChange={handleAmountChange}
                 // ARIA ATTRIBUTES:
                 aria-required='true'
-                aria-invalid={Boolean(error)}
+                aria-invalid={Boolean(error) && !rateHasError}
                 aria-describedby='vat-mode-hint'
             />
         </div>

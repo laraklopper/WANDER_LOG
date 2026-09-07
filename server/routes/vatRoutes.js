@@ -16,7 +16,12 @@ const mongoose = require('mongoose');
 const router = express.Router()
 const User = require('../models/userSchema')
 const Vat = require('../models/vatSchema')
-const { calculateVat, VAT_MODES } = require('../util/vatCalculations')
+const {
+    calculateVat,
+    VAT_MODES,
+    DEFAULT_VAT_RATE_PERCENT,
+    MAX_VAT_RATE_PERCENT,
+} = require('../util/vatCalculations')
 const { checkJwtToken } = require('./middleware')
 /* Most saved calculations a single /history response will return. A user's
 history grows without limit, so the newest records are returned and the total
@@ -27,13 +32,13 @@ const HISTORY_LIMIT = 100;
 VAT INPUT PARSING AND VALIDATION
 =======================================*/
 /* Reads a calculation's fields off a request body and normalises them: the
-amount coerced to a number, the mode trimmed and lowercased, the zero-rated flag
-to a boolean. Shared by /calculate and /save so an amount is parsed and
-validated in exactly one place and the two cannot drift.
+amount and rate coerced to numbers, the mode trimmed and lowercased, the
+zero-rated flag to a boolean. Shared by /calculate and /save so an amount is
+parsed and validated in exactly one place and the two cannot drift.
 
 Returns `{ message }` describing the first problem found, or the normalised
-`{ parsedAmount, vatMode, zeroRated }` when the input is usable. */
-const parseVatInput = ({ amount, mode = 'exclusive', isZeroRated = false } = {}) => {
+`{ parsedAmount, vatMode, zeroRated, ratePercent }` when the input is usable. */
+const parseVatInput = ({ amount, mode = 'exclusive', isZeroRated = false, ratePercent } = {}) => {
     // Conditional rendering to check the one required field was supplied
     if (amount === undefined || amount === null || amount === '') {
         return { message: 'amount is required' };
@@ -56,7 +61,28 @@ const parseVatInput = ({ amount, mode = 'exclusive', isZeroRated = false } = {})
         return { message: `mode must be one of: ${VAT_MODES.join(', ')}` };
     }
 
-    return { parsedAmount, vatMode, zeroRated: Boolean(isZeroRated) };
+    /* The rate is OPTIONAL: the calculator offers the SARS standard rate, but a
+    traveller buys in more than one country, so any rate may be typed. Left out
+    or sent empty, it falls back to the standard rate rather than being an
+    error. */
+    let parsedRatePercent = DEFAULT_VAT_RATE_PERCENT;
+    if (ratePercent !== undefined && ratePercent !== null && ratePercent !== '') {
+        parsedRatePercent = parseFloat(ratePercent);// Convert the rate to a floating-point number
+
+        /* Conditional rendering to validate the rate is a percentage that VAT
+        can be levied at. The bounds are the schema's own, so a rate accepted
+        here cannot be rejected by ratePercent's min/max on save. */
+        if (isNaN(parsedRatePercent) || parsedRatePercent < 0 || parsedRatePercent > MAX_VAT_RATE_PERCENT) {
+            return { message: `VAT rate must be a number between 0 and ${MAX_VAT_RATE_PERCENT}` };
+        }
+    }
+
+    return {
+        parsedAmount,
+        vatMode,
+        zeroRated: Boolean(isZeroRated),
+        ratePercent: parsedRatePercent,
+    };
 }
 
 /*──────────────────────────── POST ROUTES ─────────────────────────────────────
@@ -80,15 +106,16 @@ router.post('/calculate', checkJwtToken, async (req, res) => {
             return res.status(400).json({ success: false, message: input.message });// Send a 400 (Bad Request) status code with a message
         }
 
-        const { parsedAmount, vatMode, zeroRated } = input;
+        const { parsedAmount, vatMode, zeroRated, ratePercent } = input;
 
         const calculation = calculateVat({
             amount: parsedAmount,
             mode: vatMode,
             isZeroRated: zeroRated,
+            ratePercent,
         });
 
-        console.log('[SUCCESS: vatRoutes.js, /calculate] Calculated', vatMode, 'VAT on', parsedAmount);
+        console.log('[SUCCESS: vatRoutes.js, /calculate] Calculated', vatMode, 'VAT on', parsedAmount, 'at', calculation.ratePercent + '%');
         return res.status(200).json({
             success: true,
             calculation,
@@ -118,7 +145,7 @@ router.post('/save', checkJwtToken, async (req, res) => {
             return res.status(400).json({ success: false, message: input.message });// Send a 400 (Bad Request) status code with a message
         }
 
-        const { parsedAmount, vatMode, zeroRated } = input;
+        const { parsedAmount, vatMode, zeroRated, ratePercent } = input;
 
         const user = await User.findById(req.user.userId)
             .select('username')
@@ -134,6 +161,7 @@ router.post('/save', checkJwtToken, async (req, res) => {
             amount: parsedAmount,
             mode: vatMode,
             isZeroRated: zeroRated,
+            ratePercent,
         });
 
         /* enteredAmount is not stored: the schema exposes it as a virtual off

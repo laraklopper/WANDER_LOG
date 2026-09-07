@@ -290,14 +290,17 @@ An expense is embedded in the budget of its trip rather than stored on its own, 
 | Field | Control | Required | Constraints | Notes |
 |---|---|---|---|---|
 | `amount` | `number` | Yes | min 0, `step='0.01'` | The one amount the user types. `mode` says which of the three stored amounts it becomes |
+| `ratePercent` | `number` | No | min 0, max `MAX_VAT_RATE_PERCENT` (100), `step='0.01'` | The rate to work at, as a percentage. Loads at `DEFAULT_VAT_RATE_PERCENT` (15%) but **any** rate can be typed — a traveller buys in more than one country and VAT is not 15% everywhere. Left empty it falls back to 15%; disabled while `isZeroRated` is ticked |
 | `mode` | pair of buttons | Yes | enum: `exclusive`, `inclusive` | `exclusive` adds VAT to a price before VAT; `inclusive` strips the VAT out of a price after VAT |
-| `isZeroRated` | `checkbox` | No | Defaults to false | A zero-rated supply is taxable at nil, not untaxed. Ticking it lists the common zero-rated categories |
+| `isZeroRated` | `checkbox` | No | Defaults to false | A zero-rated supply is taxable at nil, not untaxed. Ticking it lists the common zero-rated categories and **overrides** the rate to 0 |
 
-- `ratePercent`, `netAmount`, `vatAmount` and `grossAmount` are results, not inputs. The rate is `SARS_VAT_RATE` (15%), or 0 when zero-rated, and is stored with the record so a calculation saved at one rate still reproduces itself after the rate changes.
+- `netAmount`, `vatAmount` and `grossAmount` are results, not inputs. `ratePercent` is both: what was typed is echoed back on the result and stored with the record, so a calculation saved at one rate still reproduces itself after the rate changes.
+- The rate field is held as a string, so it can be cleared and retyped without becoming `NaN`, and is validated only when the calculation is asked for. A `Use 15%` link appears beside it once the rate has been moved off the standard one, and the hint under it says which rate the amount will actually be worked out at.
+- Only the field at fault is marked `aria-invalid`: a rate message reddens the rate field, an amount message the amount field.
 - The results panel and the save-to-history button follow the converter: save what is on screen, disable after a success, and report the outcome through the button variant.
 - `mode` is a pair of buttons rather than a `select`, so both directions are readable at once. The chosen one is marked by more than colour — an active class and `aria-pressed` — and a hint under them says which price the amount will be read as.
-- Changing any of the three inputs clears the result, so a figure on screen is never left to be read against inputs that have moved on.
-- Only the three inputs are posted to `/vat/save`. The server recalculates from them, so the stored amounts cannot be edited on the way to the database.
+- Changing any input clears the result, so a figure on screen is never left to be read against inputs that have moved on.
+- Only the inputs are posted to `/vat/save`, and they are taken from the result rather than the form, so the record is saved at the rate the figures on screen were worked out at. The server recalculates from them, so the stored amounts cannot be edited on the way to the database.
 
 ## 13. EDIT FORMS
 

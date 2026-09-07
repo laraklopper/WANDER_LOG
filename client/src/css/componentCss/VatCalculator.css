@@ -76,8 +76,13 @@ labels the direction a result was worked out in */
     padding: 0px;
     justify-content: center;
 }
+/* The rate the calculation runs at: the SARS note, the field itself and the
+hint under it. Stacked like the blocks below rather than laid out in a row, so
+the three lines read in the order they are meant to */
 #vat-percentage-block{
     display: flex;
+    flex-direction: column;
+    align-items: center;
     gap: 5px;
     margin: 0px;
     justify-content: center;
@@ -112,6 +117,34 @@ labels the direction a result was worked out in */
     margin: 0px;
     padding: 0px;
     gap: 5px;
+}
+/* Narrower than the amount field: a rate is at most a few characters, and the
+room left over is what the reset button beside it sits in */
+#vat-rate{
+    width: 110px;
+}
+/* While zero-rated is ticked the rate is not used, so the field is disabled and
+says so by looking inactive rather than only by refusing input */
+#vat-rate:disabled{
+    background-color: #C9CDD1;
+    border-color: #606060;
+    color: #606060;
+    cursor: not-allowed;
+}
+/* The way back to the standard rate. Rendered only once the rate has been moved
+off 15%, and kept as a text link so it does not read as a second submit */
+#resetVatRateBtn{
+    margin: 0px;
+    padding: 0px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    color: #323A42;
+    white-space: nowrap;
+}
+#resetVatRateBtn:hover{
+    color: #000;
 }
 /* BUTTONS https://react-bootstrap.netlify.app/docs/components/buttons  */
 #selectModeBtn1,

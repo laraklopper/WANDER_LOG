@@ -43,7 +43,21 @@ export const toVatRate = (calculation) => {
     if (calculation.isZeroRated) return '0% (ZERO-RATED)'
     return `${calculation.ratePercent.toLocaleString('en-ZA', { maximumFractionDigits: 2 })}%`
 }
+// The standard rate SARS levies VAT at, as a decimal
 export const SARS_VAT_RATE = 0.15;
+
+/* The same rate as a percentage, which is the form the calculator's rate field
+works in and the form the server takes it in. Derived rather than written out
+again, so 15 cannot end up disagreeing with 0.15.
+
+The calculator only OFFERS this rate: any rate up to MAX_VAT_RATE_PERCENT can be
+typed, because a traveller buys in more than one country. */
+export const DEFAULT_VAT_RATE_PERCENT = SARS_VAT_RATE * 100;
+
+/* The highest rate that can be typed. Matches the bound the server validates
+against and the max on the schema's `ratePercent`, so a rate the form accepts is
+never rejected on save. */
+export const MAX_VAT_RATE_PERCENT = 100;
 export const ZERO_RATED_CATEGORIES = [
   'Brown bread',
   'Maize meal',

@@ -10,6 +10,11 @@ per-year VAT config to look up and the rate lives here as the one source of
 truth. A future rate change (as nearly happened for 2025/2026) is a change to
 SARS_VAT_RATE alone.
 
+The rate is nonetheless an INPUT rather than a constant of the maths: a traveller
+buys in more than one country, so the calculator lets a rate be typed and only
+falls back to SARS_VAT_RATE when none is given. SARS_VAT_RATE remains what the
+form offers first and what the notes on screen quote.
+
 The calculation runs in one of two directions:
 
   EXCLUSIVE - the amount entered is the price BEFORE VAT, and VAT is added on
@@ -24,6 +29,15 @@ is R17,25, but the VAT actually in it is R15. */
 // The standard rate SARS levies VAT at, as a decimal
 const SARS_VAT_RATE = 0.15;
 
+/* The same rate as a percentage, which is the form the calculator's rate field
+and the stored `ratePercent` both work in. Derived rather than written out again,
+so 15 cannot end up disagreeing with 0.15. */
+const DEFAULT_VAT_RATE_PERCENT = SARS_VAT_RATE * 100;
+
+/* The highest rate that can be typed. A rate above 100% is not a VAT rate, and
+the schema rejects one, so the bound is shared rather than repeated. */
+const MAX_VAT_RATE_PERCENT = 100;
+
 /* The two directions a VAT calculation can run in. Exported so the route's
 validation and the schema's enum cannot drift apart from the maths. */
 const VAT_MODES = ['exclusive', 'inclusive'];
@@ -36,15 +50,35 @@ VAT CALCULATION
 ==============================*/
 /* Works out the net, VAT and gross amounts for one item.
 
+`ratePercent` is the rate to work at, as a percentage. It is optional: a missing
+or unusable one falls back to the SARS standard rate rather than throwing, the
+same way an unrecognised mode does, so the maths always produces a record. The
+route validates it first, so a rate that got this far has already been checked.
+
 `isZeroRated` drops the rate to 0 rather than skipping the calculation, so a
 zero-rated item still produces a full record: the net and gross are equal and
 the VAT is nil, which is exactly what a zero-rated supply looks like on an
-invoice. That is not the same as an exempt supply, which is outside the VAT net
-altogether and is not modelled here. */
-const calculateVat = ({ amount, mode = 'exclusive', isZeroRated = false }) => {
+invoice. It OVERRIDES any rate given - a zero-rated supply is levied at nil
+whatever rate was typed. That is not the same as an exempt supply, which is
+outside the VAT net altogether and is not modelled here. */
+const calculateVat = ({
+    amount,
+    mode = 'exclusive',
+    isZeroRated = false,
+    ratePercent = DEFAULT_VAT_RATE_PERCENT,
+}) => {
     // An unrecognised mode falls back to the commoner of the two rather than throwing
     const direction = VAT_MODES.includes(mode) ? mode : 'exclusive';
-    const rate = isZeroRated ? 0 : SARS_VAT_RATE;
+
+    /* The rate the calculation will actually run at, as a decimal. A rate that
+    is not a usable number falls back to the standard rate, and a zero-rated
+    item is levied at nil regardless. */
+    const requestedPercent = Number(ratePercent);
+    const usablePercent =
+        Number.isFinite(requestedPercent) && requestedPercent >= 0 && requestedPercent <= MAX_VAT_RATE_PERCENT
+            ? requestedPercent
+            : DEFAULT_VAT_RATE_PERCENT;
+    const rate = isZeroRated ? 0 : usablePercent / 100;
 
     let netAmount;
     let vatAmount;
@@ -81,5 +115,7 @@ const calculateVat = ({ amount, mode = 'exclusive', isZeroRated = false }) => {
 module.exports = {
     calculateVat,
     SARS_VAT_RATE,
+    DEFAULT_VAT_RATE_PERCENT,
+    MAX_VAT_RATE_PERCENT,
     VAT_MODES,
 };
