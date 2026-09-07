@@ -525,8 +525,7 @@ export default function Expenses(//Export default Expenses.js component
       {showAddExp && (
         <div id='add-exp-panal'>
             <Row id='add-expense-row'>
-                <Col id='addExpCol1'/>
-                <Col xs={12} md={8} id='addExpCol'>
+                <Col id='addExpCol'>
                     <div id='addExp-Form-display'>
                         <AddExpenseForm
                             currentUser={currentUser}
@@ -544,7 +543,6 @@ export default function Expenses(//Export default Expenses.js component
                         />
                     </div>
                 </Col>
-                <Col id='addExpCol2'/>
             </Row>
         </div>
       )}

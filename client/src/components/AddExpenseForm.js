@@ -342,6 +342,7 @@ export default function AddExpenseForm(
             <Stack gap={3} id='addExpenseStack1'>
             {/* USERNAME (READ ONLY)*/}
       <div className="p-2" id='addExp-Block1'>
+      <div id='expense-inputDiv1'>
           <div className='addExp-input-div'>
             <label className='addExp-label' htmlFor='newExpenseUsername'>USERNAME:</label>
             <div className='input-div'>
@@ -407,14 +408,18 @@ export default function AddExpenseForm(
             </div>
 
           </div>
+          </div>
           {/* NO BUDGETS MESSAGE, shown on screen because the select has nothing
           to offer and the required attribute cannot report it */}
-          {noBudgets && (
+          <div>
+             {noBudgets && (
             <p id={noBudgetsId} className='formErrorMessage' role='alert'>
               <Bug size={16} fontWeight={900} aria-hidden='true' focusable='false' />
               Set a budget for a trip before adding an expense
             </p>
           )}
+          </div>
+         
       </div>
       {/* TITLE */}
       <div className="p-2" id='addExp-Title-block'>
