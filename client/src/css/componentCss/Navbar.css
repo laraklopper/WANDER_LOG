@@ -72,12 +72,29 @@
     border: solid 2px #323A42;
 }
 .refLink:hover{
-    background-color: #323A42;
+    background-color: #606060;
     color: #E8F0F6;
     text-decoration: underline;
 }
+/* While the mouse button is held down on a link. Press feedback only - which
+page is being viewed is marked by .refLink.active below */
 .refLink:active{
-     background-color: #606060;
+    background-color: #1F2529;
     color: #E8F0F6;
     text-decoration: underline;
+}
+/* The page currently being viewed. NavLink adds this class itself, so the
+marker follows the route rather than the mouse; the previous rule used :active,
+which only lasts while a link is being clicked and so never showed where the
+user was. Marked by more than colour alone - the border thickens and the label
+is underlined - so the current page is still visible to a user who cannot tell
+the two backgrounds apart, and the aria-current NavLink sets alongside this
+class reports the same thing to a screen reader.
+Placed after the two rules above so it wins on equal specificity: hovering the
+page you are already on keeps the selected look. */
+.refLink.active{
+    background-color: #323A42;
+    color: #E8F0F6;
+    text-decoration: underline;
+    border: solid 3px #000;
 }

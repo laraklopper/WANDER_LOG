@@ -86,15 +86,25 @@ General styling formats, not the default tags styling for all formats apply for 
 }
 /* mouse over link */
 .refLink:hover{
-    background-color: #323A42;
+    background-color: #606060;
     color: #E8F0F6;
     text-decoration: underline;
 }
-/* selected link */
+/* link being clicked */
 .refLink:active{
-     background-color: #323A42;
+    background-color: #1F2529;
     color: #E8F0F6;
     text-decoration: underline;
+}
+/* selected link: the page currently being viewed. The class is added by
+NavLink, so the marker follows the route rather than the mouse - :active would
+only last while the link is being clicked. Listed after :hover and :active so it
+wins on equal specificity */
+.refLink.active{
+    background-color: #323A42;
+    color: #E8F0F6;
+    text-decoration: underline;
+    border: solid 3px #000;
 }
 ```
 ### 1.4. FORMS
