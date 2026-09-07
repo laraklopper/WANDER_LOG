@@ -5,7 +5,7 @@
    display: flex;
    justify-content: center;
    align-items: center;
-   margin: 10px 0px 10px 0px;
+   margin: 0px;
    padding: 0px;
 }
 /* =====================
@@ -18,10 +18,17 @@ LAYOUT
     gap: 5px;
     width: 100%;
     margin: 0px;
-    padding: 0px;
+    padding: 5px 0px;
 }
 /* FORM PANALS */
-#add-trip-panal{
+#add-trip-panal,
+#add-entry-panal{
+    width: 100%;
+    margin: 0px;
+    padding: 50px;
+}
+
+#addEntry-display-block{
     width: 100%;
     margin: 0px;
     padding: 0px;
@@ -31,7 +38,7 @@ LAYOUT
     display: flex;
     flex-direction: column;
     margin: 0px;
-    padding: 0px;
+    padding: 5px 0px;
 }
 #addTrip-display-block{
     display: flex;
