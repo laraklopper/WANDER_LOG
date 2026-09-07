@@ -15,22 +15,17 @@ import { FALLBACK_CURRENCIES, currencyOptionLabel } from '../util/currencyFunc';
 
 // ======MAIN BUDGETFORM.js COMPONENT====================
 export default function BudgetForm({
-  // 'create' for a trip with no budget, 'edit' for one that already has one
-  mode = 'create',
+  mode = 'create',// 'create' for a trip with no budget, 'edit' for one that already has one
   /* The user's trips, for the tripId select. In create mode the page passes
   only the trips that do not already have a budget */
   trips = [],
   /* Offered until GET /api/currencies answers, and kept if it never does. Same
   list the currency converter uses */
-  currencyOptions = FALLBACK_CURRENCIES,
-  // The saved budget in edit mode, so the form opens filled in. null on create
-  budget = null,
-  // True while the request is in flight, set by the page
-  submitting = false,
-  // Form level error, raised by the submit handler once it exists
-  formError = null,
-  // Field keyed messages from the server, keyed by schema path
-  fieldErrors = {},
+  currencyOptions = FALLBACK_CURRENCIES, 
+  budget = null,// The saved budget in edit mode, so the form opens filled in. null on create
+  submitting = false,// True while the request is in flight, set by the page
+  formError = null,// Form level error, raised by the submit handler once it exists
+  fieldErrors = {},// Field keyed messages from the server, keyed by schema path
 }) {
   const isEdit = mode === 'edit';
 
