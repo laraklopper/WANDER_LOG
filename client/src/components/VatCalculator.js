@@ -197,13 +197,23 @@ export default function VatCalculator() {
     >
         <div id='vat-calc-head-block'>
             <h3 id='calculator-heading'>VAT CALCULATOR</h3>
-            <i><p className="form-text">
-        South African standard rate: {SARS_VAT_RATE * 100}% (SARS)
-      </p></i>
+          
         </div>
         <div id='vat-calculator-input'>
             <div id='vat-form-group1'>
                   <Stack gap={3} id='vat-calculator-stack1'>
+                  <div className='p-2' id='vat-percentage-block'>
+                      <i><p className="form-text">
+        South African standard rate: {SARS_VAT_RATE * 100}% (SARS)
+      </p></i>
+      <div id='vatPercentageDiv'>
+        <label className="vat-calculator-label">PERCENTAGE:</label>
+        <input
+          className='input'
+          placeholder='15%'//Set to 15% default value
+        />
+      </div>
+                  </div>
       <div className="p-2" id='vat-calculator-block1'>
           <label className="vat-calculator-label" htmlFor="vat-amount">
           Amount (ZAR)

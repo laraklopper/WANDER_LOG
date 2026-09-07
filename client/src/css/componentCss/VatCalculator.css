@@ -76,6 +76,13 @@ labels the direction a result was worked out in */
     padding: 0px;
     justify-content: center;
 }
+#vat-percentage-block{
+    display: flex;
+    gap: 5px;
+    margin: 0px;
+    justify-content: center;
+}
+
 #vat-calculator-block1{
     display: flex;
     flex-direction: column;
@@ -98,6 +105,13 @@ labels the direction a result was worked out in */
     gap: 5px;
     margin: 0px;
     padding: 0px;
+}
+#vatPercentageDiv{
+    display: flex;
+    align-items: baseline;
+    margin: 0px;
+    padding: 0px;
+    gap: 5px;
 }
 /* BUTTONS https://react-bootstrap.netlify.app/docs/components/buttons  */
 #selectModeBtn1,
