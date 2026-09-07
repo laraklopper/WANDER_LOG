@@ -41,6 +41,7 @@
 |`RFC`| **REQUEST FOR COMMENTS** | A formal document published by the IETF (Internet Engineering Task Force) that defines internet standards and protocols. In this application, RFC 6585 defines the `429 Too Many Requests` HTTP status code returned by rate limiters when a client exceeds its allowed request quota. |
 |`REST (API)`| **REPRESENTATIONAL STATE TRANSFER** | An architectural style for APIs that uses standard HTTP methods (GET, POST, PUT, DELETE) and stateless communication. |
 |`RWD`| **RESPONSIVE WEB DESIGN** | A design approach that ensures a web application looks and works correctly across different screen sizes and devices. |
+| `SARS` | **SOUTH AFRICAN REVENUE SERVICES**| The South African tax collecting authority. Established in terms of the `South African Revenue Service Act 34 of 1997`.|
 |`SHA`| **SECURE HASH ALGORITHM** | A family of cryptographic hash functions standardised by NIST. This application uses SHA-256 to hash password reset tokens before persisting them in the database, ensuring the raw token is never stored and cannot be recovered if the database is compromised. |
 |`SMTP`| **SIMPLE MAIL TRANSFER PROTOCOL** | The standard protocol for sending email across networks. In this application, the `nodemailer` package uses an SMTP connection to Gmail to deliver password reset emails to users. |
 |`SPA`| **SINGLE PAGE APPLICATION** | A web app that loads a single HTML page and dynamically updates content without full page reloads. React enables this pattern. |
@@ -51,6 +52,7 @@
 |`URI`| **UNIFORM RESOURCE IDENTIFIER** | A string that uniquely identifies a resource. A URL is a specific type of URI that includes a network location. |
 |`URL`| **UNIFORM RESOURCE LOCATOR** | The full web address used to locate a specific resource, e.g. `http://localhost:5000/api/stocks`. |
 |`UX`| **USER EXPERIENCE** | The overall quality of a user's interaction with an application, encompassing usability, accessibility, and satisfaction. |
+|`VAT`|**VALUE ADDED TAX**|   The indirect tax on the consumption of goods and services in the economy. Taxable supplies are supplies for which VAT is charged at either the standard rate (currently 15% or zero rate (0%)). |
 |`W3C`| **WORLD WIDE WEB CONSORTIUM** | The international standards body that develops and maintains core web technology specifications, including HTML, CSS, ARIA, and WCAG. |
 |`WAI`| **WEB ACCESSIBILITY INITIATIVE** | A W3C programme that develops standards and guidelines (including WCAG and ARIA) to make the web accessible to people with disabilities. |
 |`WCAG`| **WEB CONTENT ACCESSIBILITY GUIDELINES** | A set of W3C guidelines that define how to make web content accessible to people with disabilities. WCAG 2.1 (AA) is the widely adopted standard. |
