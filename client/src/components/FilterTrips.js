@@ -68,7 +68,9 @@ export default function FilterTrips() {
                 </div>
                 <div className="vr" />
                 <div className="p-2">
-                    <Button variant='danger' id='clearFiltersBtn'>CLEAR FILTERS<Ban fontWeight={700} aria-hidden='true' focusable='false'/></Button>
+                    <Button variant='danger' id='clearFiltersBtn' 
+                    // onClick={}
+                    >CLEAR FILTERS<Ban fontWeight={700} aria-hidden='true' focusable='false'/></Button>
                 </div>
     </Stack>
 
