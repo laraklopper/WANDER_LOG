@@ -16,11 +16,13 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import AddExpenseForm from '../components/AddExpenseForm';
 import ExpensesList from '../components/ExpensesList';
+import BudgetForm from '../components/BudgetForm';
+import BudgetList from '../components/BudgetList';
 // IMPORT UTILITY FUNCTIONS AND SHARED DATA
 import { FALLBACK_CURRENCIES } from '../util/currencyFunc';
 import { todayInputValue } from '../util/dateFunctions';
 import { EXPENSE_CATEGORIES } from '../data/financeData';
-import BudgetForm from '../components/BudgetForm';
+
 
 /* Empty expense shape, used for the initial state and by the form's clear
 button. The trip is held as tripId, because that is what the API finds the parent
@@ -889,6 +891,9 @@ export default function Expenses(//Export default Expenses.js component
         <div id='budget-list-panal'>
           <Row>
             <Col>
+            <div>
+              <BudgetList currentUser={currentUser}/>
+            </div>
               {/* The trip budgets, read from the same GET /expense/fetchBudgets
               the add expense form's trip select is filled from. Stands in until
               BudgetList.js is built, so the edit form has something to be opened
@@ -897,7 +902,7 @@ export default function Expenses(//Export default Expenses.js component
 
               Each row only carries the four fields that list returns, so EDIT
               reads the whole budget back by its id before it opens the form */}
-              <div id='budgetListBlock'>
+              {/* <div id='budgetListBlock'>
                 <h4 className='formSectionHeading'>TRIP BUDGETS</h4>
                 {loadingBudgets && <p className='infoText'>LOADING BUDGETS...</p>}
                 {!loadingBudgets && budgets.length === 0 && (
@@ -924,7 +929,7 @@ export default function Expenses(//Export default Expenses.js component
                     </div>
                   </Stack>
                 ))}
-              </div>
+              </div> */}
             </Col>
           </Row>
         </div>

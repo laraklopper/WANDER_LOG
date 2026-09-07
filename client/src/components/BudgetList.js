@@ -1,4 +1,5 @@
 import React from 'react'
+import '../css/componentCss/BudgetList.css'
 import '../css/componentCss/DetailsPanal.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
@@ -15,9 +16,9 @@ export default function BudgetList({currentUser}) {
 
     const username = currentUser?.username || '';
   return (
-    <div>
-        <div>
-            <table>
+    <div id='budgetListDiv'>
+        <div id='budgetTableblock'>
+            <table id='budgetListTable'>
                 <thead>
                     <tr>
                         <th colSpan={6}>
@@ -54,12 +55,20 @@ export default function BudgetList({currentUser}) {
       </div>
       <div className="vr" />
       <div className="p-2">
-        <Button>CLOSE</Button>
+        <Button 
+            variant='warning' 
+            id='closePanalBtn'
+            type='button'
+            // onClick={}
+            // ARIA ATTRIBUTES:
+            >
+            CLOSE
+            </Button>
       </div>
     </Stack>
             </div>
             <div id='budget-panal-body'>
-                <Stack gap={3}>
+                <Stack gap={3} id='budgetDetailsStack1'>
       <div className="p-2">
         {/* TRIP */}
       </div>
@@ -69,8 +78,11 @@ export default function BudgetList({currentUser}) {
       <div className="p-2">
         {/* category limits */}
       </div>
+        <div className="p-2">
+        {/* TOTAL number of EXPENSES */}
+      </div>
     </Stack>
-    <Stack gap={3}>
+    <Stack gap={3} id='budgetDetailsStack2'>
       <div className="p-2">
         {/* Base currency */}
       </div>
