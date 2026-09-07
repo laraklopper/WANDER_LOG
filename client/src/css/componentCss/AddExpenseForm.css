@@ -29,6 +29,13 @@ LAYOUT
     padding: 0px;
     border-radius: 8px;
 }
+#expense-inputDiv1{
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 0px;
+    padding: 0px;
+}
 #addExp-Block1{
     display: flex;
     gap: 10px;
