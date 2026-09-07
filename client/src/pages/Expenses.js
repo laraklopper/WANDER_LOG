@@ -889,47 +889,32 @@ export default function Expenses(//Export default Expenses.js component
       )}
       {showBudgetList && (
         <div id='budget-list-panal'>
-          <Row>
-            <Col>
-            <div>
-              <BudgetList currentUser={currentUser}/>
+          <Row id='budget-list-row'>
+            <Col id='budgetListCol'>
+            {/* The trip budgets, read from the same GET /expense/fetchBudgets
+            the add expense form's trip select is filled from. Each row carries
+            only the four fields that list returns, so the list's own VIEW reads
+            the whole budget back by its id through fetchBudget, and its EDIT
+            opens the form from that same read: an existing budget cannot be
+            created again, so a PATCH is the only way to change one */}
+            <div id='budgetListBlock'>
+              <BudgetList
+                currentUser={currentUser}
+                budgets={budgets}
+                loadingBudgets={loadingBudgets}
+                fetchBudgets={fetchBudgets}
+                /* Reads one budget back from the API by its id, whole and with
+                its virtuals, for the list's details panel */
+                fetchBudget={fetchBudget}
+                startBudgetEdit={startBudgetEdit}
+                /* A budget row does not carry the status of the trip it was set
+                for, that is stored on the trip itself */
+                trips={trips}
+                /* An expense carries the budgetId it was filed against, so the
+                list counts the expenses per budget off this one */
+                expenses={expenses}
+              />
             </div>
-              {/* The trip budgets, read from the same GET /expense/fetchBudgets
-              the add expense form's trip select is filled from. Stands in until
-              BudgetList.js is built, so the edit form has something to be opened
-              from: an existing budget cannot be created again, so a PATCH is the
-              only way to change one.
-
-              Each row only carries the four fields that list returns, so EDIT
-              reads the whole budget back by its id before it opens the form */}
-              {/* <div id='budgetListBlock'>
-                <h4 className='formSectionHeading'>TRIP BUDGETS</h4>
-                {loadingBudgets && <p className='infoText'>LOADING BUDGETS...</p>}
-                {!loadingBudgets && budgets.length === 0 && (
-                  <p className='infoText'>NO BUDGETS YET. SET ONE FOR A TRIP BELOW.</p>
-                )}
-                {!loadingBudgets && budgets.map(({ budgetId, tripTitle, baseCurrency, totalBudget }) => (
-                  <Stack direction='horizontal' gap={3} key={budgetId} className='budgetListRow'>
-                    <div className='p-2'><p className='infoText'>{tripTitle}</p></div>
-                    <div className='p-2 ms-auto'>
-                      <p className='infoText'>{`${baseCurrency} ${totalBudget}`}</p>
-                    </div>
-                    <div className='p-2'>
-                      <Button
-                        variant='light'
-                        type='button'
-                        className='editBudgetBtn'
-                        onClick={() => startBudgetEdit(budgetId)}
-                        // ARIA ATTRIBUTES:
-                        aria-label={`Edit the budget for ${tripTitle}`}
-                        aria-controls='add-budget-panal'
-                      >
-                        EDIT
-                      </Button>
-                    </div>
-                  </Stack>
-                ))}
-              </div> */}
             </Col>
           </Row>
         </div>
