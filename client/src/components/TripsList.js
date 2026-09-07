@@ -313,12 +313,30 @@ export default function TripsList(
         <div className='details-group'>
             <p className='details-label'>HAS BUDGET:</p>
             <p className='details-value'>{selectedTrip.hasBudget ? 'YES' : 'NO'}</p>
-            {/* ONLY DISPLAY LINK IF THERE IS NO TRIP BUDGET */}
+            {/* ONLY DISPLAY LINK IF THERE IS NO TRIP BUDGET: a trip may only
+            ever hold one, so the link is left off a trip that already has one
+            rather than sent to a form the API would answer with a 409 */}
+            {!selectedTrip.hasBudget && (
             <span>
-                <Link>ADD BUDGET</Link>
+                {/* The form that sets a budget lives on the expenses page, so
+                this leaves the travel log for it. openBudgetForm is carried on
+                the location rather than in the path, so the page is still
+                reached at its own route and opens its budget panel on arrival -
+                the same arrangement as the journal's ADD TRIP BUDGET link.
+                tripId travels with it, for the form's trip select to open on
+                the trip whose panel this link was pressed from */}
+                <Link
+                className='reflink'
+                id='tripBudgetLink'
+                to='/exp'
+                state={{ openBudgetForm: true, tripId: selectedTrip._id }}
+                // ARIA ATTRIBUTES:
+                aria-label={`Add a budget for ${selectedTrip.title || 'this trip'} on the expenses page`}
+                >
+                    ADD BUDGET
+                </Link>
             </span>
-                
-           
+            )}
         </div>
       </div>
     </Stack>
