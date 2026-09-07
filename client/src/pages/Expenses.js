@@ -867,7 +867,7 @@ export default function Expenses(//Export default Expenses.js component
         </Col>
         <Col id='toggleListCol2'/>
       </Row>
-      <div>
+      <div id='pageListsDisplay'>
  {showExpList && (
         <div id='expenses-list-panal'>
           <Row id='expenses-list-row'>

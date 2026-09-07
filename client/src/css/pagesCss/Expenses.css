@@ -128,6 +128,24 @@ LAYOUT
 display:flex;
 justify-content: center;
 }
+#budget-list-panal{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#budget-list-row{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#budgetListCol{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
 /* ===============
  BUTTONS https://react-bootstrap.netlify.app/docs/components/buttons 
  =================*/

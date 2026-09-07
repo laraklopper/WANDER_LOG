@@ -186,10 +186,10 @@ export default function BudgetList(
             those rows are deliberately left on screen rather than replaced by
             the loading row, so nothing else on the table says a request is
             running */}
-            <table id='budgetListTable' aria-busy={loadingBudgets}>
+            <table id='budgetListTable' style={{width: '100%'}} aria-busy={loadingBudgets}>
                 <thead>
                     <tr>
-                        <th colSpan={6}>
+                        <th colSpan={6} id='budgetTableHeadRow'>
                             {username} : TRIP BUDGETS
                         </th>
                     </tr>
@@ -284,20 +284,21 @@ export default function BudgetList(
         {selectedBudget && (
         <div id='budget-details-panal' aria-live='polite'>
             <div id='budgetPanalHeader'>
- <Stack direction="horizontal" gap={3} id='budgetHeaderStack'>
+ <Stack direction="horizontal" gap={3} id='detailsHeadStack'>
       <div className="p-2">
       <span>
-{/* The trip the budget was set for, which is what names it: a trip may only
-ever have one */}<h6>{`BUDGET: ${selectedBudget.tripTitle || NOT_AVAILABLE}`}</h6>
+<h6 style={{textTransform: 'uppercase'}}>{`BUDGET: ${selectedBudget.tripTitle || NOT_AVAILABLE}`}</h6>
       </span>
 
       </div>
       <div className="p-2 ms-auto">
       {/* TOGGLE EDIT BUDGET FORM BUTTON */}
         <Button
-            id='toggleEditBudgetBtn'
+            id='editBudgetBtn'
             type='button'
             onClick={handleEdit}
+            variant='warning'
+
             // ARIA ATTRIBUTES:
             aria-label={`Edit the budget for ${selectedBudget.tripTitle || 'this trip'}`}
             aria-controls='add-budget-panal'
@@ -441,7 +442,7 @@ ever have one */}<h6>{`BUDGET: ${selectedBudget.tripTitle || NOT_AVAILABLE}`}</h
     </Stack>
             </div>
             <div id='budgetPanalFooter'>
-                 <Stack direction="horizontal" gap={3} id='budgetFooterStack'>
+                 <Stack direction="horizontal" gap={3} id='detailsFooterStack'>
       <div className="p-2"></div>
       <div className="p-2 ms-auto"></div>
       <div className="vr" />
@@ -451,7 +452,7 @@ ever have one */}<h6>{`BUDGET: ${selectedBudget.tripTitle || NOT_AVAILABLE}`}</h
         trip's expenses, so deleting one deletes those with it */}
         <Button
         variant='danger'
-        id='removeItemBtn'
+        id='deleteItemBtn'
         type='button'
         // onClick={}
         >DELETE</Button>
