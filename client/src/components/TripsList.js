@@ -62,6 +62,7 @@ export default function TripsList(
         return [location, trip?.destination?.country].filter(Boolean).join(', ');
     }
 
+    //===============JSX RENDERING==============
   return (
     <div id='tripListDisplay'>
         <div id='filterTripsDisplay'>
@@ -85,7 +86,7 @@ export default function TripsList(
         </Button>
       </div>
       <div className="p-2 ">
-        <Button id='toggleFilterBtn' variant='light' onClick={toggleFilter}>
+        <Button id='toggleFilterBtn' variant='light' onClick={toggleFilter} type='button'>
         {showFilter ? (
             <>
                 Hide Filter
