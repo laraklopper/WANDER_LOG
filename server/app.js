@@ -19,6 +19,7 @@ const vatRoutes = require('./routes/vatRoutes');
 const tripRoutes = require('./routes/tripRoutes');
 const entryRoutes = require('./routes/entryRoutes')
 const expenseRoutes = require('./routes/expenseRoutes.js')
+const budgetRoutes = require('./routes/budgetRoutes.js')
 // Extract enviromental variables
 const port = process.env.PORT || 3001;
 /* Origin the React dev server runs on. Set CLIENT_URL in .env to point the
@@ -66,7 +67,8 @@ app.use('/users', userRoutes);// user related routes - Current user and user loo
 app.use('/vat', vatRoutes);// VAT related routes- The VAT calculator, and the logged in user's saved calculations
 app.use('/trip', tripRoutes);// Trip related routes -The logged in user's trips
 app.use('/entry', entryRoutes );//Entry related routes
-app.use('/expense', expenseRoutes )//Expense/Budget related routes
+app.use('/expense', expenseRoutes )//Expense related routes
+app.use('/budget', budgetRoutes)///Budget related routes
 // Lightweight endpoint for checking the API is up
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', database: mongoose.connection.readyState === 1 });
