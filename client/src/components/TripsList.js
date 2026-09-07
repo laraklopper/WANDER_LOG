@@ -312,8 +312,11 @@ export default function TripsList(
       </div>
       <div className="p-2" id='tripDetailsBlock7'>
         <div className='details-group'>
-            <p className='details-label'>HAS BUDGET:</p>
+        <span className='nested-details-span'>
+ <p className='details-label'>HAS BUDGET:</p>
             <p className='details-value'>{selectedTrip.hasBudget ? 'YES' : 'NO'}</p>
+        </span>
+           
             {/* ONLY DISPLAY LINK IF THERE IS NO TRIP BUDGET: a trip may only
             ever hold one, so the link is left off a trip that already has one
             rather than sent to a form the API would answer with a 409 */}
@@ -328,13 +331,13 @@ export default function TripsList(
                 the trip whose panel this link was pressed from */}
                 <Link
                 className='reflink'
-                id='tripBudgetLink'
+                id='addBudgetLink'
                 to='/exp'
                 state={{ openBudgetForm: true, tripId: selectedTrip._id }}
                 // ARIA ATTRIBUTES:
                 aria-label={`Add a budget for ${selectedTrip.title || 'this trip'} on the expenses page`}
                 >
-                    ADD BUDGET
+                    ADD TRIP BUDGET
                 </Link>
             </span>
             )}

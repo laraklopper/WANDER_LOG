@@ -166,7 +166,8 @@ the table above it rather than reading as more of the list */
 }
 #tripDetailsBlock7 .details-group{
     display: flex;
-    align-items: baseline;
+    flex-direction: column;
+    align-items: flex-start;
     margin: 0px;
     padding: 0px;
     gap: 10px;

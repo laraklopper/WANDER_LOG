@@ -231,7 +231,7 @@ export default function BudgetForm({
                         type='number'
                         id={`budgetLimit-${key}`}
                         name={`categoryLimits.${key}`}
-                        placeholder='NO LIMIT'
+                        placeholder='0'
                         min='0'
                         step='0.01'
                         defaultValue={budget?.categoryLimits?.[key] ?? ''}
@@ -243,6 +243,7 @@ export default function BudgetForm({
                           hasServerError(`categoryLimits.${key}`) && serverErrorId
                         )}
                       />
+                      <p className='infoText'>NO LIMIT</p>
                     </div>
                   </div>
                 </div>

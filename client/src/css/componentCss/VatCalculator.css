@@ -120,15 +120,13 @@ labels the direction a result was worked out in */
 /* The chosen direction. Marked by more than colour alone - the border thickens
 and the weight changes - so the selection is still visible to a user who cannot
 tell the two backgrounds apart, and aria-pressed reports it to a screen reader */
-.vat-calculator__toggle-btn--active{
+#selectModeBtn1:active,
+#selectModeBtn2:active{
     background-color: #323A42;
     color: #E8F0F6;
     border: solid 3px #000;
 }
-.vat-calculator__toggle-btn--active:hover{
-    background-color: #323A42;
-    color: #E8F0F6;
-}
+
 #calculateVatBtn,
 #clearVatFormBtn,
 #saveVatCalculationBtn{
