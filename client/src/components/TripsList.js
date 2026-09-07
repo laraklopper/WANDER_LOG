@@ -313,8 +313,11 @@ export default function TripsList(
         <div className='details-group'>
             <p className='details-label'>HAS BUDGET:</p>
             <p className='details-value'>{selectedTrip.hasBudget ? 'YES' : 'NO'}</p>
-          
+            {/* ONLY DISPLAY LINK IF THERE IS NO TRIP BUDGET */}
+            <span>
                 <Link>ADD BUDGET</Link>
+            </span>
+                
            
         </div>
       </div>
