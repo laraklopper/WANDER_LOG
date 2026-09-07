@@ -123,7 +123,7 @@ const budgetSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Trip',
             required: true,
-            unique: true, // One budget document per trip
+            
         },
         userId: {
             type: mongoose.Schema.Types.ObjectId,
