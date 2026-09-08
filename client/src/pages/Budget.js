@@ -48,6 +48,10 @@ export default function Budget(//Export default Budget.js component
   const [loading, setLoading] = useState(false)
   const [conversions, setConversions] = useState([])
   const [conversionsTotal, setConversionsTotal] = useState(0)
+  /* Whether the saved conversions request is in flight, for the same reason the
+  VAT list keeps one: an empty array is both a history with nothing in it and a
+  list that has not arrived, and ConversionsList.js has to say which. */
+  const [loadingConversions, setLoadingConversions] = useState(false)
   // Toggle Buttons State
   const [showExpenses, setShowExpenses] = useState(false)
   const [showCalculator, setShowCaculator] = useState(false)
@@ -183,9 +187,12 @@ export default function Budget(//Export default Budget.js component
        const fetchConversions = useCallback(async () => {
       try {
        const token = localStorage.getItem('token')
-       /* Nothing to fetch without a session, and the endpoint would answer 401 */
+       /* Nothing to fetch without a session, and the endpoint would answer 401.
+       Returned before the loading flag is raised, so a signed out user never
+       sees the list report a request that was never sent. */
        if (!token) return;
 
+       setLoadingConversions(true)// The list shows a loading row until this clears
        const response =  await fetch(`http://localhost:3001/api/history`,{
         method: 'GET',
         mode: 'cors',
@@ -215,8 +222,52 @@ export default function Budget(//Export default Budget.js component
       } catch (error) {
         console.error('[ERROR: Budget.js, fetchConversions]', error.message);//Log an error message in the console for debugging purposes
         setError(`Error fetching conversion data, ${error.message}`)
+      } finally {
+        /* Cleared in a finally, so a failed or rejected request leaves the list
+        showing its error rather than a loading row that never ends */
+        setLoadingConversions(false)
       }
     },[setError])
+
+     /* Removes one of the user's saved conversions. The list is refetched
+     rather than filtered in place, so what is on screen is what the database
+     holds. */
+     const deleteConversion = useCallback(async (conversionId) => {
+      try {
+        const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
+        if (!token) return false;
+
+        const response = await fetch(`http://localhost:3001/api/history/${conversionId}`,{
+          method: 'DELETE',//HTTP request method
+          mode: 'cors',//Enable Cross-Origin Resource Sharing
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,// Attach the token in the Authorization header
+          }
+        })
+        const data = await response.json().catch(() => ({}))//Parse the response as json
+
+        //Conditional rendering to check the request succeeded
+        if (!response.ok) {
+          const message = data.message || 'Could not remove the conversion.';
+          console.error('[ERROR: Budget.js, deleteConversion]', message);//Log an error message in the console for debugging purposes
+          setError(message);// Set the error state to display the error in the UI
+          return false;
+        }
+
+        setError('');//Clear any previous error messages
+        console.log('[SUCCESS: Budget.js, deleteConversion] Deleted conversion', conversionId);
+        /* Awaited, so the caller's delete stays busy until the refreshed list
+        has arrived rather than only until the DELETE answered. The panel is
+        closed by the record leaving the list, which happens here. */
+        await fetchConversions();// Refresh the list so the removal is visible straight away
+        return true;
+      } catch (error) {
+        console.error('[ERROR: Budget.js, deleteConversion]', error.message);//Log an error message in the console for debugging purposes
+        setError(`Error removing the conversion, ${error.message}`)
+        return false;
+      }
+     },[fetchConversions, setError])
      /* Saves the conversion currently on screen to the user's history. Only the
      three inputs are sent: the server refetches the rate, so a saved record
      always holds a rate the provider actually quoted rather than one the
@@ -651,10 +702,16 @@ export default function Budget(//Export default Budget.js component
             <Col id='conversionsListCol'>
               <div id='conversions-list-display'>
                 <ConversionsList
+                  currentUser={currentUser}
+                  loggedIn={loggedIn}
                   conversionsTotal={conversionsTotal}
                   currencyOptions={currencyOptions}
-                  fetchConversions={fetchConversions}
                   conversions={conversions}
+                  loadingConversions={loadingConversions}
+                  error={error}
+                  setError={setError}
+                  fetchConversions={fetchConversions}
+                  deleteConversion={deleteConversion}
                 />
               </div>
             </Col>

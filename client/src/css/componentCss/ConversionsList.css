@@ -1,0 +1,215 @@
+#conversions-list{
+    width: 100%;
+    margin: 0px;
+    padding: 5px;
+}
+#conversions-list-block{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+/* ===============
+SAVED CONVERSIONS TABLE
+==============*/
+#conversions-table{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+    border-collapse: collapse;
+    border: solid 2px #323A42;
+    background-color: #D6D6D6;
+}
+/* The panel heading and the column labels. Both live in the thead, so they are
+styled together and the whole head reads as one block. */
+#conversions-table thead th{
+    background-color: #5F9B9E;
+    color: #000;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    padding: 8px 6px;
+    border: solid 2px #323A42;
+}
+#conversions-table tbody td{
+    font-family: "Open Sans", sans-serif;
+    color: #000;
+    text-align: center;
+    padding: 6px;
+    border: solid 1px #323A42;
+}
+/* Row striping: STYLES.md 1.5. TABLES. The two shades carry no meaning of their
+own - they only keep the eye on one row across five columns. */
+.evenRow{
+    background-color: #D6D6D6;
+}
+.oddRow{
+    background-color: #BFBFBF;
+}
+/* The row the display panel is showing. Marked by a left border as well as a
+background, so the link between the row and the panel is still visible to a user
+who cannot tell the three backgrounds apart; aria-pressed on the row's VIEW
+button reports the same thing to a screen reader. */
+.selectedRow{
+    background-color: #E8F0F6;
+    border-left: solid 4px #323A42;
+    font-weight: 700;
+}
+/* Stands in for the table body while the first request is in flight, and when
+the user has saved nothing yet. The two say different things but occupy the same
+row, so they are sized identically and the table does not jump as one replaces
+the other. */
+.conversions-list-loading,
+.conversions-list-empty{
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    padding: 15px 6px;
+}
+/* ===============
+LIST ACTIONS AND MESSAGES
+==============*/
+#conversions-list-actions{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 0px;
+    padding: 10px 0px;
+}
+#refreshConversionsListBtn{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 180px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #000;
+    margin: 0px;
+    padding: 0px;
+    border: solid 2px #323A42;
+}
+#refreshConversionsListBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
+}
+/* Disabled while its request is in flight. Dimmed rather than only relabelled,
+so the button reads as unavailable at a glance as well as through aria-disabled. */
+#refreshConversionsListBtn:disabled{
+    color: #444;
+    background-color: #BFBFBF;
+    border: solid 2px #444;
+}
+.viewConversionBtn{
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #000;
+    margin: 0px;
+    padding: 2px 12px;
+    border: solid 2px #323A42;
+}
+.viewConversionBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
+}
+#conversions-list-truncated{
+    font-family: "Open Sans", sans-serif;
+    text-align: center;
+    margin: 0px;
+    padding: 8px 0px;
+}
+.conversions-list-error{
+    text-transform: uppercase;
+    color: #C22419;
+    text-align: center;
+    font-weight: 700;
+    margin: 0px;
+    padding: 10px 0px;
+    font-family: "Open Sans", sans-serif;
+}
+/* ===============
+DISPLAY PANAL: ONE SAVED CONVERSION
+==============*/
+#conversion-details-panal{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 10px 0px 0px 0px;
+    padding: 10px;
+    background-color: #A8AEB3;
+    border: solid 2px #323A42;
+    border-radius: 8px;
+    font-family: "Fira Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+#conversionHeader{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#closePanalBtn,
+#deleteItemBtn{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 180px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #000;
+    margin: 0px;
+    padding: 0px;
+    border: solid 2px #323A42;
+}
+/* The stored figures. A description list rather than a second table, because
+each row is one label against one value rather than a grid to be read across. */
+#conversion-panal-data{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 0px;
+    padding: 10px 0px;
+}
+.conversion-panal-row{
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    margin: 0px;
+    padding: 6px 4px;
+    border-bottom: solid 1px #323A42;
+}
+.conversion-panal-row dt{
+    font-weight: 700;
+    color: #000;
+    margin: 0px;
+    padding: 0px;
+    white-space: nowrap;
+}
+.conversion-panal-row dd{
+    font-family: "Courier Prime", monospace;
+    color: #000;
+    text-align: right;
+    margin: 0px;
+    padding: 0px;
+}
+/* The converted amount, which is the figure the rate and the amount above it
+work out to */
+.conversion-panal-row--total{
+    background-color: #D6D6D6;
+    border: solid 2px #323A42;
+    font-weight: 700;
+}
+.conversion-panal-row--total dd{
+    font-weight: 700;
+}
