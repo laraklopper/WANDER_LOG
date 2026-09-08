@@ -1,6 +1,6 @@
 //Dashboard.js: Route '/'
 //IMPORT REQUIRED MODULES AND PACKAGES
-import React from 'react'
+import React, {useState} from 'react'
 // IMPORT CSS STYLESHEETS
 import '../css/pagesCss/PageSetup.css'
 import '../css/pagesCss/Dashboard.css'
@@ -11,6 +11,7 @@ import Stack from 'react-bootstrap/Stack';
 // IMPORT CUSTOM COMPONENTS
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import { Link } from 'react-router-dom';
 
 // ============MAIN DASHBOARD COMPONENT============
 export default function Dashboard(//Export the default Dashboard.js function component
@@ -19,12 +20,24 @@ export default function Dashboard(//Export the default Dashboard.js function com
     logout
   }
 ) {
+  /* A picture whose URL no longer resolves would render as a broken image icon.
+  The URL that failed is remembered rather than a plain true, so that saving a
+  different one on the profile page is tried again instead of being hidden
+  along with it */
+  const [brokenPictureUrl, setBrokenPictureUrl] = useState(null)
+
   /* fullName arrives from the API as a nested { firstName, lastName } object, so
   it cannot be rendered directly. The fullNameString virtual is the flattened
   form the API sends alongside it, and the nested parts are joined as a fallback
   in case a response was built without the virtual */
   const {firstName = '', lastName = ''} = currentUser?.fullName || {};
   const fullName = currentUser?.fullNameString?.trim() || `${firstName} ${lastName}`.trim();
+
+  /* What the profile column reads the picture through. Optional on the schema
+  and defaulted to null, so the column is left empty rather than framing
+  nothing, the same as the profile page does */
+  const profilePicture = currentUser?.profilePicture || '';
+  const showProfilePicture = Boolean(profilePicture) && profilePicture !== brokenPictureUrl;
 
   //=====================JSX RENDERING========================
   return (
@@ -90,7 +103,42 @@ export default function Dashboard(//Export the default Dashboard.js function com
               </div>
             </Col>
             <Col xs={6} md={4} id='dashboardProfile-col2'>
-              {/* PROFILE PICTURE IF SET */}
+              {/* PROFILE PICTURE IF SET: add <h5>'NO PHOTO'</h5> if the account carries
+              none, and blanked again if the saved URL fails to load */}
+               <Stack gap={3} id='profilePictureStack'>
+      <div className="p-2" id='profilePictureBlock'>
+        {showProfilePicture ? (
+                /* The alt text is the name on its own, because a screen reader
+                already announces an img as an image and naming it a picture
+                here would only have it read out twice */
+                <img
+                  id='dashboardAvatar'
+                  src={profilePicture}
+                  onError={() => setBrokenPictureUrl(profilePicture)}
+                  alt={fullName || 'Profile'}
+                />
+              ):(
+                <div id='profilePicturePlaceholder' role='img' aria-label='No profile picture uploaded'>
+                  <h5 className='profile-label'>NO PHOTO</h5>
+                </div>
+              )}
+      </div>
+      <div className="p-2" id='addAvatarLinkBlock'>
+        <Link 
+        id='addAvatarLink'
+        to='/profile'
+        state={{showEditProfileForm: 'true'}}//open the EditProfileForm
+        aria-label='Add or edit profile picture'
+        >
+          {/* LINK TO EDIT USER FORM
+          open the editUser.js form
+           */}
+          ADD/EDIT PHOTO
+        </Link>
+      </div>
+      
+    </Stack>
+              
             </Col>
           </Row>
           </div>

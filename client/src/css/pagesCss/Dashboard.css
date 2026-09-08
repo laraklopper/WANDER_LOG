@@ -55,10 +55,22 @@ LAYOUT
    display: flex;
 
 }
+/* The picture sits at the end of its row, so it is pushed to the right edge
+rather than left against the details beside it */
 #dashboardProfile-col2{
  margin: 0px;
    padding: 0px;
    display: flex;
+   justify-content: flex-end;
+   align-items: flex-start;
+}
+/* Matched to #profileAvatar on the profile page, so the same picture is not a
+different size and frame on each of the two pages that show it */
+#dashboardAvatar{
+   width: 120px;
+   height: 120px;
+   object-fit: cover;
+   border: solid 2px #323A42;
 }
 /* =====TEXT====== */
 /*SECTION 1 HEADING */
@@ -80,6 +92,13 @@ LAYOUT
    width: 100%;
    margin: 0px;
    padding: 0px;
+}
+#profilePictureStack{
+   margin: 0px;
+   padding: 0px;
+   width: 100%;
+   display: flex;
+   justify-content: center;
 }
 #dashboardProfileBody{
    width: 100%;
@@ -120,6 +139,18 @@ LAYOUT
    margin: 0px;
    padding: 0px;
    text-transform: uppercase;
+}
+#profilePictureBlock{
+   display: flex;
+   align-items: center;
+   margin: 0px;
+   padding: 0px;
+}
+#addAvatarLinkBlock{
+   display: flex;
+   justify-content: center;
+   width: 100%;
+   margin: 0px;
 }
 /* ===============
 SECTION 2

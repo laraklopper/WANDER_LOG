@@ -59,6 +59,7 @@ LINKS
 ===========*/
 
 /* unvisited link */
+#addAvatarLink,
 #addBudgetLink{
 display: flex;
     letter-spacing: 2px;
@@ -78,15 +79,12 @@ display: flex;
     border: solid 2px #323A42;
 }
 /* visited link */
+#addAvatarLink:hover,
 #addBudgetLink:hover{
   color: #E8F0F6;
   background-color: #323A42;
 }
-/* visited link */
-#addBudgetLink:visited{
-  background-color: #84b621;
-  color: #404040;
-}
+
 #pageListsDisplay{
 width: 100%;
     display: flex;
@@ -94,7 +92,21 @@ width: 100%;
 margin: 0px;
 padding: 0px;
 }
-
+/* PROFILE PICTURE */
+#profilePicturePlaceholder{
+    width: 250px;
+    height: 250px;
+    border-radius: 50%;
+    border: solid #323A42 3px;
+    background-color: #A8AEB3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: "Roboto Mono", monospace;
+    font-weight: 700;
+    font-size: 14px;
+    color: #323A42;
+}
 /* ========================= 
 Accessibility helpers 
  ARIA : Accessible Rich Internet Applications
