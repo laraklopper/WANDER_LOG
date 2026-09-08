@@ -94,45 +94,7 @@ width: 100%;
 margin: 0px;
 padding: 0px;
 }
-#globalErrorBlock{
-    display: flex;
-    justify-content: center;
-    margin: 0px;
-    padding: 0px;
-    width: 100%;
-}
-#global-error-row{
-    width: 100%;
-    margin: 0px;
-    padding: 0px;
-    display: flex;
 
-}
-#global-error-col{
-    display: flex;
-    justify-content: center;
-    margin: 0px;
-    padding: 0px;
-}
-#errorCol1,
-#errorCol2{
-    margin: 0px;
-    padding: 0px;
-}
-.error-span{
-        display: flex;
-    margin: 0px;
-    padding: 10px 0px;
-    gap: 5px;
-}
-#error-message{
-    font-family: "Noto Serif", serif;
-    margin: 0px;
-    padding: 0px;
-    text-transform: uppercase;
-    font-weight: 600;
-
-}
 /* ========================= 
 Accessibility helpers 
  ARIA : Accessible Rich Internet Applications
