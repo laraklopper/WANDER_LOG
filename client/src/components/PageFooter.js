@@ -44,11 +44,9 @@ export default function PageFooter() {
       <ListGroup.Item id='timeItem' aria-labelledby='timeLabel'>
       {/* ----------Screen Reader Text------*/}
           <p id='timeLabel' className='visually-hidden'>Current Time:</p>
-          <span className='timeSpan'>
             <Clock8 size={20} aria-hidden='true' focusable='false'/>
             {/* TIME: timeDisplay  -> formats Date into readable time string */}
             <h5 className='timeStamp'>{timeDisplay(date)}</h5>
-          </span>
       </ListGroup.Item>
     </ListGroup>
 
