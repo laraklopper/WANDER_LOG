@@ -1,16 +1,4 @@
 // AddExpenseForm.js
-/* The add expense form, rendered by pages/Expenses.js behind its
-#add-exp-panal toggle. Against section 6.1 of Documents/SCHEMAS.md and section 10
-of Documents/FORMS.md.
-
-An expense is embedded in the budget of the trip it belongs to, one budget per
-trip, so this form writes through the parent: the page posts to
-POST /expense/addExpense, which finds that budget and pushes the expense onto it.
-A trip with no budget has nowhere to put an expense, which is why the trip select
-is filled from the user's budgets rather than from all of their trips.
-
-Follows AddTripForm.js and AddEntryForm.js: the page owns the form state and the
-request, this component owns the validation, the touched state and the messages. */
 //IMPORT REQUIRED MODULES AND PACKAGES
 import React, { useMemo, useState } from 'react'
 // IMPORT CSS STYLESHEETS
@@ -31,13 +19,7 @@ input stops accepting characters at the point the API would refuse them */
 const TITLE_MAX = 100;
 const NOTES_MAX = 300;
 
-/* The empty form used by the clear button when the page does not supply one.
-Kept in sync with EMPTY_EXPENSE in pages/Expenses.js, which is passed in as a
-prop. The trip is held as tripId, because that is what the API finds the parent
-budget by. The two fields the schema defaults are pre-filled with those defaults
-rather than left blank, so an untouched form submits what the schema would have
-stored anyway. The owner is left out on purpose: the username comes from the
-account, and convertedAmount is worked out from a rate rather than typed */
+//  The empty form used by the clear button when the page does not supply one.
 const BLANK_EXPENSE = {
   tripId: '',
   title: '',
@@ -50,8 +32,8 @@ const BLANK_EXPENSE = {
   isPaid: true,
 };
 
-// ======MAIN ADDEXPENSEFORM.js COMPONENT====================
-export default function AddExpenseForm(
+//AddExpenseForm function component
+export default function AddExpenseForm(//Export the AddExpenseForm.js component
   {//PROPS PASSED FROM PARENT COMPONENT (Expenses.js)
     currentUser,
     newExpenseData = BLANK_EXPENSE,
@@ -419,7 +401,7 @@ export default function AddExpenseForm(
             </p>
           )}
           </div>
-         
+
       </div>
       {/* TITLE */}
       <div className="p-2" id='addExp-Title-block'>
