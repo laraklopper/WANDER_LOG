@@ -15,6 +15,8 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import EditPasswordForm from '../components/EditPasswordForm';
 import EditUserForm from '../components/EditUserForm';
+// IMPORT UTILITY FUNCTIONS
+import { NOT_AVAILABLE, toFullName, toLongDate } from '../util/formatCalculations';
 
 // ======MAIN PROFILE FUNCTION COMPONENT=======
 export default function Profile(//Export the default Profile.js function component
@@ -26,6 +28,10 @@ export default function Profile(//Export the default Profile.js function compone
     //=========STATE VARIABLES==================
   const [showEditProfileForm, setShowEditProfileForm] = useState(false);
   const [showEditPswdForm, setShowEditPswdForm] = useState(false);
+  /* A picture whose URL no longer resolves would render as a broken image icon.
+  The URL that failed is remembered rather than a plain true, so that saving a
+  different one is tried again instead of being hidden along with it */
+  const [brokenPictureUrl, setBrokenPictureUrl] = useState(null)
   // Blocks a second submit while the first request is in flight
   const [submitting, setSubmitting] = useState(false)
   /* Field keyed messages returned by the server when Mongoose validation fails,
@@ -66,6 +72,11 @@ export default function Profile(//Export the default Profile.js function compone
       province: currentUser?.address?.province || '',
     }
   }), [currentUser])
+
+  /* What the details panel reads the picture through. Optional on the schema and
+  defaulted to null, so the block is left empty rather than framing nothing */
+  const profilePicture = currentUser?.profilePicture || '';
+  const showProfilePicture = Boolean(profilePicture) && profilePicture !== brokenPictureUrl;
 
   /* Refills the form whenever it is opened, and again if currentUser is
   replaced after a successful save. Keyed on the toggle as well as the account
@@ -173,90 +184,117 @@ export default function Profile(//Export the default Profile.js function compone
         <Col id='profileCol'>
           <div id='user-Profile-panal'>
             <div id='userProfileHeader'>
-<Stack direction="horizontal" gap={3} id='userProfileHeadStack'>
+              <Stack direction="horizontal" gap={3} id='userProfileHeadStack'>
       <div className="p-2">
-        {/* FULL NAME */}
-      <h3> currenUser.firstName currentUser.lastName</h3>
+        {/* FULL NAME: joined through toFullName, so an account holding only one
+        half of the name still reads as a name rather than as a stray space */}
+        <h3 id='profileHeaderName'>{toFullName(currentUser?.fullName)}</h3>
       </div>
-      <div className="p-2 ms-auto"/>
+      <div className="p-2 ms-auto">
+        {/* USERNAME: repeated here as the handle the account is known by, so the
+        panel names the user both ways the app addresses them */}
+        <p id='profileHeaderUsername'>@{currentUser?.username || NOT_AVAILABLE}</p>
+      </div>
       <div className="p-2"></div>
     </Stack>
             </div>
-            <div>
-             <Stack direction="horizontal" gap={3}>
-      <div className="p-2">
-        <div>
-          <span>
-          <p>USERNAME:</p>
-          </span>
-          <span>
-            <p>FULL NAME:</p>
-            <p>{/* currenUser.firstName currentUser.lastName */}</p>
-          </span>
+            <div id='userProfileBody'>
+             <Stack direction="horizontal" gap={3} id='userProfileStack1'>
+      <div className="p-2" id='profileNameBlock'>
+          {/* USERNAME */}
+        <div className='details-group'>
+          <p className='details-label'>USERNAME:</p>
+          <p className='details-value'>{currentUser?.username || NOT_AVAILABLE}</p>
         </div>
-      </div>
-      <div className="p-2 ms-auto">Second item</div>
-      <div className="p-2">
-         <div>
-          {/* PROFILE PICTURE
-          leave blanck if no profile picture exists
-           */}
-        </div>
-      </div>
-    </Stack>
-    <div>
-       <Stack gap={3}>
-      <div className="p-2">
-    
-             <span>
-          <p>EMAIL:</p>
-          <p>{/*currentUser.email*/}</p>
-          </span>
-            
-      
-      </div>
-      <div className="p-2">
-        <div>
-      
-          <p className='nested-details-label'>ADDRESS:</p>
-          <div id='userProfileAddress'>
-            <span className='detail-span'>
-            <p>STREET ADDRESS</p>  
+        {/* FULL NAME: holds two rows, so they are stacked under the group's own
+        label the way DESTINATION and DATE are on the trip details panel */}
+        <div className='details-group'>
+          <span><p className='nested-details-label'>FULL NAME:</p></span>
+          <div className='nested-details-group'>
+            <span className='nested-details-span'>
+              <p className='details-label'>FIRST NAME:</p>
+              <p className='details-value'>{currentUser?.fullName?.firstName || NOT_AVAILABLE}</p>
             </span>
-            <span>
-              <p>optional address line</p>
-            </span>
-            <span>
-              <p className='details-label'>CITY/TOWN:</p>
-              <p>{/*currentUser.address.?city */}</p>
-            </span>
-            <span>
-              <p className='details-label'>PROVINCE:</p>
+            <span className='nested-details-span'>
+              <p className='details-label'>LAST NAME:</p>
+              <p className='details-value'>{currentUser?.fullName?.lastName || NOT_AVAILABLE}</p>
             </span>
           </div>
         </div>
       </div>
-      
+      <div className="p-2" id='profileEmailBlock'>
+        {/* EMAIL: stored lowercased by the schema, so it is printed as it was
+        saved rather than forced back into upper case by a label class */}
+        <div className='details-group'>
+          <p className='details-label'>EMAIL:</p>
+          <p className='details-value'>{currentUser?.email || NOT_AVAILABLE}</p>
+        </div>
+      </div>
+      <div className="p-2" id='profilePictureBlock'>
+         <div>
+          {/* PROFILE PICTURE: left blank when the account carries none, and
+          blanked again if the saved URL fails to load */}
+          {showProfilePicture && (
+            /* The alt text is the name on its own, because a screen reader
+            already announces an img as an image and naming it a picture here
+            would only have it read out twice */
+            <img
+              id='profileAvatar'
+              src={profilePicture}
+              onError={() => setBrokenPictureUrl(profilePicture)}
+              alt={toFullName(currentUser?.fullName, 'Profile')}
+            />
+          )}
+        </div>
+      </div>
     </Stack>
-     <Stack  gap={3}>
-     {/* DATE OF BIRTH */}
+    <Stack direction="horizontal" gap={3} id='userProfileStack2'>
+      <div className="p-2" id='profileAddressBlock'>
+        <div className='details-group'>
+          <span><p className='nested-details-label'>ADDRESS:</p></span>
+          <div id='userProfileAddress' className='nested-details-group'>
+            <span className='nested-details-span'>
+              <p className='details-label'>STREET ADDRESS:</p>
+              <p className='details-value'>{currentUser?.address?.line1 || NOT_AVAILABLE}</p>
+            </span>
+            {/* DISPLAY ONLY IF ONE WAS ENTERED: line 2 is optional and the
+            schema stores a blank one as undefined, so the row is left off
+            rather than shown with nothing against it */}
+            {currentUser?.address?.line2 && (
+            <span className='nested-details-span'>
+              <p className='details-label'>ADDRESS LINE 2:</p>
+              <p className='details-value'>{currentUser.address.line2}</p>
+            </span>
+            )}
+            <span className='nested-details-span'>
+              <p className='details-label'>CITY/TOWN:</p>
+              <p className='details-value'>{currentUser?.address?.city || NOT_AVAILABLE}</p>
+            </span>
+            <span className='nested-details-span'>
+              <p className='details-label'>PROVINCE:</p>
+              <p className='details-value'>{currentUser?.address?.province || NOT_AVAILABLE}</p>
+            </span>
+          </div>
+        </div>
+      </div>
+     {/* DATE OF BIRTH: stored as a Date and arrives as an ISO string, so it is
+     read through toLongDate rather than printed raw */}
       <div className="p-2" id='profileDOBBlock'>
-          <span className='detail-span'>
-            <p className='details-label'>DATE OF BIRTH:</p>
-            <p>{/*currentUser.dateOfBirth*/}</p>
-          </span>
-       
+        <div className='details-group'>
+          <p className='details-label'>DATE OF BIRTH:</p>
+          <p className='details-value'>{toLongDate(currentUser?.dateOfBirth)}</p>
+        </div>
       </div>
-      {/* IS ADMIN */}
+      {/* IS ADMIN: the flag defaults to false and is never absent, so it is
+      read as a boolean rather than through || , which would report a regular
+      user as NOT AVAILABLE */}
       <div className="p-2" id='profileAdminBlock'>
-        <span className='detail-span'>
+        <div className='details-group'>
           <p className='details-label'>IS ADMIN:</p>
-          <p className='details-value'>{/*YES/NO*/}</p>
-        </span>
+          <p className='details-value'>{currentUser?.admin ? 'YES' : 'NO'}</p>
+        </div>
       </div>
     </Stack>
-    </div>
-  
             </div>
             <div id='userProfileFooter'>
               <Stack direction="horizontal" gap={3} id="userProfileFooterStack">

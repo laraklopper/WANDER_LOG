@@ -121,6 +121,7 @@ LAYOUT
 }
 #userProfile{
     width: 100%;
+    padding: 10px 5px;
 }
 #userProfileHeader,
 #userProfileFooter{
@@ -128,13 +129,18 @@ LAYOUT
     margin: 0px;
     padding: 0px;
 }
+/* Bordered off from the green section behind it, so the details read as one
+panel. Matches the trip details panel on the travel log */
 #user-Profile-panal{
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 100%;
     margin: 0px;
-    padding: 0px;
+    border-radius: 5px;
+    padding: 10px;
+    border: solid 2px #323A42;
+    background-color: #D6D6D6;
 }
 /* TOGGLE EDIT PROFILE FORMS STACK:
 https://react-bootstrap.netlify.app/docs/layout/stack
@@ -192,4 +198,79 @@ BUTTONS: https://react-bootstrap.netlify.app/docs/components/buttons
     margin: 0px;
     padding: 0px;
     border-top: solid 2px #000;
+}
+/* USER DETAILS PANEL: the label and value classes the rows themselves are
+built from live in DetailsPanal.css, so only the panel's own layout is set here
+=========*/
+#userProfileHeadStack,
+#userProfileFooterStack{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+/* The name the panel is headed with, and the handle beside it */
+#profileHeaderName,
+#profileHeaderUsername{
+    font-family: "Fira Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0px;
+    padding: 0px;
+}
+#profileHeaderName{
+    font-weight: 700;
+}
+#profileHeaderUsername{
+    font-weight: 400;
+}
+#userProfileBody{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+/* The two rows of detail blocks. align-items: flex-start keeps a block holding
+one row from stretching to the height of the one beside it holding four */
+#userProfileStack1,
+#userProfileStack2{
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+/* Each block is given an equal share of its row, so the two rows line their
+columns up with one another rather than each sizing to its own content */
+#profileNameBlock,
+#profileEmailBlock,
+#profilePictureBlock,
+#profileAddressBlock,
+#profileDOBBlock,
+#profileAdminBlock{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1 1 0;
+    min-width: 0px;
+}
+/* The picture sits at the end of its row, so it is pushed to the right edge
+rather than left against the block beside it */
+#profilePictureBlock{
+    align-items: flex-end;
+}
+#profileAvatar{
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border: solid 2px #323A42;
+}
+/* The address rows are already stacked by .nested-details-group, so this only
+holds them clear of the label they sit under */
+#userProfileAddress{
+    padding: 0px 0px 0px 5px;
 }
