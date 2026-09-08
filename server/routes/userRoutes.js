@@ -18,6 +18,10 @@ const editPasswordLimiter = rateLimit({
     max: 10,// 10 attempts per window per IP
     standardHeaders: true,
     legacyHeaders: false,
+    /* Only a failed attempt is a guess. Without this a user who changes their
+    password legitimately spends part of the quota, and a household behind one
+    IP could lock each other out of the endpoint */
+    skipSuccessfulRequests: true,
     message: { message: 'Too many password change attempts, please try again in 15 minutes' },
 });
 
@@ -71,9 +75,14 @@ router.get('/findUsers', checkJwtToken, async (req, res) => {
     PATCH: Used to change part of an existing resource
  ─────────────────────────────────────────────────────────────────────────*/
 /* Route to PATCH the password of one account.
+The path is the same shape as /:id/editUser below, which is the one the React
+app calls, so both edit requests from the profile page address a user the same way.
+
 checkPassword runs before the handler and already reads newPassword, so a weak
-password is rejected as a 400 before the database is touched */
-router.patch('/editPassword/:id', checkJwtToken, editPasswordLimiter, checkPassword, async (req, res) => {
+password is rejected as a 400 before the database is touched. It is also placed
+before the limiter, so a password the form should have caught does not spend an
+attempt from the guessing quota */
+router.patch('/:id/editPassword', checkJwtToken, checkPassword, editPasswordLimiter, async (req, res) => {
     try {
         const { id } = req.params;
         const { currentPassword, newPassword } = req.body || {};

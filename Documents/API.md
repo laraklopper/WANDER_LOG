@@ -103,7 +103,7 @@ These apply to every table below, so they are not repeated in each one.
 | `GET` | [`/users/me`](../server/routes/userRoutes.js#L28) | JWT | Implemented | Returns the currently authenticated user's public profile |
 | `GET` | [`/users/findUsers`](../server/routes/userRoutes.js#L38) | JWT | Implemented | Returns all users, or one filtered by the `?username=` query param |
 | `PATCH` | [`/users/:id/editUser`](../server/routes/userRoutes.js#L147) | JWT | Implemented | Updates `username`, `fullName`, `email`, `address` and `profilePicture` |
-| `PATCH` | [`/users/:id/editPassword`](../server/routes/userRoutes.js#L63) | JWT | Implemented | Updates the account password |
+| `PATCH` | [`/users/:id/editPassword`](../server/routes/userRoutes.js#L85) | JWT | Implemented | Updates the account password |
 | `DELETE` | `/users/:id` | JWT | **Not written** | No delete handler exists on this router |
 
 **Notes**
@@ -111,7 +111,7 @@ These apply to every table below, so they are not repeated in each one.
 | Endpoint | Body | Rate limit | Other |
 |---|---|---|---|
 | `PATCH /users/:id/editUser` | Any of `username`, `fullName`, `email`, `address`, `profilePicture` | — | Only those five fields are read, so `admin`, `password` or `entries` in the body cannot escalate the account. `403` when `:id` is not the caller's own id; `409` on a taken username or email; `400` when nothing changed |
-| `PATCH /users/:id/editPassword` | `currentPassword`, `newPassword` | 10 attempts / 15 min / IP | The current password is confirmed even though the token is valid, so a token taken from a shared machine is not enough to lock the owner out. `403` when `:id` is not the caller's own id — admins are not exempt |
+| `PATCH /users/:id/editPassword` | `currentPassword`, `newPassword` | 10 failed attempts / 15 min / IP | The current password is confirmed even though the token is valid, so a token taken from a shared machine is not enough to lock the owner out. `403` when `:id` is not the caller's own id — admins are not exempt. `checkPassword` runs before the limiter and a successful change is not counted, so only a real guess spends an attempt |
 
 ### 1.5. TRIPS
 
