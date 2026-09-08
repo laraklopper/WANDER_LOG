@@ -124,10 +124,14 @@ export default function Dashboard(//Export the default Dashboard.js function com
               )}
       </div>
       <div className="p-2" id='addAvatarLinkBlock'>
-        <Link 
+        <Link
         id='addAvatarLink'
         to='/profile'
-        state={{showEditProfileForm: 'true'}}//open the EditProfileForm
+        /* Read by Profile.js as the opening value of its own
+        showEditProfileForm toggle, so the edit form is already open on arrival.
+        Sent as a boolean rather than the string 'true', because the string is
+        truthy either way and would only mislead anything that compares it */
+        state={{showEditProfileForm: true}}
         aria-label='Add or edit profile picture'
         >
           {/* LINK TO EDIT USER FORM
@@ -136,15 +140,15 @@ export default function Dashboard(//Export the default Dashboard.js function com
           ADD/EDIT PHOTO
         </Link>
       </div>
-      
     </Stack>
-              
             </Col>
           </Row>
           </div>
-         
         </div>
       </section>
+      {/* ==================
+      SECTION 2:
+      ============== */}
       <section id='dashboardSection2'>
         <div id='dashBoardSec2-panal'>
           <Row id='dashboardLinkRow'>

@@ -15,6 +15,8 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import EditPasswordForm from '../components/EditPasswordForm';
 import EditUserForm from '../components/EditUserForm';
+// IMPORT ROUTER HOOKS
+import { useLocation, useNavigate } from 'react-router-dom';
 // IMPORT UTILITY FUNCTIONS
 import { NOT_AVAILABLE, toFullName, toLongDate } from '../util/formatCalculations';
 
@@ -25,8 +27,18 @@ export default function Profile(//Export the default Profile.js function compone
     logout, 
     setError
   }) {
+    /* The ADD/EDIT PHOTO link on the dashboard asks for the form to be open on
+    arrival, and carries that request in the navigation state */
+  const location = useLocation();
+  const navigate = useNavigate();
+
     //=========STATE VARIABLES==================
-  const [showEditProfileForm, setShowEditProfileForm] = useState(false);
+  /* Opened straight away when the page was reached through that link, rather
+  than after an effect has run, so the form is in the first paint and does not
+  flash shut before appearing */
+  const [showEditProfileForm, setShowEditProfileForm] = useState(
+    Boolean(location.state?.showEditProfileForm)
+  );
   const [showEditPswdForm, setShowEditPswdForm] = useState(false);
   /* A picture whose URL no longer resolves would render as a broken image icon.
   The URL that failed is remembered rather than a plain true, so that saving a
@@ -86,6 +98,14 @@ export default function Profile(//Export the default Profile.js function compone
     setEditUserData(savedUserData);
     setFieldErrors({});
   }, [showEditProfileForm, savedUserData])
+
+  /* The request has been acted on by the time this runs, so it is cleared off
+  the history entry. Left in place it would survive a reload and reopen the form
+  every time the page was refreshed, even after the user had closed it */
+  useEffect(() => {
+    if (!location.state?.showEditProfileForm) return;
+    navigate(location.pathname, {replace: true, state: null});
+  }, [location, navigate])
 
   const editUser = useCallback(async () => {
     if (submitting) return;
