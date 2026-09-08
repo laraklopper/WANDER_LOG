@@ -56,75 +56,136 @@ export default function Budget(//Export default Budget.js component
   const [showVatCalculations, setShowVatCalculations] = useState(false)
   const [showConversions, setShowConversions] = useState(false)
 
+  /* Loads the currencies the converter offers from the provider, through the
+  server. The dropdowns already hold FALLBACK_CURRENCIES, so a failure here
+  leaves them populated from the curated local list rather than empty — which is
+  why nothing is reported to the UI and the state is only ever replaced on a
+  usable response. */
   useEffect(() => {
+      /* Guards against a response arriving after the page has unmounted, which
+      would set state on a component that is no longer mounted */
       let ignore = false;
-  
+
       const loadCurrencies = async () => {
         const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
+        /* Nothing to fetch without a session, and the endpoint would answer
+        401. The dropdowns keep the local fallback list either way */
+        if (!token) return;
+
         try {
           const response = await fetch(`http://localhost:3001/api/currencies`, {
               method: 'GET',//HTTP request method
               mode: 'cors',//Enable Cross-Origin Resource Sharing
-              headers: { 
+              headers: {
                 'Authorization': `Bearer ${token}` // Attach the token in the Authorization header
               }
-            }) 
-            
+            })
+
             const data = await response.json().catch(() => ({}));//Parse the response as json
 
             //Conditional rendering to check the request succeeded
             if (!response.ok) {
-              console.error('[ERROR: CurrencyConverter.js, loadCurrencies]', data.message || 'Could not load currencies.');//Log an error message in the console for debugging purposes
+              console.error('[ERROR: Budget.js, loadCurrencies]', data.message || 'Could not load currencies.');//Log an error message in the console for debugging purposes
               return;
             }
-  
-            if (!ignore && data.currencies?.length) setCurrencyOptions(data.currencies);
+
+            // Conditional rendering to drop a response that arrived after unmount
+            if (ignore) return;
+
+            /* `live` is false when the server served its own offline snapshot,
+            which carries codes without names or symbols. The local fallback
+            already covers those codes WITH their names, so a stand-in list is
+            left alone rather than replacing 'ZAR - South African Rand' with a
+            bare 'ZAR' */
+            if (data.live && data.currencies?.length) {
+              setCurrencyOptions(data.currencies);
+              console.log('[SUCCESS: Budget.js, loadCurrencies] Loaded', data.currencies.length, 'currencies');
+              return;
+            }
+
+            console.warn('[WARN: Budget.js, loadCurrencies] Provider list unavailable, keeping the local currency list');
         } catch (error) {
-          console.error('[ERROR: CurrencyConverter.js, loadCurrencies]', error.message);
+          console.error('[ERROR: Budget.js, loadCurrencies]', error.message);
         }
       }
       loadCurrencies();
       return () => { ignore = true }
     },[])
 
-    // Function to convert currency
+    /* Converts the amount on the form between the two selected currencies.
+    Nothing is written to the database: the quote is only kept once the user
+    asks for it through saveConversions below.
+
+    The three inputs go up as query params, each encoded, because /api/convert
+    is a GET. The rate is worked out server side against a live provider quote,
+    so the figure on screen is never one the browser calculated. */
     const convert = useCallback(async () => {
       setError('')
       setResult(null)
+
+      // Conditional rendering to check all three inputs were filled in
       if (!form.amount || !form.from || !form.to) {
         setError('Please fill in all fields.');
           return;
       }
-      setLoading(true)
+
       const token = localStorage.getItem('token')
+      /* Nothing to convert without a session, and the endpoint would answer
+      401. Returned before the loading flag is raised, so the button never
+      reports a request that was never sent */
+      if (!token) {
+        setError('Please log in again to convert a currency.');
+        return;
+      }
+
+      setLoading(true)
       try {
-        const response = await fetch(`http://localhost:3001/api/convert?amount=${encodeURIComponent(form.amount)}&from=${encodeURIComponent(form.from)}&to=${encodeURIComponent(form.to)}`,{
-          method: 'GET',
-          mode:'cors',
+        const params = new URLSearchParams({
+          amount: form.amount,
+          from: form.from,
+          to: form.to,
+        });
+        const response = await fetch(`http://localhost:3001/api/convert?${params}`,{
+          method: 'GET',//HTTP request method
+          mode:'cors',//Enable Cross-Origin Resource Sharing
           headers: {
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token}`// Attach the token in the Authorization header
           }
         })
-        const data = await response.json().catch(() => ({}))
+        const data = await response.json().catch(() => ({}))//Parse the response as json
 
+        //Conditional rendering to check the request succeeded
          if (!response.ok) {
-           console.error(data.message || 'Conversion failed.');//Log an error message in the console for debugging purposes
-            setError(data.message || 'Conversion failed.');// Set the error state to display the error in the UI
+           const message = data.message || 'Conversion failed.';
+           console.error('[ERROR: Budget.js, convert]', message);//Log an error message in the console for debugging purposes
+            setError(message);// Set the error state to display the error in the UI
             return;
         }
 
+        /* The whole response is kept, not just the converted figure: the
+        converter reads `amount`, `from`, `to`, `rate` and `date` off it to
+        report which rate the answer was worked out at */
         setResult(data);
+        console.log('[SUCCESS: Budget.js, convert]', data.amount, data.from, '=', data.result, data.to);
       } catch (error) {
-        console.error('Failed to convert. Please try again.');
+        console.error('[ERROR: Budget.js, convert]', error.message);//Log an error message in the console for debugging purposes
           setError('Failed to convert. Please try again.');//Set the Error state to display a message in the UI
       }finally{
+        /* Cleared in a finally, so a failed or rejected request leaves the
+        button usable rather than stuck on 'CONVERTING...' */
         setLoading(false)
       }
-    },[setError, setLoading, form.to, form.from, form.amount])
+    },[setError, form.to, form.from, form.amount])
 
+       /* Loads the logged in user's saved conversions. The user is taken from
+       the token on the server, so no id is sent: the endpoint can only ever
+       return the requester's own records. */
        const fetchConversions = useCallback(async () => {
       try {
        const token = localStorage.getItem('token')
+       /* Nothing to fetch without a session, and the endpoint would answer 401 */
+       if (!token) return;
+
        const response =  await fetch(`http://localhost:3001/api/history`,{
         method: 'GET',
         mode: 'cors',
@@ -138,49 +199,73 @@ export default function Budget(//Export default Budget.js component
        //Conditional rendering to check the request succeeded
        if (!response.ok) {
         const message = data.message || 'Could not load your saved conversions.';
-        console.error('[ERROR: CurrencyConverter.js, fetchConversions]', message);//Log an error message in the console for debugging purposes
+        console.error('[ERROR: Budget.js, fetchConversions]', message);//Log an error message in the console for debugging purposes
         setError(message);// Set the error state to display the error in the UI
         return;// Exit the function early, keeping whatever list is already on screen
        }
 
        const fetchedConversions = Array.isArray(data.conversions) ? data.conversions : [];
        setConversions(fetchedConversions)
+       /* The response reports the total separately from the array, because only
+       the newest 100 records are returned. It is kept so the list can say when
+       it is showing a truncated view. */
        setConversionsTotal(typeof data.total === 'number' ? data.total : fetchedConversions.length)
        setError('');//Clear any previous error messages
-       console.log(`[SUCCESS: CurrencyConverter.js, fetchConversions] Fetched ${fetchedConversions.length} of ${data.total ?? fetchedConversions.length} conversions`);
+       console.log(`[SUCCESS: Budget.js, fetchConversions] Fetched ${fetchedConversions.length} of ${data.total ?? fetchedConversions.length} conversion(s)`);
       } catch (error) {
-        console.error(`Error fetching conversion data`, error.message);
+        console.error('[ERROR: Budget.js, fetchConversions]', error.message);//Log an error message in the console for debugging purposes
         setError(`Error fetching conversion data, ${error.message}`)
       }
     },[setError])
+     /* Saves the conversion currently on screen to the user's history. Only the
+     three inputs are sent: the server refetches the rate, so a saved record
+     always holds a rate the provider actually quoted rather than one the
+     browser could have edited on its way up.
+
+     Throws rather than setting an error, because the save button in
+     CurrencyConverter.js reports the outcome against itself — the conversion on
+     screen is unaffected by a failed save. */
      const saveConversions = useCallback(async (conversion) => {
       const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
-      const response = await fetch(`http://localhost:3001/api/save`,{
-        method: 'POST',//HTTP request method
-        mode: 'cors',//Enable Cross-Origin Resource Sharing
-        headers: {
-          'Content-Type': 'application/json',// Specify that we're sending JSON data in the request body
-          'Authorization': `Bearer ${token}`,// Attach the token in the Authorization header
-        },
-        body: JSON.stringify({// Send the conversion's inputs in the request body as JSON
-          amount: conversion.amount,
-          from: conversion.from,
-          to: conversion.to,
-        })
-      })
+      // Conditional rendering to check there is a session to save against
+      if (!token) throw new Error('Please log in again to save this conversion.');
 
-      const data = await response.json().catch(() => ({}));//Parse the response as json
+      let response;
+      let data;
+      try {
+        response = await fetch(`http://localhost:3001/api/save`,{
+          method: 'POST',//HTTP request method
+          mode: 'cors',//Enable Cross-Origin Resource Sharing
+          headers: {
+            'Content-Type': 'application/json',// Specify that we're sending JSON data in the request body
+            'Authorization': `Bearer ${token}`,// Attach the token in the Authorization header
+          },
+          body: JSON.stringify({// Send the conversion's inputs in the request body as JSON
+            amount: conversion.amount,
+            from: conversion.from,
+            to: conversion.to,
+          })
+        })
+        data = await response.json().catch(() => ({}));//Parse the response as json
+      } catch (error) {
+        /* A network level failure, so the request never reached the server.
+        Rethrown as a readable message rather than 'Failed to fetch' */
+        console.error('[ERROR: Budget.js, saveConversions]', error.message);//Log an error message in the console for debugging purposes
+        throw new Error('Could not reach the server. Please try again.');
+      }
 
       //Conditional rendering to check the request succeeded
       if (!response.ok) {
         const message = data.message || 'Could not save the conversion. Please try again.';
-        console.error('[ERROR: CurrencyConverter.js, saveConversion]', message);//Log an error message in the console for debugging purposes
+        console.error('[ERROR: Budget.js, saveConversions]', message);//Log an error message in the console for debugging purposes
         throw new Error(message);
       }
 
-      /* Refresh the calculations list so a save is visible straight away. The
-      list fetches on mount, so this only matters while it is already open — but
-      without it the panel would sit there missing the conversion just saved. */
+      console.log('[SUCCESS: Budget.js, saveConversions] Saved conversion', data.saved?._id);
+      /* Refresh the conversions list so a save is visible straight away. The
+      list fetches when its panel is opened, so this only matters while it is
+      already open — but without it the panel would sit there missing the
+      conversion just saved. */
       fetchConversions();
 
       return data;
@@ -281,6 +366,12 @@ export default function Budget(//Export default Budget.js component
   useEffect(() => {
     if (showVatCalculations) fetchVatCalculations()
   },[showVatCalculations, fetchVatCalculations])
+
+  /* Same for the saved conversions, so opening that panel loads the history
+  rather than showing an empty list until something new is saved. */
+  useEffect(() => {
+    if (showConversions) fetchConversions()
+  },[showConversions, fetchConversions])
 
   //================EVENT LISTENERS========================
   const toggleExpensesList = useCallback(() => {

@@ -231,7 +231,8 @@ Defined in [currConverterSchema.js](../server/models/currConverterSchema.js). A 
 | Field | Type | Required | Default | Constraints | Notes |
 |---|---|---|---|---|---|
 | `_id`| ObjectId | Auto | - | Primary Key | Created by mongoDB when added to database |
-| `userId` | ObjectId (ref: `user`) | Yes | — | indexed | The user the saved conversion belongs to |
+| `user` | ObjectId (ref: `User`) | Yes | — | indexed | The user the saved conversion belongs to. Stored as a reference rather than relying on a name, so a history lookup cannot return another user's conversions when two users share a name. Named `user` to match [vatSchema](#8-vat-value-added-tax-schema), its sibling history model, because both `/history` routes filter on the same field name |
+| `username` | String | Yes | — | — | Denormalised copy of the owner's username, read off the account when the conversion is saved |
 | `currency.baseCurrency` | String | Yes | — | trim, uppercase, enum: `apiCurrencies`, regex `^[A-Z]{3}$` | The currency converted **from** (nested object) |
 | `currency.targetCurrency` | String | Yes | — | trim, uppercase, enum: `apiCurrencies`, regex `^[A-Z]{3}$` | The currency converted **to** (nested object) |
 | `amount` | Number | Yes | — | min 0 (*cannot be negative*) | The amount entered, in the base currency |
@@ -279,7 +280,7 @@ User * ──── * Entry                 User.entries → [Entry._id]   (the 
 Trip 1 ──── * Entry                 Entry.tripId → Trip._id      (Trip.entryCount kept by Entry hooks)
 Trip 1 ──── 1 Budget                Budget.tripId → Trip._id     (unique)
 Budget 1 ── * Expense               embedded, no collection of its own
-User 1 ──── * currency              currency.userId → User._id
+User 1 ──── * currency              currency.user → User._id
 User 1 ──── * vat                   vat.user → User._id
 ```
 
@@ -293,8 +294,7 @@ Points where the code does not yet match what the schemas above describe. Record
 
 | Where | Issue |
 |---|---|
-| [currConverterSchema.js:53](../server/models/currConverterSchema.js#L53) | The `convertedAmount` virtual is declared on `currencyConvertSchema`, a name that is never defined — the schema variable is `converterSchema`. Requiring the module throws a `ReferenceError` |
-| [currConverterSchema.js:10](../server/models/currConverterSchema.js#L10), [vatSchema.js:12](../server/models/vatSchema.js#L12) | Both use `ref: 'user'`, but the model is registered as `User`. Mongoose model names are case-sensitive, so `populate()` on these fields will not resolve |
+| [currConverterSchema.js](../server/models/currConverterSchema.js) | `currency.baseCurrency` and `currency.targetCurrency` are `enum`d against the offline `apiCurrencies` snapshot, while `apiRoutes.js` validates a submission against the **live** provider list. The two match today (165 codes), but a currency Frankfurter adds would pass `GET /api/convert` and then fail validation on `POST /api/save` |
 | [entrySchema.js:79](../server/models/entrySchema.js#L79) | The text index covers `tags`, but the schema has no `tags` field |
 | [userSchema.js:59](../server/models/userSchema.js#L59) | `fullName.lastName` has `trim: 'true'` — the string, not the boolean. It is truthy, so trimming still happens, but the type is wrong |
 | [budgetSchema.js:96](../server/models/budgetSchema.js#L96) | `baseCurrency` caps length at 3 but, unlike `expenseSchema.currency`, does not validate against `apiCurrencies` or the `^[A-Z]{3}$` pattern |

@@ -11,6 +11,9 @@
 file using the dotenv package*/
 require('dotenv').config()
 const express = require('express');
+/* Required for ObjectId.isValid on DELETE /history/:id: querying on a malformed
+id raises a CastError, which would be reported as a 500 rather than a 400 */
+const mongoose = require('mongoose');
 const router = express.Router()
 const User = require('../models/userSchema')
 const Conversion = require('../models/currConverterSchema')
@@ -146,8 +149,8 @@ router.get('/history', checkJwtToken, async (req, res) => {
         /* Counted and fetched together: the count is what tells the client the
         list was truncated, so it has to reflect the same filter. */
         const [total, conversions] = await Promise.all([
-            CurrencyConvert.countDocuments({ user: userId }).exec(),
-            CurrencyConvert.find({ user: userId })
+            Conversion.countDocuments({ user: userId }).exec(),
+            Conversion.find({ user: userId })
                 .sort({ createdAt: -1 })// Newest conversion first
                 .limit(HISTORY_LIMIT)
                 .exec(),
@@ -168,7 +171,7 @@ router.get('/history', checkJwtToken, async (req, res) => {
 
 /* Saves a conversion to the logged in user's history. The user is taken from
 the JWT, never from the request body, so a user can only ever write a record
-against themselves, and the fullName is read from the database rather than
+against themselves, and the username is read from the database rather than
 trusted from the request.
 
 The rate is FETCHED HERE rather than read from the body, so a saved record
@@ -186,9 +189,9 @@ router.post('/save', checkJwtToken, async (req, res) => {
         const { fromCurrency, toCurrency, parsedAmount } = input;
 
         const user = await User.findById(req.user.userId)
-            .select('fullName')
+            .select('username')
             .exec();
-        
+
             // Conditional rendering to check the user on the token still exists
         if (!user) {
             console.warn('[WARN: apiRoutes.js, /save] No user found for id', req.user.userId);
@@ -209,9 +212,12 @@ router.post('/save', checkJwtToken, async (req, res) => {
             rate = quote.rate;
         }
 
-        const saved = await CurrencyConvert.create({
+        /* convertedAmount is not stored: the schema exposes it as a virtual off
+        the amount and the rate, so it is left out of the create rather than
+        saved as a third figure that could disagree with the other two. */
+        const saved = await Conversion.create({
             user: user._id,
-            fullName: user.fullName,
+            username: user.username,
             currency: { baseCurrency: fromCurrency, targetCurrency: toCurrency },
             amount: parsedAmount,
             rate,
@@ -258,7 +264,7 @@ router.delete('/history/:id', checkJwtToken, async (req, res) => {
             return res.status(400).json({ success: false, message: 'Invalid conversion id' });// Send a 400 (Bad Request) status code with a message
         }
 
-        const removed = await CurrencyConvert.findOneAndDelete({ _id: id, user: userId }).exec();
+        const removed = await Conversion.findOneAndDelete({ _id: id, user: userId }).exec();
 
         /* Conditional rendering to check a record was actually removed. Covers
         both a conversion that does not exist and one owned by another user. */

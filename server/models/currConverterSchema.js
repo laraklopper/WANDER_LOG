@@ -5,11 +5,23 @@ const { apiCurrencies } = require('../serverData/currencies');
 const CURRENCY_CODE_PATTERN = /^[A-Z]{3}$/;
 
 const converterSchema = new mongoose.Schema({
-    userId: {
+    /* The user the saved conversion belongs to. Stored as a reference rather
+    than relying on the username, so a history lookup cannot return another
+    user's conversions when two users share a name. Named `user` to match
+    vatSchema, its sibling history model, because apiRoutes.js and vatRoutes.js
+    filter their /history routes on the same field name. */
+    user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'user',
+        ref: 'User',// The name userSchema.js registers the model under; a ref is case sensitive
         required: [true, 'user is required'],
         index: true,
+    },
+    /* Read off the account when the conversion is saved, never trusted from the
+    request body. Stored alongside the reference so a history row can name its
+    owner without populating the user document */
+    username: {
+        type: String,
+        required: [true, 'Username is required'],
     },
     amount: {
         type: Number,
@@ -50,8 +62,10 @@ const converterSchema = new mongoose.Schema({
     toObject: {virtuals: true}
 });
 
-// Virtual field returning the converted amount (amount * rate)
-currencyConvertSchema.virtual('convertedAmount').get(function () {
+/* Virtual field returning the converted amount (amount * rate). Derived rather
+than stored, because the amount and the rate are both kept and a third stored
+figure could disagree with them. */
+converterSchema.virtual('convertedAmount').get(function () {
     return this.amount * this.rate;
 });
 
