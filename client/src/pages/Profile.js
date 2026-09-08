@@ -4,6 +4,7 @@ import React, {useState, useCallback, useEffect, useMemo} from 'react'
 // IMPORT CSS STYLESHEETS
 import '../css/pagesCss/PageSetup.css'
 import '../css/pagesCss/Profile.css'
+import '../css/componentCss/DetailsPanal.css'
 // IMPORT BOOTSTRAP COMPONENTS
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -166,13 +167,102 @@ export default function Profile(//Export the default Profile.js function compone
       {/* --------------
        SECTION 1: USER DETAILS AND EDIT USER + EDIT PASSWORD FORM
       -------- */}
-      <section id='profileSection1'>
-        <div id='profileSection1Content' aria-describedby='profileText'>
-          <Row id='toggleEditProfileRow'>
-        <Col id='toggleEditProfileCol1'/>
-        <Col xs={5} id='toggleEditProfileCol'>
-          <Stack gap={3} id='toggleEditProfileFormsStack'>
-          {/* EDIT PROFILE FORM BUTTON */}
+      <section id='profileSection'>
+      <div id='userProfile'>
+        <Row id='profileRow'>
+        <Col id='profileCol'>
+          <div id='user-Profile-panal'>
+            <div id='userProfileHeader'>
+<Stack direction="horizontal" gap={3} id='userProfileHeadStack'>
+      <div className="p-2">
+        {/* FULL NAME */}
+      <h3> currenUser.firstName currentUser.lastName</h3>
+      </div>
+      <div className="p-2 ms-auto"/>
+      <div className="p-2"></div>
+    </Stack>
+            </div>
+            <div>
+             <Stack direction="horizontal" gap={3}>
+      <div className="p-2">
+        <div>
+          <span>
+          <p>USERNAME:</p>
+          </span>
+          <span>
+            <p>FULL NAME:</p>
+            <p>{/* currenUser.firstName currentUser.lastName */}</p>
+          </span>
+        </div>
+      </div>
+      <div className="p-2 ms-auto">Second item</div>
+      <div className="p-2">
+         <div>
+          {/* PROFILE PICTURE
+          leave blanck if no profile picture exists
+           */}
+        </div>
+      </div>
+    </Stack>
+    <div>
+       <Stack gap={3}>
+      <div className="p-2">
+    
+             <span>
+          <p>EMAIL:</p>
+          <p>{/*currentUser.email*/}</p>
+          </span>
+            
+      
+      </div>
+      <div className="p-2">
+        <div>
+      
+          <p className='nested-details-label'>ADDRESS:</p>
+          <div id='userProfileAddress'>
+            <span className='detail-span'>
+            <p>STREET ADDRESS</p>  
+            </span>
+            <span>
+              <p>optional address line</p>
+            </span>
+            <span>
+              <p className='details-label'>CITY/TOWN:</p>
+              <p>{/*currentUser.address.?city */}</p>
+            </span>
+            <span>
+              <p className='details-label'>PROVINCE:</p>
+            </span>
+          </div>
+        </div>
+      </div>
+      
+    </Stack>
+     <Stack  gap={3}>
+     {/* DATE OF BIRTH */}
+      <div className="p-2" id='profileDOBBlock'>
+          <span className='detail-span'>
+            <p className='details-label'>DATE OF BIRTH:</p>
+            <p>{/*currentUser.dateOfBirth*/}</p>
+          </span>
+       
+      </div>
+      {/* IS ADMIN */}
+      <div className="p-2" id='profileAdminBlock'>
+        <span className='detail-span'>
+          <p className='details-label'>IS ADMIN:</p>
+          <p className='details-value'>{/*YES/NO*/}</p>
+        </span>
+      </div>
+    </Stack>
+    </div>
+  
+            </div>
+            <div id='userProfileFooter'>
+              <Stack direction="horizontal" gap={3} id="userProfileFooterStack">
+      <div className="p-2"/>
+      <div className="p-2 ms-auto">
+        {/* EDIT PROFILE FORM BUTTON */}
           <Button 
           variant="light" 
           id='editUserToggleBtn'
@@ -187,10 +277,10 @@ export default function Profile(//Export the default Profile.js function compone
           >
             {showEditProfileForm ? 'Close Form' : 'Edit Profile'}
           </Button>
-      <div className="p-2"></div>
-      {/* TOGGLE EDIT PASSWORD FORM BUTTON */}
+      </div>
+      <div className="vr" />
       <div className="p-2">
-        <Button 
+          <Button 
           variant="light" 
           id='editPswdToggleBtn' 
           onClick={toggleEditPswd}
@@ -204,6 +294,28 @@ export default function Profile(//Export the default Profile.js function compone
           >
           {showEditPswdForm ? 'Close Form' : 'Edit Password'}
         </Button>
+      </div>
+    </Stack>
+            </div>
+          </div>
+        </Col>
+      </Row>
+
+      </div>
+
+      </section>
+      <section id='profileSection1'>
+      
+        <div id='profileSection1Content' aria-describedby='profileText'>
+          <Row id='toggleEditProfileRow'>
+        <Col id='toggleEditProfileCol1'/>
+        <Col xs={5} id='toggleEditProfileCol'>
+          <Stack gap={3} id='toggleEditProfileFormsStack'>
+          
+      <div className="p-2"></div>
+      {/* TOGGLE EDIT PASSWORD FORM BUTTON */}
+      <div className="p-2">
+      
       </div>
     </Stack>
         </Col>

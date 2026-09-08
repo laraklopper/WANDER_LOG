@@ -69,3 +69,7 @@ under the group's own label rather than run on beside it */
     padding: 0px;
     border: solid 2px #323A42;
 }
+.detail-span{
+    display: flex;
+    align-items: baseline;
+}

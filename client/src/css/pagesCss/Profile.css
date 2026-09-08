@@ -98,6 +98,44 @@ LAYOUT
     margin: 0px;
     padding: 0px;
 }
+#profileSection{
+          flex-direction: column;
+    width: 100%;
+   background-color: #608021;
+   height: 100%;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   margin: 10px 0px 10px 0px;
+   padding: 0px;
+}
+#profileRow{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#profileCol{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#userProfile{
+    width: 100%;
+}
+#userProfileHeader,
+#userProfileFooter{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#user-Profile-panal{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
 /* TOGGLE EDIT PROFILE FORMS STACK:
 https://react-bootstrap.netlify.app/docs/layout/stack
 */
@@ -141,4 +179,17 @@ BUTTONS: https://react-bootstrap.netlify.app/docs/components/buttons
     color: #E8F0F6;
     border: solid 2px #000;
     text-decoration: underline;
+}
+/* USER PROFILE */
+#userProfileHeader{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+    border-bottom: solid 2px #000;
+}
+#userProfileFooter{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+    border-top: solid 2px #000;
 }
