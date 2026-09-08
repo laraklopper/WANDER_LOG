@@ -414,11 +414,15 @@ export default function Budget(//Export default Budget.js component
         </Col>
         <Col id='toggle-col2'/>
       </Row>
+       </div>
+       </div>
+        </section>
       {/* ======CALCULATORS + CURRENCY CONVERTER DISPLAY======= */}
       <div id='calculator-display-panal'>
       {/* TOGGLE THE CALCULATOR */}
       {showCalculator && (
-        <div id='basic-calculator-panal'>
+        <section className='budgetSection2'>
+<div id='basic-calculator-panal'>
           <Row id='basic-calculator-row'>
         <Col id='basic-calculator-col1'/>
         <Col xs={5} id='basic-calculator-col'>
@@ -429,10 +433,13 @@ export default function Budget(//Export default Budget.js component
         <Col id='basic-calculator-col2'/>
       </Row>
         </div>
+        </section>
+        
       )}
       {/* TOGGLE THE VAT CALCULATOR */}
       {showVatCalc && (
-        <div id='vat-calculator-panal'>
+        <section className='budgetSection2'>
+ <div id='vat-calculator-panal'>
           <Row id='vat-calculator-row'>
             <Col id='vat-calculator-col1'/>
             <Col xs={6}  id='vat-calculator-col'>
@@ -443,10 +450,13 @@ export default function Budget(//Export default Budget.js component
             <Col id='vat-calculator-col2'/>
           </Row>
         </div>
+        </section>
+       
       )}
       {/* TOGGLE THE CURRENCY CONVERTER */}
       {showConverter && (
-        <div id='currency-converter-panal'>
+        <section className='budgetSection2'>
+           <div id='currency-converter-panal'>
         <Row id='currency-converter-row'>
         <Col id='currency-convert-col1'/>
         <Col xs={6} id='currency-convert-col'>
@@ -470,16 +480,18 @@ export default function Budget(//Export default Budget.js component
         <Col id='currency-convert-col2'/>
       </Row>
         </div>
+        </section>
+       
       )}
       </div>
-      </div>
-          </div>
-        </section>
+      
+         
+      
         {/* ====================
-        SECTION 2
+        SECTION 3
         ========== */}
-        <section id='budget-section2'>
-        <div id='budget-section2-panal'>
+        <section id='budgetSection3'>
+        <div id='budget-section3-panal'>
           <Row id='toggle-calculations-row'>
         <Col id='toggle-calculations-col1'/>
         <Col xs={5} id='toggle-calculations-col'>
