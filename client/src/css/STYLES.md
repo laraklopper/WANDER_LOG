@@ -13,7 +13,31 @@
 General styling formats, not the default tags styling for all formats apply for all tags.
 
 ### 1.1. BODY/HTML/ROOT
-
+```css
+#html, #body{
+      overflow: visible;
+    margin: 0px 0px 0px 0px;
+    padding: 0px 0px 0px 0px;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-color: #3D6110;
+}
+#root {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    overflow: visible;
+    background-color: #3D6110;
+    margin: 0px 0px;
+    padding: 0px;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+```
 ### 1.2. HEADER/FOOTER
 ```css
 #main-header, #page-header {
@@ -51,6 +75,15 @@ General styling formats, not the default tags styling for all formats apply for 
    justify-content: center;
    align-items: center;
   background-color: #7BA428;
+  width: 100%;
+  margin: 10px 0px 10px 0px;
+  padding: 0px;
+}
+#section3{
+   display: flex;
+   justify-content: center;
+   align-items: center;
+  background-color: #568A17;
   width: 100%;
   margin: 10px 0px 10px 0px;
   padding: 0px;
@@ -106,6 +139,10 @@ wins on equal specificity */
     text-decoration: underline;
     border: solid 3px #000;
 }
+```
+### 1.4. LINKS
+Links not found in the NavigationBar
+```css
 ```
 ### 1.4. FORMS
 ````css
@@ -169,11 +206,11 @@ padding: 0px;
   padding: 0px;
 }
 ````
-## 1.5. CALCULATOR/CURRENCY CONVERTER
+### 1.5. CALCULATOR/CURRENCY CONVERTER
+### 1.6. DETAILS
 
-## 1.6. DETAILS
-
-## 1.7. BUTTONS
+### 1.7. CLOCK
+### 1.8. BUTTONS
 ```css
 #button,
 #submitBtn,
@@ -247,249 +284,59 @@ root {
 ### 3.2. FONTS CSS CODE
 #### Open Sans: CSS class for a variable style
 ```css
-
-.open-sans-<uniquifier> {
+/* <weight>: Use a value from 300 to 800
+ <uniquifier>: Use a unique and descriptive class name */
+.open-sans {
   font-family: "Open Sans", sans-serif;
-  font-optical-sizing: auto;
   font-weight: <weight>;
   font-style: normal;
-  font-variation-settings:
-    "wdth" 100;
 }
 ```
 #### Fira Sans: CSS classes
 ```css
-.fira-sans-thin {
+/* 100-900 */
+.fira-sans{
   font-family: "Fira Sans", sans-serif;
-  font-weight: 100;
-  font-style: normal;
+  font-style: italic
 }
 
-.fira-sans-extralight {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 200;
-  font-style: normal;
-}
-
-.fira-sans-light {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 300;
-  font-style: normal;
-}
-
-.fira-sans-regular {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-}
-
-.fira-sans-medium {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 500;
-  font-style: normal;
-}
-
-.fira-sans-semibold {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 600;
-  font-style: normal;
-}
-
-.fira-sans-bold {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 700;
-  font-style: normal;
-}
-
-.fira-sans-extrabold {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 800;
-  font-style: normal;
-}
-
-.fira-sans-black {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 900;
-  font-style: normal;
-}
-
-.fira-sans-thin-italic {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 100;
-  font-style: italic;
-}
-
-.fira-sans-extralight-italic {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 200;
-  font-style: italic;
-}
-
-.fira-sans-light-italic {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 300;
-  font-style: italic;
-}
-
-.fira-sans-regular-italic {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 400;
-  font-style: italic;
-}
-
-.fira-sans-medium-italic {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 500;
-  font-style: italic;
-}
-
-.fira-sans-semibold-italic {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 600;
-  font-style: italic;
-}
-
-.fira-sans-bold-italic {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 700;
-  font-style: italic;
-}
-
-.fira-sans-extrabold-italic {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 800;
-  font-style: italic;
-}
-
-.fira-sans-black-italic {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 900;
-  font-style: italic;
-}
 
 ```
 #### Alkatra: CSS class for a variable style
 ```css
-
-.alkatra-<uniquifier> {
+/* <weight>: Use a value from 400 to 700 
+<uniquifier>: Use a unique and descriptive class name */
+.alkatra{
   font-family: "Alkatra", system-ui;
   font-optical-sizing: auto;
-  font-weight: <weight>;
+  font-weight: <weight>;/* <weight>: Use a value from 400 to 700 */
   font-style: normal;
 }
 ```
 
 #### Fira Mono: CSS classes
-
+- buttons and 
+- labels 
+- form input, select, text-area e
 ```css
-.fira-sans-thin {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 100;
+/* weight: 400, 500, 700 */
+.fireMono{
+  font-family: "Fira Mono", monospace;
+}
+
+```
+
+#### Noto Serif: CSS class for a variable style
+
+- used for error messages
+```css
+/* fontWeight: Use a value from 100 to 900
+<uniquifier>: Use a unique and descriptive class name*/
+.notoSerif{
+  font-family: "Noto Serif", serif;
   font-style: normal;
+  font-weight: <weight>;/* Use a value from 100 to 900 */
 }
-
-.fira-sans-extralight {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 200;
-  font-style: normal;
-}
-
-.fira-sans-light {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 300;
-  font-style: normal;
-}
-
-.fira-sans-regular {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 400;
-  font-style: normal;
-}
-
-.fira-sans-medium {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 500;
-  font-style: normal;
-}
-
-.fira-sans-semibold {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 600;
-  font-style: normal;
-}
-
-.fira-sans-bold {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 700;
-  font-style: normal;
-}
-
-.fira-sans-extrabold {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 800;
-  font-style: normal;
-}
-
-.fira-sans-black {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 900;
-  font-style: normal;
-}
-
-.fira-sans-thin-italic {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 100;
-  font-style: italic;
-}
-
-.fira-sans-extralight-italic {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 200;
-  font-style: italic;
-}
-
-.fira-sans-light-italic {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 300;
-  font-style: italic;
-}
-
-.fira-sans-regular-italic {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 400;
-  font-style: italic;
-}
-
-.fira-sans-medium-italic {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 500;
-  font-style: italic;
-}
-
-.fira-sans-semibold-italic {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 600;
-  font-style: italic;
-}
-
-.fira-sans-bold-italic {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 700;
-  font-style: italic;
-}
-
-.fira-sans-extrabold-italic {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 800;
-  font-style: italic;
-}
-
-.fira-sans-black-italic {
-  font-family: "Fira Sans", sans-serif;
-  font-weight: 900;
-  font-style: italic;
-}
-
 ```
 ---
 ## 4. LUCIDE REACT
