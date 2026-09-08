@@ -53,6 +53,8 @@ CALCULATORS + CURRENCY CONVERTER DISPLAY/LAYOUT
     display: flex;
     margin: 0px;
     padding: 10px 0px;
+    width: 100%;
+    justify-content: center;
 }
 #basic-calculator-block{
     background-color: #9E9E9E;

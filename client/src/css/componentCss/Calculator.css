@@ -23,8 +23,9 @@
     padding: 0px;
 }
 #calculator-input-block{
-        display: flex;
+    display: flex;
     margin: 0px;
+    justify-content: center;
     padding: 0px;
     gap: 10px;
 }
