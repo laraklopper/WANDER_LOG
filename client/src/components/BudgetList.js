@@ -1,3 +1,4 @@
+// BudgetList.js
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import '../css/componentCss/BudgetList.css'
 import '../css/componentCss/DetailsPanal.css'
@@ -6,30 +7,8 @@ import Button from 'react-bootstrap/Button';
 // IMPORT UTILITY FUNCTIONS AND SHARED DATA
 import { NOT_AVAILABLE, rowClass, toMoney, toPercent } from '../util/formatCalculations';
 import { EXPENSE_CATEGORIES } from '../data/financeData';
-/*
-TABLE DISPLAY
-- trip
-- base currency
-- total budget
-- expenses
 
-The trip budget list. The requests themselves live on Expenses.js, which owns the
-list state, and arrive here as `budgets` with `fetchBudgets` to reload it - the
-same arrangement as TripsList.js.
-
-One difference from that list: a row of GET /expense/fetchBudgets carries only the
-four fields the add expense form's trip select reads, so the details panel cannot
-be filled from the row the way a trip's panel is. VIEW reads the whole budget back
-by its id through `fetchBudget`, which is the same call the edit form is opened
-with - it is the only response that carries the category limits, the alerts and
-the totals worked out from the expenses.
-
-That read is also what the panel's DELETE confirms against: an expense is
-embedded in the budget of its trip rather than stored on its own, so removing a
-budget removes those expenses with it, and the count to warn about is only on the
-budget the panel was filled from.
-*/
-
+// BudgetList function component
 export default function BudgetList(
     {//PROPS PASSED FROM PARENT COMPONENT (Expenses.js)
         currentUser,
