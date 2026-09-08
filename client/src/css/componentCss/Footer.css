@@ -18,6 +18,23 @@ LAYOUT
     margin: 0xp;
     padding: 0px;
 }
+#copyRightBlock{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0px;
+    padding: 10px 0px;
+    gap: 10px;
+}
+#copyRightBlock span{
+        display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 0px;
+    padding: 0px;
+}
+/* BOOTSTRAP LAYOUT */
+/* GRID: https://react-bootstrap.netlify.app/docs/layout/grid */
 #footer-row1{
     width: 100%;
     margin: 0px;
@@ -56,27 +73,30 @@ LAYOUT
     margin: 0px;
     padding: 0px 5px;
 }
-
-#copyRightBlock{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 0px;
-    padding: 10px 0px;
-    gap: 10px;
-}
+/* TIME STACK: https://react-bootstrap.netlify.app/docs/layout/stack */
 #footerTimeStack{
     width: 100%;
     margin: 0px;
     padding: 0px;
 }
-#copyRightBlock span{
-        display: flex;
+/* =====================
+CLOCK
+================*/
+#dateItem,
+#timeItem{
+    display: flex;   
+    gap: 5px;
+    background-color: transparent;
+    border: none;
+}
+.timeStamp{
+    display: flex;
     align-items: center;
     gap: 5px;
     margin: 0px;
     padding: 0px;
 }
+/* TEXT */
 #footerText{
     font-family: "Open Sans", sans-serif;
     text-transform: uppercase;
@@ -87,6 +107,7 @@ LAYOUT
     padding: 0px;
     text-decoration: underline;
 }
+/* BUTTON */
 #logoutBtn{
      display: flex;
     justify-content: center;
@@ -108,19 +129,3 @@ LAYOUT
     color: #E8F0F6;
 }
 
-#dateItem,
-#timeItem{
-        display: flex;
-    
-    gap: 5px;
-        background-color: transparent;
-    border: none;
-    
-}
-.timeStamp{
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    margin: 0px;
-    padding: 0px;
-}
