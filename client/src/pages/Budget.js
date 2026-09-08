@@ -384,10 +384,16 @@ export default function Budget(//Export default Budget.js component
         </Button>
       </div>
       <div id='toggle-vatcalculator-block'>
-        <Button 
-          variant='light' 
-          id='toggleVatCalcBtn' 
-          onClick={toggleVatCalculator}>{showVatCalc ? 'Hide Calculator': 'Show Vat Calculator'}</Button>
+        <Button
+          variant='light'
+          id='toggleVatCalcBtn'
+          onClick={toggleVatCalculator}
+          type='button'
+          // ARIA ATTRIBUTES:
+          aria-label={showVatCalc ? 'Hide Vat Calculator': 'Show Vat Calculator'}
+          aria-pressed={showVatCalc}
+          aria-expanded={showVatCalc}
+          >{showVatCalc ? 'Hide Calculator': 'Show Vat Calculator'}</Button>
       </div>
       <div id='toggle-converter-block'>
         <Button 

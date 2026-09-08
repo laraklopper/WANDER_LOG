@@ -22,12 +22,37 @@
     padding: 0px;
     border: solid 2px #323A42;
 }
-/* ACTIVE FORM BUTTON */
+#toggleFilterBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
+}
+/* While the mouse button is held down. Press feedback only - whether the filter
+is open is marked by the aria-expanded rules below */
 #toggleFilterBtn:active{
+    background-color: #1F2529;
+    color: #E8F0F6;
+}
+/* THE OPEN FILTER'S BUTTON: selected on the aria-expanded the list sets from
+its own showFilter, rather than on :active, which only lasts while the mouse
+button is held down and so left the open filter unmarked as soon as the button
+was released. Reading the same attribute the screen reader does keeps the two
+from disagreeing, and no second class is needed to carry it. Compounded with the
+id so it outranks the .btn-light rules Bootstrap applies to the same buttons.
+Marked by more than colour alone - the border thickens and the label is
+underlined - so the open filter is still visible to a user who cannot tell the
+two backgrounds apart. The button is sized in border-box, so the thicker border
+does not shift the row it shares with REFRESH */
+#toggleFilterBtn[aria-expanded="true"]{
     background-color: #323A42;
     color: #E8F0F6;
-    border: solid 2px #000;
+    border: solid 3px #000;
     text-decoration: underline;
+}
+/* Hovering the button whose filter is already open must not lighten it back
+towards the closed look, which would read as though the filter had closed */
+#toggleFilterBtn[aria-expanded="true"]:hover{
+    background-color: #1F2529;
+    color: #E8F0F6;
 }
 /* ================
 LINKS

@@ -115,12 +115,31 @@ export default function TravelLog(//Export the default TravelLog.js function com
             <div className="p-2" id='toggleTripsBlock'>
               <Button
               variant='light'
-               onClick={toggleTrips} 
+               onClick={toggleTrips}
                id='toggleTripListBtn'
+               type='button'
+               // ARIA ATTRIBUTES
+               aria-label={showTrips ? 'Hide Trips' : 'Show Trips'}
+               aria-controls='trips-list-panal'
+               aria-pressed={showTrips}
+               /* Reports whether the list is on screen, and is what
+               TravelLog.css marks the open button on */
+               aria-expanded={showTrips}
                >SHOW TRIPS</Button>
             </div>
             <div className="p-2" id='toggleEntryBlock'>
-              <Button variant='light' onClick={toggleEntries} id='toggleEntriesListBtn'>SHOW ENTRIES</Button>
+              {/* aria-controls is left off until the entries list has a panel of
+              its own to name: the block below it is still a placeholder */}
+              <Button
+              variant='light'
+              onClick={toggleEntries}
+              id='toggleEntriesListBtn'
+              type='button'
+              // ARIA ATTRIBUTES
+              aria-label={showEntries ? 'Hide Entries' : 'Show Entries'}
+              aria-pressed={showEntries}
+              aria-expanded={showEntries}
+              >SHOW ENTRIES</Button>
             </div>
     </Stack>
         </Col>

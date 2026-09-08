@@ -86,7 +86,19 @@ export default function TripsList(
         </Button>
       </div>
       <div className="p-2 ">
-        <Button id='toggleFilterBtn' variant='light' onClick={toggleFilter} type='button'>
+        <Button
+        id='toggleFilterBtn'
+        variant='light'
+        onClick={toggleFilter}
+        type='button'
+        // ARIA ATTRIBUTES:
+        aria-label={showFilter ? 'Hide the trip filter' : 'Filter your trips'}
+        aria-controls='filter-trip-panal'
+        aria-pressed={showFilter}
+        /* Reports whether the filter is open, and is what PageSetup.css marks
+        the open button on */
+        aria-expanded={showFilter}
+        >
         {showFilter ? (
             <>
                 Hide Filter

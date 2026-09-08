@@ -178,13 +178,36 @@ BUTTONS: https://react-bootstrap.netlify.app/docs/components/buttons
     color: #E8F0F6;
     background-color: #323A42;
 }
-/* ACTIVE FORM BUTTON */
+/* While the mouse button is held down. Press feedback only - which form is open
+is marked by the aria-expanded rules below */
 #editUserToggleBtn:active,
 #editPswdToggleBtn:active{
+    background-color: #1F2529;
+    color: #E8F0F6;
+}
+/* THE OPEN FORM'S BUTTON: selected on the aria-expanded Profile.js already sets
+from showEditProfileForm and showEditPswdForm, rather than on :active, which only
+lasts while the mouse button is held down and so left the open form unmarked as
+soon as the button was released. Reading the same attribute the screen reader
+does keeps the two from disagreeing, and no second class is needed to carry it.
+Compounded with the id so it outranks the .btn-light rules Bootstrap applies to
+the same buttons. Marked by more than colour alone - the border thickens and the
+label is underlined - so the open form is still visible to a user who cannot
+tell the two backgrounds apart. The buttons are sized in border-box, so the
+thicker border does not shift the row */
+#editUserToggleBtn[aria-expanded="true"],
+#editPswdToggleBtn[aria-expanded="true"]{
     background-color: #323A42;
     color: #E8F0F6;
-    border: solid 2px #000;
+    border: solid 3px #000;
     text-decoration: underline;
+}
+/* Hovering the button whose form is already open must not lighten it back
+towards the closed look, which would read as though the form had closed */
+#editUserToggleBtn[aria-expanded="true"]:hover,
+#editPswdToggleBtn[aria-expanded="true"]:hover{
+    background-color: #1F2529;
+    color: #E8F0F6;
 }
 /* USER PROFILE */
 #userProfileHeader{
