@@ -105,9 +105,7 @@ export default function EditPasswordForm({currentUser, setError}) {
 
       //=======================JSX RENDERING========================
   return (
-    /* No method attribute, a form element only accepts GET or POST and the
-    PATCH is sent by editPassword rather than by the browser */
-    <form id='edit-password-form' onSubmit={editPassword} aria-label='Edit Password Form'>
+    <form id='edit-password-form' method='PATCH' onSubmit={editPassword} aria-label='Edit Password Form'>
       <div id='formHeadingBlock'>
         <h3 id='formHeading'>Edit Password</h3>
       </div>
