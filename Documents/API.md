@@ -246,15 +246,17 @@ One budget per trip, with that trip's expenses embedded in it (see [SCHEMAS.md �
 
 `GET /api/currencies` is the most-called endpoint in the app: besides the converter it fills the currency select on the budget form, the add-expense form and the expenses page, and is the source for [financeData.js](../client/src/data/financeData.js#L7) and [currencyFunc.js](../client/src/util/currencyFunc.js#L24).
 
+Every route on this router is called from the client, all five through [Budget.js](../client/src/pages/Budget.js), which owns the converter's state and passes the requests down: `/api/currencies`, `/api/convert` and `/api/save` to [CurrencyConverter.js](../client/src/components/CurrencyConverter.js), and `/api/history` and `/api/history/:id` to [ConversionsList.js](../client/src/components/ConversionsList.js). Nothing on the list is repriced — each record holds the rate its save fetched, so the display formatters in [currencyFunc.js](../client/src/util/currencyFunc.js#L68-L104) only read stored figures.
+
 **Notes**
 
 | Endpoint | Body / params | Other |
 |---|---|---|
 | `GET /api/currencies` | — | Returns `{ success, live, total, currencies }`. `live` is `false` when the list came from the offline snapshot in [currencies.js](../server/serverData/currencies.js), so the client can tell a real list from a stand-in — [Budget.js](../client/src/pages/Budget.js#L59) keeps its own curated list when it is, because the snapshot carries codes without names |
 | `GET /api/convert` | Query: `from`, `to`, `amount` | Both codes are trimmed and uppercased, so `?from=zar` is accepted. A conversion between a currency and itself short-circuits to a rate of `1` without calling the provider, and returns no `date`. `400` on a missing field, a non-positive amount, or a code the provider does not support; `502` when Frankfurter cannot price the pair. Returns `{ success, result, rate, date, from, to, amount }` |
-| `GET /api/history` | — | Returns `{ success, total, limit, conversions }`, capped at the newest **100** records, same as `/vat/history` |
+| `GET /api/history` | — | Returns `{ success, total, limit, conversions }`, capped at the newest **100** records, same as `/vat/history`. Each record carries the `convertedAmount` virtual, because `converterSchema` sets `toJSON: { virtuals: true }`. Fetched by [Budget.js](../client/src/pages/Budget.js#L187) when the conversions panel is opened, and rendered by [ConversionsList.js](../client/src/components/ConversionsList.js), which compares `total` against the array it was given to say when the view is truncated |
 | `POST /api/save` | Body: `from`, `to`, `amount` | The rate is **fetched here** rather than read from the body, so a saved record always holds a rate the provider actually quoted. The `username` is read off the account, never trusted from the body. `convertedAmount` is not stored — it is a virtual off the amount and the rate, so there is no third figure to disagree with them |
-| `DELETE /api/history/:id` | `:id` | Matched on the id and the user in a single query, same as `/vat/history/:id`. `400` on a malformed id, `404` when not found |
+| `DELETE /api/history/:id` | `:id` | Matched on the id and the user in a single query, same as `/vat/history/:id`. `400` on a malformed id, `404` when not found. Returns `conversionId` so the client can drop the row, though `deleteConversion` in [Budget.js](../client/src/pages/Budget.js#L235) refetches the list instead, so what is on screen is what the database holds |
 
 ### 1.11. EXPORT
 
@@ -335,7 +337,6 @@ Points where the code does not yet match the tables above. Recorded here so the 
 | Where | Issue |
 |---|---|
 | [exportRoutes.js](../server/routes/exportRoutes.js) | A comment-only stub: no `express.Router()`, no handlers, no `module.exports`, and not mounted. [ExportForm.js](../client/src/components/ExportForm.js#L3-L6) records all four paths |
-| [ConversionsList.js](../client/src/components/ConversionsList.js) | A placeholder component that renders its own name. `GET /api/history` answers and [Budget.js](../client/src/pages/Budget.js) fetches into `conversions`, but nothing renders the rows yet. The formatters it needs are already written — `toRate`, `currencyLabelOf` and `convertedAmountOf` in [currencyFunc.js](../client/src/util/currencyFunc.js#L68-L104) |
 | [currConverterSchema.js](../server/models/currConverterSchema.js) | `baseCurrency` and `targetCurrency` are `enum`d against the offline snapshot while the routes validate against the **live** provider list. The two match today (165 codes), but a currency Frankfurter adds would pass `/api/convert` and then fail validation on `/api/save` as a `400` |
 | [budgetRoutes.js:235](../server/routes/budgetRoutes.js#L235) | `GET /budget/fetchBudgets` is a comment, not a handler. Listing a user's budgets is served by `/expense/fetchBudgets`, which returns only the four fields its trip select reads |
 | [budgetRoutes.js:556](../server/routes/budgetRoutes.js#L556) | `DELETE /budget/deleteBudget/:id` is a comment, not a handler, so a budget cannot be removed. [BudgetList.js](../client/src/components/BudgetList.js#L447) already records the path |
