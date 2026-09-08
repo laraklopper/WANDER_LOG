@@ -118,36 +118,28 @@ export default function AddExpenseForm(//Export the AddExpenseForm.js component
   );
 
   //========== VALUE VALIDATION ====================
-  /* An expense of nothing is not an expense, and a negative one is a refund, so
-  the amount has to be a positive number. The number input's own min stops the
-  spinner going below 0.01, but a typed value still reaches state */
+//Ensure that the amount is valid
   const amountInvalid = useMemo(() => {
     if (amountEmpty) return false;
     const amount = Number(newExpenseData.amount);
     return Number.isNaN(amount) || amount <= 0;
   }, [amountEmpty, newExpenseData.amount]);
 
-  /* An expense records money that has already been spent, so its date cannot be
-  after today. The max attribute stops the picker offering one, and this catches
-  a date typed straight into the field */
+  // Ensure the date is not a future date
   const dateInFuture = useMemo(
     () => !dateEmpty && String(newExpenseData.date) > today,
     [dateEmpty, newExpenseData.date, today]
   );
 
-  /* An expense is embedded in a budget, so there is nothing to add one to until
-  a trip has one. Checked once the budgets have finished loading, so an empty
-  list mid request is not reported as no budgets */
   const noBudgets = !loadingBudgets && budgets.length === 0;
 
-  /* The budget of the selected trip, for the note under the currency select.
-  Its baseCurrency is what the amount is converted into and totalled in */
+  // The budget of the selected trip
   const selectedBudget = useMemo(
-    () => budgets.find((budget) => String(budget.tripId) === String(newExpenseData.tripId)),
+    () => budgets.find((budget) => 
+      String(budget.tripId) === String(newExpenseData.tripId)),
     [budgets, newExpenseData.tripId]
   );
-  /* Only worth mentioning when the two differ: an expense already in the base
-  currency is stored as it was paid, with no conversion at all */
+
   const showConversionNote = Boolean(
     selectedBudget?.baseCurrency &&
     newExpenseData.currency &&
@@ -304,9 +296,7 @@ export default function AddExpenseForm(//Export the AddExpenseForm.js component
   const describedBy = (...ids) => ids.filter(Boolean).join(' ') || undefined;
 
   /* The server returns its errors keyed by field name. An embedded expense is
-  keyed by its position in the parent, for example 'expenses.3.amount', and the
-  route strips that prefix before it answers, so the keys here are the plain
-  field names the inputs are named by */
+  keyed by its position in the parent*/
   const serverErrors = Object.entries(fieldErrors || {});
   const hasServerError = (path) => Boolean(fieldErrors?.[path]);
 
@@ -322,15 +312,13 @@ export default function AddExpenseForm(//Export the AddExpenseForm.js component
         <div id='addExp-group1'>
         {/* STACK 1 */}
             <Stack gap={3} id='addExpenseStack1'>
-            {/* USERNAME (READ ONLY)*/}
+            {/* USERNAME (READ ONLY): value={`${currentUser?.username || 'USERNAME'}`}*/}
       <div className="p-2" id='addExp-Block1'>
       <div id='expense-inputDiv1'>
           <div className='addExp-input-div'>
             <label className='addExp-label' htmlFor='newExpenseUsername'>USERNAME:</label>
             <div className='input-div'>
-              {/* Read only, and never submitted: the API takes the owner from
-              the token and reads the username from the account, so this is only
-              here to confirm who the expense is being logged for */}
+              {/* Read only*/}
               <input
                 className='input'
                 id='newExpenseUsername'
@@ -343,7 +331,7 @@ export default function AddExpenseForm(//Export the AddExpenseForm.js component
               <small><Asterisk color='#C22419' fontWeight={700} size={12} aria-hidden='true' focusable='false' /></small>
             </div>
           </div>
-          {/* TRIP */}
+          {/* TRIP: value={newExpenseData.tripId || ''} */}
           <div className='addExp-input-div'>
             <label className='addExp-label' htmlFor='newExpenseTrip'>TRIP:</label>
             <div className='input-div'>
@@ -388,7 +376,6 @@ export default function AddExpenseForm(//Export the AddExpenseForm.js component
                 <p id={tripErrorId} className='visually-hidden' role='alert'>Trip is required.</p>
               )}
             </div>
-
           </div>
           </div>
           {/* NO BUDGETS MESSAGE, shown on screen because the select has nothing
@@ -401,9 +388,8 @@ export default function AddExpenseForm(//Export the AddExpenseForm.js component
             </p>
           )}
           </div>
-
       </div>
-      {/* TITLE */}
+      {/* TITLE: value={newExpenseData.title || ''} */}
       <div className="p-2" id='addExp-Title-block'>
         <label className='addExp-label' htmlFor='newExpenseTitle'>TITLE:</label>
         <div>
@@ -441,7 +427,7 @@ export default function AddExpenseForm(//Export the AddExpenseForm.js component
         {/* STACK 2 */}
           <Stack gap={3} id='addExpenseStack2'>
       <div className="p-2" id='addExp-Finance-block1'>
-      {/* AMOUNT */}
+      {/* AMOUNT: value={newExpenseData.amount ?? ''} */}
       <div className='addExp-input-div'>
 <label className='addExp-label' htmlFor='newExpenseAmount'>AMOUNT:</label>
 <div className='input-div'>
@@ -473,7 +459,7 @@ export default function AddExpenseForm(//Export the AddExpenseForm.js component
           <p id={amountErrorId} className='visually-hidden' role='alert'>Amount is required.</p>
         )}
       </div>
-      {/* PAYMENT METHOD */}
+      {/* PAYMENT METHOD: value={newExpenseData.paymentMethod || ''} */}
         <div className='addExp-input-div'>
           <label className='addExp-label' htmlFor='newExpensePaymentMethod'>PAYMENT METHOD:</label>
           <div className='input-div'>
@@ -518,7 +504,7 @@ export default function AddExpenseForm(//Export the AddExpenseForm.js component
         </p>
       )}
       <div className="p-2" id='addExp-Finance-block2'>
-      {/* CURRENCY */}
+      {/* CURRENCY: value={newExpenseData.currency || ''} */}
         <div className='addExp-input-div'>
           <label className='addExp-label' htmlFor='newExpenseCurrency'>CURRENCY:</label>
           <div className='input-div'>
@@ -541,9 +527,10 @@ export default function AddExpenseForm(//Export the AddExpenseForm.js component
             )}
             >
             {/* MAP ALL CURRENCIES AVAILABLE IN THE CURRENCIES ARRAY
-            WITH SELECT AS THE PLACEHOLDER. Labelled 'CODE - Name' by
-            currencyOptionLabel, the same as the converter's dropdowns */}
+            WITH SELECT AS THE PLACEHOLDER. */}
               <option value=''>SELECT</option>
+              {/* Labelled 'CODE - Name' by currencyOptionLabel, the same 
+              as the converter's dropdowns  */}
               {currencyOptions.map(({ code, name }) => (
                 <option key={code} value={code}>{currencyOptionLabel(code, name)}</option>
               ))}
@@ -555,7 +542,7 @@ export default function AddExpenseForm(//Export the AddExpenseForm.js component
             )}
           </div>
         </div>
-        {/* EXPENSE CATEGORY */}
+        {/* EXPENSE CATEGORY: value={newExpenseData.category || ''} */}
          <div className='addExp-input-div'>
             <label className='addExp-label' htmlFor='newExpenseCategory'>EXPENSE CATEGORY:</label>
 <div className='input-div'>
@@ -577,9 +564,10 @@ export default function AddExpenseForm(//Export the AddExpenseForm.js component
             )}
             >
             {/* MAP ALL CATEGORIES IN THE THE EXPENSE_CATEGORIES ARRAY
-            WITH SELECT AS THE PLACEHOLDER. The key is what is stored, and is
-            also the key of the matching limit on the parent budget */}
+            WITH SELECT AS THE PLACEHOLDER.*/}
               <option value=''>SELECT</option>
+              {/*  The key is what is stored, and is also the key of the 
+              matching limit on the parent budget  */}
               {EXPENSE_CATEGORIES.map(({ key, label }) => (
                 <option key={key} value={key}>{label}</option>
               ))}
@@ -608,6 +596,7 @@ export default function AddExpenseForm(//Export the AddExpenseForm.js component
         <div id='addExp-group3'>
            <Stack gap={3} id='addExpenseStack3'>
       <div className="p-2" id='addExp-Notes-Block'>
+      {/* OPTIONAL EXPENSE NOTES:  value={newExpenseData.notes || ''} */}
       <div className='addExp-input-div'>
       <label className='addExp-label' htmlFor='newExpenseNotes'>NOTES:</label>
         <div className='input-div'>
@@ -632,13 +621,11 @@ export default function AddExpenseForm(//Export the AddExpenseForm.js component
       </div>
       </div>
       <div className="p-2" >
-{/* IS PAID */}
+{/* IS PAID: checked={Boolean(newExpenseData.isPaid)} */}
         <div className='addExp-input-div'>
           <label className='addExp-label' htmlFor='newExpenseIsPaid'>IS PAID:</label>
           <div className='input-div'>
-            {/* Ticked by default, matching the schema. Unticking it records a
-            committed but unsettled cost, such as an unpaid deposit, which is
-            still counted against the budget */}
+            {/* Ticked by default */}
             <input
               type='checkbox'
               id='newExpenseIsPaid'
@@ -652,10 +639,11 @@ export default function AddExpenseForm(//Export the AddExpenseForm.js component
           <small id={isPaidHelpId} className='infoText'>UNTICK FOR A COST OWED BUT NOT YET PAID</small>
         </div>
       </div>
-
     </Stack>
+    {/* STACK */}
     <Stack direction="horizontal" gap={3} id='addExp-dateStack'>
-      {/* DATE: CANNOT BE IN THE FUTURE */}
+      {/* DATE: CANNOT BE IN THE FUTURE 
+      value={newExpenseData.date || ''} */}
       <div className="p-2" id='addExp-date-block'>
         <label className='addExp-label' htmlFor='newExpenseDate'>DATE:</label>
         <div className='input-div'>
@@ -669,6 +657,7 @@ export default function AddExpenseForm(//Export the AddExpenseForm.js component
             max={today}
             name='date'
             value={newExpenseData.date || ''}
+            // EVENT HANDLERS:
             onChange={handleInputChange}
             onFocus={() => setDateMessage(true)}
             onBlur={() => {
@@ -689,12 +678,12 @@ export default function AddExpenseForm(//Export the AddExpenseForm.js component
           />
           <small><Asterisk color='#C22419' fontWeight={700} size={12} aria-hidden='true' focusable='false' /></small>
           {/* DATE ERROR MESSAGE */}
+          {/* Screen reader error message to ensure expense date is added */}
           {showDateError && (
             <p id={dateErrorId} className='visually-hidden' role='alert'>Expense date is required.</p>
           )}
         </div>
-        {/* The rule the max attribute enforces, reported on screen for a date
-        that was typed rather than picked */}
+        {/* Ensure that the expense date is not in the future */}
         {showDateInFutureError && (
           <p id={dateInFutureErrorId} className='formErrorMessage' role='alert'>
             <Bug size={16} fontWeight={900} aria-hidden='true' focusable='false' />
@@ -709,7 +698,6 @@ export default function AddExpenseForm(//Export the AddExpenseForm.js component
           </div>
         )}
     </Stack>
-
         </div>
       </div>
       {/* END OF INPUT */}
@@ -722,9 +710,7 @@ export default function AddExpenseForm(//Export the AddExpenseForm.js component
           </p>
         </div>
       )}
-      {/* SERVER SIDE FIELD ERRORS, returned when the API rejects the expense.
-      These are rules the browser cannot check on its own, so they can only be
-      reported after a round trip */}
+      {/* SERVER SIDE FIELD ERRORS */}
       {serverErrors.length > 0 && (
         <div id={serverErrorId} className='formErrorBlock' role='alert' aria-live='assertive'>
           {serverErrors.map(([field, message]) => (
@@ -745,15 +731,16 @@ export default function AddExpenseForm(//Export the AddExpenseForm.js component
                 </p>
               </div>
             <div className="p-2 ms-auto">
+            {/* Button to submit form */}
               <Button
                 id='addExpBtn'
                 type='submit'
                 variant='light'
-                // Disabled while the request runs, so the expense cannot be added twice
-                disabled={submitDisabled}
+                disabled={submitDisabled}// Disabled while the request runs, so the expense cannot be added twice
                 // ARIA ATTRIBUTES:
+                role='button'
                 aria-label={submitting ? 'Adding expense, please wait' : 'Add expense'}
-                aria-disabled={submitDisabled}
+                aria-disabled={submitDisabled}// Disabled while the request runs, so the expense cannot be added twice
                 aria-busy={submitting}
                 aria-describedby={describedBy(
                   formError && formErrorId,
@@ -765,23 +752,21 @@ export default function AddExpenseForm(//Export the AddExpenseForm.js component
               </Button>
             </div>
             <div className="p-2">
+            {/* Button to clear addExpenseForm */}
               <Button
                 variant='danger'
                 id='clearFormBtn'
                 type='button'
-                disabled={submitting}
+                disabled={submitting}// Disabled while the request runs
                 onClick={handleClear}
                 // ARIA ATTRIBUTES:
                 aria-label='Clear add expense form'
-                aria-disabled={submitting}
+                aria-disabled={submitting}// Disabled while the request runs
                 >
                   CLEAR
                 </Button>
             </div>
           </Stack>
-
-
-
       </div>
     </form>
   )
