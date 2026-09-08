@@ -1,6 +1,5 @@
 /* Profile.css
-Profile.js
-*/
+Profile.js*/
 /* ==============
 SECTION 1: USER PROFILE + EDIT PROFILE FORMS
 =========*/
@@ -28,87 +27,12 @@ LAYOUT
    margin: 0px;
    padding: 10px 5px;
 }
-#edit-profile-panal,
-#edit-password-panal{  
+#userProfile{
     width: 100%;
-    display: flex;
-    justify-content: center;
-    margin: 0px;
-    padding: 0px;
+    padding: 10px 5px;
 }
-#edit-pswd-div{
-    background-color: #9E9E9E;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    margin: 0px;
-    padding: 0px;
-}
+/* BOOTSTRAP */
 /* GRID: https://react-bootstrap.netlify.app/docs/layout/grid */
-#toggleEditProfileRow{
-    display: flex;
-    width: 100%;
-    margin: 0px;
-    padding: 0px;
-}
-#toggleEditProfileCol{
-    margin: 0px;
-    padding: 0px;
-    display: flex;
-    justify-content: center;
-}
-#toggleEditProfileCol1,
-#toggleEditProfileCol2{
-    margin: 0px;
-    padding: 0px;
-}
-#edit-profile-row{
-    display: flex;
-    width: 100%;
-    margin: 0px;
-    padding: 0px;
-}
-#edit-profile-col{
-    margin: 0px;
-    padding: 0px;
-    display: flex;
-    justify-content: center;
-}
-#edit-profile-col1,
-#edit-profile-col2{
-    margin: 0px;
-    padding: 0px;
-}
-#edit-password-row{
-      display: flex;
-    flex-direction: column;
-    width: 100%;
-    margin: 0px;
-    padding: 0px;
-    align-items: center;
-}
-#edit-password-col{
-    margin: 0px;
-    padding: 0px;
-    display: flex;
-    justify-content: center;
-}
-#edit-password-col1,
-#edit-password-col2{
-    margin: 0px;
-    padding: 0px;
-}
-#profileSection{
-          flex-direction: column;
-    width: 100%;
-   background-color: #608021;
-   height: 100%;
-   display: flex;
-   justify-content: center;
-   align-items: center;
-   margin: 10px 0px 10px 0px;
-   padding: 0px;
-}
 #profileRow{
     width: 100%;
     margin: 0px;
@@ -119,16 +43,10 @@ LAYOUT
     margin: 0px;
     padding: 0px;
 }
-#userProfile{
-    width: 100%;
-    padding: 10px 5px;
-}
-#userProfileHeader,
-#userProfileFooter{
-    width: 100%;
-    margin: 0px;
-    padding: 0px;
-}
+/* USER DETAILS PANEL: the label and value classes the rows themselves are
+built from live in DetailsPanal.css, so only the panel's own layout is set here
+=========*/
+/* USER PROFILE */
 /* Bordered off from the green section behind it, so the details read as one
 panel. Matches the trip details panel on the travel log */
 #user-Profile-panal{
@@ -142,16 +60,118 @@ panel. Matches the trip details panel on the travel log */
     border: solid 2px #323A42;
     background-color: #D6D6D6;
 }
-/* TOGGLE EDIT PROFILE FORMS STACK:
-https://react-bootstrap.netlify.app/docs/layout/stack
-*/
-#toggleEditProfileFormsStack{
+#userProfileHeader{
     width: 100%;
     margin: 0px;
     padding: 0px;
+    border-bottom: solid 2px #000;
+}
+#userProfileFooter{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+    border-top: solid 2px #000;
+}
+
+
+/* DETAILS HEADER/FOOTER STACK: https://react-bootstrap.netlify.app/docs/layout/stack*/
+#userProfileHeadStack,
+#userProfileFooterStack{
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: baseline;
+    flex-direction: row;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+/* HEADINGS */
+/* The name the panel is headed with, and the handle beside it */
+#profileHeaderName,
+#profileHeaderUsername{
+    font-family: "Fira Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0px;
+    padding: 0px;
+}
+#profileHeaderName{
+    font-weight: 700;
+}
+#profileHeaderUsername{
+    font-weight: 400;
+    letter-spacing: 2px;
+}
+#userProfileBody{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+/* DETAILS 
+ The two rows of detail blocks. align-items: flex-start keeps a block holding
+one row from stretching to the height of the one beside it holding four */
+
+
+/* DETAILS STACK1: https://react-bootstrap.netlify.app/docs/layout/stack*/
+#userProfileStack1{
+    display: flex;
+    align-items: baseline;
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+}
+
+#profileBodyBlock2{
+    display: flex;
+    align-items: baseline;
+    width: 100%;
+}
+/* DETAILS STACK2 +3: https://react-bootstrap.netlify.app/docs/layout/stack*/
+#userProfileStack2,
+#userProfileStack3{
+    display: flex;
+    width: 50%;
+    flex-direction: column;
+    align-items: flex-start;
+    margin: 0px;
+    padding: 0px;
+}
+#profileEmailBlock,
+#profileAddressBlock,
+#profileDOBBlock,
+#profileAdminBlock{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0px;
+}
+
+/* Each block is given an equal share of its row, so the two rows line their
+columns up with one another rather than each sizing to its own content */
+#profileNameBlock,
+#profilePictureBlock{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1 1 0;
+    min-width: 0px;
+}
+/* The picture sits at the end of its row, so it is pushed to the right edge
+rather than left against the block beside it */
+#profilePictureBlock{
+    align-items: flex-end;
+}
+#profileAvatar{
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border: solid 2px #323A42;
+}
+/* The address rows are already stacked by .nested-details-group, so this only
+holds them clear of the label they sit under */
+#userProfileAddress{
+    padding: 0px 0px 0px 5px;
 }
 /* =====================
 BUTTONS: https://react-bootstrap.netlify.app/docs/components/buttons
@@ -188,13 +208,7 @@ is marked by the aria-expanded rules below */
 /* THE OPEN FORM'S BUTTON: selected on the aria-expanded Profile.js already sets
 from showEditProfileForm and showEditPswdForm, rather than on :active, which only
 lasts while the mouse button is held down and so left the open form unmarked as
-soon as the button was released. Reading the same attribute the screen reader
-does keeps the two from disagreeing, and no second class is needed to carry it.
-Compounded with the id so it outranks the .btn-light rules Bootstrap applies to
-the same buttons. Marked by more than colour alone - the border thickens and the
-label is underlined - so the open form is still visible to a user who cannot
-tell the two backgrounds apart. The buttons are sized in border-box, so the
-thicker border does not shift the row */
+soon as the button was released. */
 #editUserToggleBtn[aria-expanded="true"],
 #editPswdToggleBtn[aria-expanded="true"]{
     background-color: #323A42;
@@ -209,91 +223,74 @@ towards the closed look, which would read as though the form had closed */
     background-color: #1F2529;
     color: #E8F0F6;
 }
-/* USER PROFILE */
-#userProfileHeader{
-    width: 100%;
-    margin: 0px;
-    padding: 0px;
-    border-bottom: solid 2px #000;
+/* ====================
+SECTION 2: EditUser.js + EditPasswordForm.js
+==========*/
+.section2{
+  display: flex;
+   justify-content: center;
+   align-items: center;
+  background-color: #7BA428;
+  width: 100%;
+  margin: 10px 0px 10px 0px;
+  padding: 0px;
 }
-#userProfileFooter{
+/* ==================
+LAYOUT
+===========*/
+/* FORMS */
+#edit-profile-panal,
+#edit-password-panal{  
     width: 100%;
-    margin: 0px;
-    padding: 0px;
-    border-top: solid 2px #000;
-}
-/* USER DETAILS PANEL: the label and value classes the rows themselves are
-built from live in DetailsPanal.css, so only the panel's own layout is set here
-=========*/
-#userProfileHeadStack,
-#userProfileFooterStack{
     display: flex;
-    flex-direction: row;
+    justify-content: center;
+    margin: 0px;
+    padding: 10px 0px;
+}
+#editUserDiv,
+#edit-pswd-div{
+    background-color: #9E9E9E;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin: 0px;
+    padding: 10px;
+}
+/* GRID: https://react-bootstrap.netlify.app/docs/layout/grid */
+#edit-profile-row{
+    display: flex;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#edit-profile-col{
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+    justify-content: center;
+}
+#edit-profile-col1,
+#edit-profile-col2{
+    margin: 0px;
+    padding: 0px;
+}
+#edit-password-row{
+      display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
     align-items: center;
-    width: 100%;
+}
+#edit-password-col{
     margin: 0px;
     padding: 0px;
-}
-/* The name the panel is headed with, and the handle beside it */
-#profileHeaderName,
-#profileHeaderUsername{
-    font-family: "Fira Mono", monospace;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin: 0px;
-    padding: 0px;
-}
-#profileHeaderName{
-    font-weight: 700;
-}
-#profileHeaderUsername{
-    font-weight: 400;
-}
-#userProfileBody{
     display: flex;
-    flex-direction: column;
-    width: 100%;
+    justify-content: center;
+}
+#edit-password-col1,
+#edit-password-col2{
     margin: 0px;
     padding: 0px;
 }
-/* The two rows of detail blocks. align-items: flex-start keeps a block holding
-one row from stretching to the height of the one beside it holding four */
-#userProfileStack1,
-#userProfileStack2{
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    width: 100%;
-    margin: 0px;
-    padding: 0px;
-}
-/* Each block is given an equal share of its row, so the two rows line their
-columns up with one another rather than each sizing to its own content */
-#profileNameBlock,
-#profileEmailBlock,
-#profilePictureBlock,
-#profileAddressBlock,
-#profileDOBBlock,
-#profileAdminBlock{
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    flex: 1 1 0;
-    min-width: 0px;
-}
-/* The picture sits at the end of its row, so it is pushed to the right edge
-rather than left against the block beside it */
-#profilePictureBlock{
-    align-items: flex-end;
-}
-#profileAvatar{
-    width: 120px;
-    height: 120px;
-    object-fit: cover;
-    border: solid 2px #323A42;
-}
-/* The address rows are already stacked by .nested-details-group, so this only
-holds them clear of the label they sit under */
-#userProfileAddress{
-    padding: 0px 0px 0px 5px;
-}
+

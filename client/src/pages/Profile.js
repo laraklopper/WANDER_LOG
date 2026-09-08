@@ -176,10 +176,16 @@ export default function Profile(//Export the default Profile.js function compone
     {/* Render the Header.js function component with 'PROFILE' as the pageHeader */}
       <Header currentUser={currentUser} heading={'PROFILE'}/>
       {/* --------------
-       SECTION 1: USER DETAILS AND EDIT USER + EDIT PASSWORD FORM
+       SECTION 1: USER DETAILS AND EDIT USERFORM + EDIT PASSWORD FORM TOGGLE BUTTONS
       -------- */}
-      <section id='profileSection'>
-      <div id='userProfile'>
+      <section id='profileSection1'>
+      {/* USER PROFILE */}
+      <div id='userProfile' aria-describedby='profileTitleLabel'>
+      {/* -------Screen Reader Description--------- */}
+      <div id='profileUserName' className='visually-hidden'>
+              <p id='profileTitleLabel'>{toFullName(currentUser?.fullName)} PROFILE</p>
+            </div>
+            {/* User Profile display */}
         <Row id='profileRow'>
         <Col id='profileCol'>
           <div id='user-Profile-panal'>
@@ -190,16 +196,17 @@ export default function Profile(//Export the default Profile.js function compone
         half of the name still reads as a name rather than as a stray space */}
         <h3 id='profileHeaderName'>{toFullName(currentUser?.fullName)}</h3>
       </div>
-      <div className="p-2 ms-auto">
+      <div className="p-2 ms-auto"/>
+      <div className="p-2">
         {/* USERNAME: repeated here as the handle the account is known by, so the
         panel names the user both ways the app addresses them */}
         <p id='profileHeaderUsername'>@{currentUser?.username || NOT_AVAILABLE}</p>
       </div>
-      <div className="p-2"></div>
+      
     </Stack>
             </div>
             <div id='userProfileBody'>
-             <Stack direction="horizontal" gap={3} id='userProfileStack1'>
+            <Stack direction="horizontal" gap={3} id='userProfileStack1'>
       <div className="p-2" id='profileNameBlock'>
           {/* USERNAME */}
         <div className='details-group'>
@@ -222,14 +229,7 @@ export default function Profile(//Export the default Profile.js function compone
           </div>
         </div>
       </div>
-      <div className="p-2" id='profileEmailBlock'>
-        {/* EMAIL: stored lowercased by the schema, so it is printed as it was
-        saved rather than forced back into upper case by a label class */}
-        <div className='details-group'>
-          <p className='details-label'>EMAIL:</p>
-          <p className='details-value'>{currentUser?.email || NOT_AVAILABLE}</p>
-        </div>
-      </div>
+      <div className="p-2 ms-auto"/>
       <div className="p-2" id='profilePictureBlock'>
          <div>
           {/* PROFILE PICTURE: left blank when the account carries none, and
@@ -248,8 +248,18 @@ export default function Profile(//Export the default Profile.js function compone
         </div>
       </div>
     </Stack>
-    <Stack direction="horizontal" gap={3} id='userProfileStack2'>
-      <div className="p-2" id='profileAddressBlock'>
+    <div id='profileBodyBlock2'>
+     <Stack direction="horizontal" gap={3} id='userProfileStack2'>
+      
+      <div className="p-2" id='profileEmailBlock'>
+        {/* EMAIL: stored lowercased by the schema, so it is printed as it was
+        saved rather than forced back into upper case by a label class */}
+        <div className='details-group'>
+          <p className='details-label'>EMAIL:</p>
+          <p className='details-value'>{currentUser?.email || NOT_AVAILABLE}</p>
+        </div>
+      </div>
+       <div className="p-2" id='profileAddressBlock'>
         <div className='details-group'>
           <span><p className='nested-details-label'>ADDRESS:</p></span>
           <div id='userProfileAddress' className='nested-details-group'>
@@ -277,6 +287,9 @@ export default function Profile(//Export the default Profile.js function compone
           </div>
         </div>
       </div>
+    </Stack>
+    <Stack gap={3} id='userProfileStack3'>
+     
      {/* DATE OF BIRTH: stored as a Date and arrives as an ISO string, so it is
      read through toLongDate rather than printed raw */}
       <div className="p-2" id='profileDOBBlock'>
@@ -295,6 +308,8 @@ export default function Profile(//Export the default Profile.js function compone
         </div>
       </div>
     </Stack>
+    </div>
+        
             </div>
             <div id='userProfileFooter'>
               <Stack direction="horizontal" gap={3} id="userProfileFooterStack">
@@ -317,6 +332,7 @@ export default function Profile(//Export the default Profile.js function compone
           </Button>
       </div>
       <div className="vr" />
+      {/* TOGGLE EDIT PASSWORD FORM BUTTON */}
       <div className="p-2">
           <Button 
           variant="light" 
@@ -325,9 +341,9 @@ export default function Profile(//Export the default Profile.js function compone
           type="button"
           // ARIA ATTRIBUTES
           aria-expanded={showEditPswdForm}
-          aria-controls="edit-password-panal"
+          aria-controls="editPswdSection"
           aria-label={showEditPswdForm ? 'Close Edit Password Form' : 'Edit Password'}
-          aria-describedby="edit-password-panal"
+          aria-describedby="editPswdSection"
           aria-pressed={showEditPswdForm}
           >
           {showEditPswdForm ? 'Close Form' : 'Edit Password'}
@@ -338,34 +354,19 @@ export default function Profile(//Export the default Profile.js function compone
           </div>
         </Col>
       </Row>
-
       </div>
-
       </section>
-      <section id='profileSection1'>
-      
-        <div id='profileSection1Content' aria-describedby='profileText'>
-          <Row id='toggleEditProfileRow'>
-        <Col id='toggleEditProfileCol1'/>
-        <Col xs={5} id='toggleEditProfileCol'>
-          <Stack gap={3} id='toggleEditProfileFormsStack'>
-          
-      <div className="p-2"></div>
-      {/* TOGGLE EDIT PASSWORD FORM BUTTON */}
-      <div className="p-2">
-      
-      </div>
-    </Stack>
-        </Col>
-        <Col id='toggleEditProfileCol2'/>
-      </Row>
-        </div>
+      {/* ----------------------
+      SECTION 2: EditUserForm, EditPasswordForm
+      ----------- */}
         {/* TOGGLE THE EDIT USER FORM (EditUserForm.js) */}
         {showEditProfileForm && (
-          <div id='edit-profile-panal'>
+          <section id='editProfileSection' className='section2'>
+          <div id='edit-profile-panal'> 
             <Row id='edit-profile-row'>
               <Col id='edit-profile-col1'/>
               <Col md={10} id='edit-profile-col'>
+              <div id='editUserDiv'>
                 <EditUserForm
                   currentUser={currentUser}
                   editUser={editUser}
@@ -374,13 +375,16 @@ export default function Profile(//Export the default Profile.js function compone
                   submitting={submitting}
                   fieldErrors={fieldErrors}
                 />
+                </div>
               </Col>
               <Col id='edit-profile-col2'/>
             </Row>
           </div>
+          </section>
         )}
         {/* TOGGLE THE EDITPASSWORD FORM(EditPassword.js) */}
         {showEditPswdForm && (
+          <section id='editPswdSection' className='section2'>
           <div id='edit-password-panal'>
             <Row id='edit-password-row'>
               <Col id='edit-password-col1'/>
@@ -395,8 +399,9 @@ export default function Profile(//Export the default Profile.js function compone
               <Col id='edit-password-col2'/>
             </Row>
           </div>
+          </section>
         )}
-      </section>
+     {/* ==========FOOTER ================*/}
       <Footer logout={logout}/>
     </div>
   )

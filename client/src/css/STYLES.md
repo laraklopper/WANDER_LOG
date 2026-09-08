@@ -234,6 +234,24 @@ padding: 0px;
     color: #E8F0F6;
     background-color: #323A42;
 }
+/* ACTIVE */
+/* THE OPEN FORM'S BUTTON: selected on the aria-expanded Profile.js already sets
+from showEditProfileForm and showEditPswdForm, rather than on :active, which only
+lasts while the mouse button is held down and so left the open form unmarked as
+soon as the button was released. Reading the same attribute the screen reader
+does keeps the two from disagreeing, and no second class is needed to carry it.
+Compounded with the id so it outranks the .btn-light rules Bootstrap applies to
+the same buttons. Marked by more than colour alone - the border thickens and the
+label is underlined - so the open form is still visible to a user who cannot
+tell the two backgrounds apart. The buttons are sized in border-box, so the
+thicker border does not shift the row */
+#editUserToggleBtn[aria-expanded="true"],
+#editPswdToggleBtn[aria-expanded="true"]{
+    background-color: #323A42;
+    color: #E8F0F6;
+    border: solid 3px #000;
+    text-decoration: underline;
+}
 ```
 ---
 ## 2. BOOTSTRAP
@@ -374,3 +392,4 @@ export default App;
 - https://www.w3schools.com/colors/colors_groups.asp
 - https://www.w3schools.com/tags/ref_byfunc.asp
 - https://www.w3schools.com/css/css_link.asp
+- https://www.w3schools.com/css/css3_buttons.asp
