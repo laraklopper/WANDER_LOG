@@ -9,14 +9,18 @@
 all routes require JWT Auth
 
 One budget document per trip (see section 6 of Documents/SCHEMAS.md), with that
-trip's expenses embedded in it. So the two routes written here are what the whole
+trip's expenses embedded in it. So the routes written here are what the whole
 expense chain waits on: a trip with no budget has nowhere to put an expense,
 which is why POST /expense/addExpense answers 404 for one and why the add expense
 form's trip select is filled from the budgets rather than from the trips.
 
-Both routes save through the document rather than with findOneAndUpdate, because
+Both writes save through the document rather than with findOneAndUpdate, because
 the schema's pre('save') hook is what works out dailyBudget from the trip's dates
 when it has been left blank, and an update query would not run it.
+
+The delete is the other side of that embedding: an expense is a sub-document of
+its trip's budget rather than a document of its own, so removing a budget removes
+every expense on that trip with it, in the same write and with nothing orphaned.
 */
 
 /* Load environment variables from a .env
@@ -553,7 +557,86 @@ router.patch('/editBudget/:id', checkJwtToken, async (req, res) => {
 /*──────────────────────────── DELETE ROUTES ────────────────────────────────────
    DELETE: Used to remove an item from the database
 ────────────────────────────────────────────────────────────────────────────────*/
-// budget/deleteBudget/:id - delete a budget, and the expenses embedded in it
+/*=====================================
+DELETE A BUDGET`
+=======================================*/
+/* budget/deleteBudget/:id - Removes one of the logged in user's trip budgets,
+and the expenses embedded in it.
+
+The budget is matched on its id and the owner in a SINGLE query rather than being
+fetched and then checked over, so another account's budget behaves exactly like
+one that does not exist: an id cannot be guessed at to find out whether it is
+someone else's, and a missing one is reported as a 404 either way.
+
+**The expenses go with it.** An expense is not a model of its own — it is a
+sub-document of the budget of its trip (see section 6.1 of Documents/SCHEMAS.md)
+— so removing the parent document removes every expense filed against that trip
+in the same write, with nothing left orphaned behind it. That is not a side
+effect to be worked around but the only shape a delete can take here, so the
+count that went with it is returned for the client to say so.
+
+The trip itself is left alone. A budget belongs to a trip, not the other way
+round, so the trip stays and can simply be given a new budget: POST /addBudget
+answers 409 only while one exists, and this is what clears that. Its stored
+hasBudget flag is not written either, the same as on the create — no route writes
+to it, and GET /trip/fetchTrips answers hasBudget off the caller's budgets rather
+than reading it, so the flag corrects itself the moment this delete lands. */
+router.delete('/deleteBudget/:id', checkJwtToken, async (req, res) => {
+    try {
+        const userId = req.user?.userId;
+
+        // Conditional rendering to check if userId is present
+        if (!userId) {
+            console.error('[ERROR: budgetRoutes.js, DELETE /deleteBudget/:id] userId missing from token');// Log an error message in the console for debugging purposes
+            return res.status(401).json({ success: false, message: 'Unauthorized' });// Respond with a 401 (Unauthorised) status code
+        }
+
+        const budgetId = String(req.params.id ?? '').trim();
+
+        /* Checked before the budget is looked up, so a malformed id is reported
+        as a 400 rather than reaching Mongoose as a CastError and being reported
+        as a 500 */
+        if (!mongoose.Types.ObjectId.isValid(budgetId)) {
+            console.warn('[WARN: budgetRoutes.js, DELETE /deleteBudget/:id] Invalid budget id', budgetId);// Log a warning message in the console for debugging purposes
+            return res.status(400).json({ success: false, message: 'That budget id is not valid' });// Respond with a 400 (Bad Request) status code
+        }
+
+        /* Matched on the budget and the owner together, so another account's
+        budget is not found at all rather than found and then deleted. The
+        removed document is returned, which is what the expense count below is
+        read off — after this write there is nothing left to count them from */
+        const budget = await Budget.findOneAndDelete({ _id: budgetId, userId }).exec();
+
+        /* Conditional rendering to check a budget was actually removed. Covers
+        both a budget that does not exist and one on another account */
+        if (!budget) {
+            console.warn('[WARN: budgetRoutes.js, DELETE /deleteBudget/:id] No budget found for id', budgetId, 'and user', userId);// Log a warning message in the console for debugging purposes
+            return res.status(404).json({ success: false, message: 'That budget could not be found on your account' });// Respond with a 404 (Not Found) status code
+        }
+
+        // The expenses that were embedded in it, and so were removed with it
+        const removedExpenses = budget.expenses?.length ?? 0;
+
+        console.log('[SUCCESS: budgetRoutes.js, DELETE /deleteBudget/:id] Deleted budget', budgetId, 'for trip', String(budget.tripId), 'with', removedExpenses, 'expense(s)');// Log a success message in the console for debugging purposes
+        return res.status(200).json({
+            success: true,
+            /* Names the expenses that went with it rather than reporting the
+            budget alone, because the page's expense list is filled from the
+            budgets and would otherwise appear to lose rows unexplained */
+            message: removedExpenses
+                ? `Budget deleted successfully, along with the ${removedExpenses} expense${removedExpenses === 1 ? '' : 's'} logged against it.`
+                : 'Budget deleted successfully.',
+            /* Returned so the client can drop the row and reopen the trip to a
+            new budget without waiting on a refetch to learn which one went */
+            budgetId,
+            tripId: budget.tripId ?? null,
+            removedExpenses,
+        });// Respond with a 200 (OK) status code and what was removed
+    } catch (error) {
+        console.error('[ERROR: budgetRoutes.js, DELETE /deleteBudget/:id]', error.message);// Log an error message in the console for debugging purposes
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });// Respond with a 500 (Internal Server Error) status code
+    }
+})
 
 // ======EXPORT THE ROUTER==========
 module.exports = router;

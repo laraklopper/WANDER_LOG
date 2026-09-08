@@ -23,6 +23,11 @@ be filled from the row the way a trip's panel is. VIEW reads the whole budget ba
 by its id through `fetchBudget`, which is the same call the edit form is opened
 with - it is the only response that carries the category limits, the alerts and
 the totals worked out from the expenses.
+
+That read is also what the panel's DELETE confirms against: an expense is
+embedded in the budget of its trip rather than stored on its own, so removing a
+budget removes those expenses with it, and the count to warn about is only on the
+budget the panel was filled from.
 */
 
 export default function BudgetList(
@@ -36,6 +41,10 @@ export default function BudgetList(
         fetchBudget,
         // Opens the budget form as an edit against the budget as it is stored
         startBudgetEdit,
+        /* Removes one budget by its id and reports whether it actually went. An
+        expense is embedded in the budget of its trip, so the expenses filed
+        against that trip are removed with it */
+        deleteBudget,
         /* The trips, for the TRIP STATUS column: a budget row does not carry the
         status of the trip it was set for, that is stored on the trip itself */
         trips = [],
@@ -58,6 +67,10 @@ export default function BudgetList(
     list holds four fields and the panel reports on all of them */
     const [selectedBudget, setSelectedBudget] = useState(null)
     const [loadingDetails, setLoadingDetails] = useState(false)
+    /* The budget whose DELETE is in flight, held as an id rather than as a plain
+    boolean so the button reports itself busy for the budget it is actually
+    removing and not for whichever one the panel has since moved to */
+    const [deletingId, setDeletingId] = useState(null)
 
     /* The id of the read the panel is currently waiting on. Two VIEWs pressed in
     quick succession start two requests that can answer out of order, so a reply
@@ -117,6 +130,64 @@ export default function BudgetList(
         startBudgetEdit?.(selectedBudget._id)
     },[selectedBudget, startBudgetEdit])
 
+    /* Removes the budget the panel is showing.
+
+    Confirmed first, and the confirmation names the expenses that go with it: an
+    expense is embedded in the budget of its trip rather than stored on its own,
+    so this is the one delete on the page that takes other records with it and a
+    user pressing it for the budget alone would not expect that.
+
+    `deleteBudget` reports whether the budget actually went. On success Expenses.js
+    has already reloaded the lists, so the panel is closed here rather than left
+    to the row leaving the list — a refetch that failed would otherwise leave a
+    deleted budget on screen. On a failure it set the page error instead, and the
+    panel is deliberately left open on the budget that could not be removed, so
+    the message is read against it and the button can simply be pressed again. */
+    const handleDelete = useCallback(async () => {
+        const budgetId = selectedBudget?._id;
+
+        if (!budgetId) return;// Nothing on screen to delete
+        if (deletingId) return;// A delete is already running
+
+        // Counted off the budget the panel was filled from, expenses included
+        const expenseCount = Array.isArray(selectedBudget.expenses) ? selectedBudget.expenses.length : 0;
+
+        const confirmDelete = window.confirm(// Ask the user to confirm before the budget is removed
+            `Delete the budget for ${selectedBudget.tripTitle || 'this trip'}?${
+                expenseCount
+                    ? ` The ${expenseCount} expense${expenseCount === 1 ? '' : 's'} logged against it will be deleted with it.`
+                    : ''
+            } This cannot be undone.`
+        )
+
+        // Conditional rendering to check the user confirmed the delete
+        if (!confirmDelete) {
+            console.log('[INFO: BudgetList.js] Delete of budget', budgetId, 'was cancelled');
+            return;
+        }
+
+        setDeletingId(budgetId)
+
+        try {
+            const removed = await deleteBudget?.(budgetId)
+
+            // Conditional rendering to check the budget was actually removed
+            if (!removed) {
+                console.warn('[WARN: BudgetList.js] Budget', budgetId, 'was not deleted, the panel was left open on it');
+                return;
+            }
+
+            /* Cleared so a read still in flight for this budget is not shown on
+            arrival, the same as a CLOSE */
+            requestedIdRef.current = null
+            setSelectedId(null)
+            setSelectedBudget(null)
+            console.log('[SUCCESS: BudgetList.js] Deleted budget', budgetId);
+        } finally {
+            setDeletingId(null)
+        }
+    },[selectedBudget, deletingId, deleteBudget])
+
     //================DERIVED VALUES========================
     /* The number of expenses filed against each budget, keyed by budgetId. Built
     once per change rather than filtered inside the map, which would walk the
@@ -156,6 +227,10 @@ export default function BudgetList(
     },[budgets, selectedId, loadingBudgets, loadingDetails])
 
     //===============JSX RENDERING==============
+    /* Read as a boolean for the panel's own buttons: only one budget can be
+    open in it at a time, so the id itself is only needed by the request */
+    const isDeleting = Boolean(deletingId)
+
   return (
     <div id='budgetListDiv'>
        
@@ -234,12 +309,15 @@ export default function BudgetList(
                                         onClick={() => handleSelect(budgetId)}
                                         /* Blocked while the panel's own read is
                                         running, so a second press cannot start a
-                                        request that races the first */
-                                        disabled={loadingDetails}
+                                        request that races the first, and while a
+                                        delete is in flight, so the panel is not
+                                        moved onto another budget only to be
+                                        closed when that delete answers */
+                                        disabled={loadingDetails || isDeleting}
                                         // ARIA ATTRIBUTES:
                                         aria-label={`View the budget for ${tripTitle || 'this trip'}`}
                                         aria-pressed={String(budgetId) === String(selectedId)}
-                                        aria-disabled={loadingDetails}
+                                        aria-disabled={loadingDetails || isDeleting}
                                     >
                                         VIEW
                                     </Button>
@@ -295,10 +373,13 @@ export default function BudgetList(
             type='button'
             onClick={handleEdit}
             variant='warning'
-
+            /* Blocked while this budget's delete is running, so an edit cannot
+            be opened against a budget that is on its way out */
+            disabled={isDeleting}
             // ARIA ATTRIBUTES:
             aria-label={`Edit the budget for ${selectedBudget.tripTitle || 'this trip'}`}
             aria-controls='add-budget-panal'
+            aria-disabled={isDeleting}
             >
             EDIT
             </Button>
@@ -444,15 +525,23 @@ export default function BudgetList(
       <div className="p-2 ms-auto"></div>
       <div className="vr" />
       <div className="p-2">
-        {/* Left unwired: DELETE /budget/deleteBudget/:id is not written yet, so
-        there is nothing to send the selected budget's id to. A budget holds its
-        trip's expenses, so deleting one deletes those with it */}
+        {/* Sends the selected budget's id to DELETE /budget/deleteBudget/:id.
+        A budget holds its trip's expenses, so deleting one deletes those with
+        it — which is why handleDelete confirms first and names the count */}
         <Button
         variant='danger'
         id='deleteItemBtn'
         type='button'
-        // onClick={}
-        >DELETE</Button>
+        onClick={handleDelete}
+        /* Blocked while this delete is running, so a second press cannot send
+        the same id again and answer 404 for a budget that has already gone */
+        disabled={isDeleting}
+        // ARIA ATTRIBUTES:
+        aria-label={`Delete the budget for ${selectedBudget.tripTitle || 'this trip'}`}
+        aria-disabled={isDeleting}
+        >
+        {isDeleting ? 'DELETING...' : 'DELETE'}
+        </Button>
       </div>
     </Stack>
 

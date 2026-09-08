@@ -769,6 +769,96 @@ export default function Expenses(//Export default Expenses.js component
       console.log('[INFO: Expenses.js] Editing budget', budget._id)
     },[fetchBudget])
 
+    /* Sends one budget's id to DELETE /budget/deleteBudget/:id.
+    The route matches that id against the account on the token, so another user's
+    budget is reported as missing rather than removed.
+
+    An expense is embedded in the budget of its trip, so the expenses filed
+    against that trip go with it — which is why all three lists are reloaded
+    afterwards rather than only the budgets: the expense list loses the rows that
+    were on it, and each trip's hasBudget is answered off the caller's budgets, so
+    the trip that just lost one becomes available to the create select again.
+
+    Returns whether the budget actually went, so the list can close its details
+    panel on success and leave it open on the budget it failed to remove */
+    const deleteBudget = useCallback(async (budgetId) => {
+      // Conditional rendering to check a budget was identified
+      if (!budgetId) {
+        console.warn('[WARN: Expenses.js] No budget id given, cannot delete the budget');
+        return false;
+      }
+
+      const token = localStorage.getItem('token');
+      // Conditional rendering to check a session is still stored
+      if (!token) {
+        setError?.('Your session has expired. Please log in again.');
+        console.warn('[WARN: Expenses.js] No token stored, cannot delete the budget');
+        return false;
+      }
+
+      try {
+        setError?.(null)
+
+        const response = await fetch(`http://localhost:3001/budget/deleteBudget/${budgetId}`, {
+          method: 'DELETE',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        })
+
+        const data = await response.json().catch(() => ({}))
+
+        if (!response.ok) {
+          /* A 400 for a malformed id, a 404 for a budget that is not on this
+          account, and a 401 once the session has gone all arrive with their own
+          message, so it is reported as it was given */
+          const message = data?.message || response?.statusText || 'Could not delete the budget.';
+          setError?.(message)
+          console.error(`[ERROR: Expenses.js] Delete budget failed with status ${response.status}: ${message}`)
+          return false
+        }
+
+        /* Closed back to a create when the deleted budget is the one the form is
+        open on, so an edit cannot be submitted against a budget that is no
+        longer there — the PATCH would only answer 404. A form open on a
+        different budget, or on a new one, is left as it is */
+        if (String(editingBudget?._id) === String(budgetId)) {
+          setEditingBudget(null)
+          setNewBudgetData(EMPTY_BUDGET)
+          setBudgetFieldErrors({})
+          setBudgetFormError(null)
+          setShowAddBudget(false)
+          console.log('[INFO: Expenses.js] Closed the edit form, budget', budgetId, 'was deleted');
+        }
+
+        /* Awaited so the caller's delete stays busy until the refreshed lists
+        have arrived rather than only until the DELETE answered, and the row is
+        gone from the list by the time the button reports itself done */
+        await Promise.all([
+          /* The budget itself is gone, and this list is what both the budget
+          list and the add expense form's trip select are built from */
+          fetchBudgets(),
+          /* The expenses embedded in it went with it, so the list would
+          otherwise keep showing rows that are no longer stored */
+          fetchExpenses(),
+          /* hasBudget is answered off the caller's budgets, so the trip is
+          offered by the create select again once this has reloaded */
+          fetchTrips(),
+        ])
+
+        alert(data.message || 'Budget deleted successfully.')
+        console.log('[SUCCESS: Expenses.js] Budget deleted:', data.budgetId || budgetId, 'with', data.removedExpenses ?? 0, 'expense(s)')
+        return true
+      } catch (error) {
+        // Only a network level failure reaches here, a 4xx or 5xx is handled above
+        setError?.('Could not reach the server. Please check your connection and try again.')
+        console.error(`[ERROR: Expenses.js] Delete budget request failed: ${error.message}`)
+        return false
+      }
+    },[editingBudget, setError, fetchBudgets, fetchExpenses, fetchTrips])
+
     /* One budget per trip, so one form does both jobs and this is what the form
     submits to. Which request runs is decided by the same editingBudget the form
     reads its mode from, so the two cannot disagree */
@@ -907,6 +997,10 @@ export default function Expenses(//Export default Expenses.js component
                 its virtuals, for the list's details panel */
                 fetchBudget={fetchBudget}
                 startBudgetEdit={startBudgetEdit}
+                /* Removes one budget, and the expenses embedded in it, then
+                reloads all three lists. Reports whether it actually went, so
+                the list can close its details panel on success */
+                deleteBudget={deleteBudget}
                 /* A budget row does not carry the status of the trip it was set
                 for, that is stored on the trip itself */
                 trips={trips}
