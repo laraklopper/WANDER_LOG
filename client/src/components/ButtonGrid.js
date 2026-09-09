@@ -5,24 +5,23 @@ import '../css/componentCss/Buttons.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
 // IMPORT ICONS FROM LUCIDE-REACT
-import { Divide, 
-        Equal, 
-        Minus, 
-        X, 
-        Plus, 
-        Delete
-    } from 'lucide-react';
-export default function ButtonGrid({
+import { Divide, Equal, Minus, X, Plus, Delete} from 'lucide-react';
+
+// ButtonGrid function component
+export default function ButtonGrid(
+    {//PROPS PASSED FROM PARENT COMPONENT(Calculator.js)
     handleClear,
     handleClick,
     handleEquals, 
     handleBackspace
 }) {
+
+    // ==========JSX RENDERING==================
   return (
-    <div id='btnGrid'>
+    <div id='btnGrid' aria-labelledby='calculatorBtnGrid'>
         {/* ---------Screen Reader Heading----- */}
         <p className='visually-hidden' id='calculatorBtnGrid'>BUTTON GRID</p>
-       
+        {/* BUTTON STACK */}
          <Stack gap={3} id='buttonGridStack'>
             {/* --------LINE 1------------ */}
             <div className="p-2" id='line1'>
