@@ -4,23 +4,8 @@ import '../css/componentCss/FormSetup.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
 import { Asterisk, Bug, MapPin, Calendars  } from 'lucide-react';
+import { PURPOSES, DESTINATION_TYPES, STATUSES  } from '../data/tripData';
 
-/* The option values the API accepts, spelled the way tripSchema's enums store
-them. The labels are shown in upper case to match the rest of the form, while
-the value that is submitted stays in the schema's own casing */
-const PURPOSES = [
-  { value: 'Holiday', label: 'HOLIDAY' },
-  { value: 'Business', label: 'BUSINESS' },
-];
-const DESTINATION_TYPES = [
-  { value: 'Domestic', label: 'DOMESTIC' },
-  { value: 'International', label: 'INTERNATIONAL' },
-];
-const STATUSES = [
-  { value: 'upcoming', label: 'UPCOMING' },
-  { value: 'ongoing', label: 'ONGOING' },
-  { value: 'completed', label: 'COMPLETED' },
-];
 
 /* The empty form used by the clear button when the page does not supply one.
 Kept in sync with EMPTY_TRIP in pages/Journal.js, which is passed in as a prop.
@@ -149,14 +134,12 @@ export default function AddTripForm({
   const showEndDateError = touched.endDate && endDateEmpty;
   const showEndBeforeStartError = touched.endDate && endBeforeStart;
 
+  // Function to handle form input changes
   const handleInputChange = (event) => {
-    const { name, value } = event.target;
+    const { name, value } = event.target;// Extract the input name and value
 
     setFormError(null);// Any edit clears the form level error
 
-    /* The two nested objects are written by prefix rather than by a flat key, so
-    an input named 'destination.tripLocation' updates that field and leaves the
-    rest of the destination alone */
     if (name.startsWith('destination.')) {
       const [, field] = name.split('.');
       setNewTripData((prev) => ({

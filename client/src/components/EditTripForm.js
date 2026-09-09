@@ -12,30 +12,11 @@ import {  Bug, MapPin, Calendars  } from 'lucide-react';
 // IMPORT UTILITY FUNCTIONS
 import { toDateInputValue } from '../util/dateFunctions';
 import { NOT_AVAILABLE, toLongDate } from '../util/formatCalculations';
+import { PURPOSES, DESTINATION_TYPES, STATUSES } from '../data/tripData';
 
-/* The option values the API accepts, spelled the way tripSchema's enums store
-them. The labels are shown in upper case to match the rest of the form, while
-the value that is submitted stays in the schema's own casing. The same three
-lists AddTripForm.js offers, since an edit may set a trip to anything a new one
-could have been created as */
-const PURPOSES = [
-  { value: 'Holiday', label: 'HOLIDAY' },
-  { value: 'Business', label: 'BUSINESS' },
-];
-const DESTINATION_TYPES = [
-  { value: 'Domestic', label: 'DOMESTIC' },
-  { value: 'International', label: 'INTERNATIONAL' },
-];
-const STATUSES = [
-  { value: 'upcoming', label: 'UPCOMING' },
-  { value: 'ongoing', label: 'ONGOING' },
-  { value: 'completed', label: 'COMPLETED' },
-];
 
 /* The empty form used by the clear button when the page does not supply one.
-Kept in sync with EMPTY_TRIP_EDIT in pages/TravelLog.js, which is passed in as a
-prop. The two nested objects mirror the shape tripSchema stores, so a change does
-not have to be reassembled before it is sent */
+Kept in sync with EMPTY_TRIP_EDIT*/
 const BLANK_EDIT = {
   title: '',
   purpose: '',
@@ -51,19 +32,9 @@ const BLANK_EDIT = {
   status: '',
 };
 
-/* The travel log's edit trip form.
-The request lives on TravelLog.js, which owns the form state, and arrives here as
-`editTripData` with `editTrip` to submit it — the same arrangement AddTripForm.js
-has with the journal.
-
-Nothing on this form is required, because it submits a PATCH: an input left alone
-is not sent at all and the field keeps the value it is stored with. Every input
-therefore opens empty rather than filled with the trip, and says what is
-currently saved beside it — as a placeholder on a text field, as the label of the
-leave unchanged option on a select, and as a hint under a date. Filling one in is
-what asks for it to be changed. */
-export default function EditTripForm({
-    // The trip being edited, needed to say what each field currently holds
+//EditTripForm function component
+export default function EditTripForm(
+    {//PROPS PASSED FROM PARENT COMPONENT(TravelLog.js)
     trip,
     editTripData = BLANK_EDIT,
     setEditTripData,
@@ -91,16 +62,13 @@ export default function EditTripForm({
         setTouched((prev) => ({ ...prev, [field]: true }));
 
     //========== WHAT THE TRIP CURRENTLY HOLDS ====================
-    /* Read off the trip rather than out of the form, and shown beside each input
-    so the field can be left alone knowingly. The dates are stored as Dates and
-    arrive as ISO strings, so they are read through the two date helpers rather
-    than printed raw */
     const storedTitle = trip?.title || '';
     const storedPurpose = trip?.purpose || '';
     const storedType = trip?.destination?.destinationType || '';
     const storedLocation = trip?.destination?.tripLocation || '';
     const storedCountry = trip?.destination?.country || '';
     const storedStatus = trip?.status || '';
+    // The dates are stored as Dates and arrive as ISO strings
     const storedStartDate = toDateInputValue(trip?.date?.startDate, '');
     const storedEndDate = toDateInputValue(trip?.date?.endDate, '');
 
@@ -164,14 +132,13 @@ export default function EditTripForm({
     const showEndBeforeStartError = touched.endDate && endBeforeStart;
 
     //================EVENT HANDLERS========================
+    // Function to handle input changes in the form
     const handleInputChange = (event) => {
-        const { name, value } = event.target;
+        const { name, value } = event.target;// Extract the input name and value
 
         setFormError(null);// Any edit clears the form level error
 
-        /* The two nested objects are written by prefix rather than by a flat key,
-        so an input named 'destination.tripLocation' updates that field and leaves
-        the rest of the destination alone */
+        // Input change for the destination object
         if (name.startsWith('destination.')) {
             const [, field] = name.split('.');
             setEditTripData((prev) => ({
@@ -180,6 +147,7 @@ export default function EditTripForm({
             }));
             return;
         }
+        // Input change for the date object
         if (name.startsWith('date.')) {
             const [, field] = name.split('.');
             setEditTripData((prev) => ({
@@ -188,6 +156,7 @@ export default function EditTripForm({
             }));
             return;
         }
+        // Update the specific field that changed.
         setEditTripData((prev) => ({
             ...prev,
             [name]: value,
@@ -259,14 +228,14 @@ export default function EditTripForm({
         editTrip?.()
     }
 
+    // Function to clear trip
     const handleClear = () => {
         const confirmClear = window.confirm(// Ask the user to confirm before clearing all input fields
             "Are you sure you want to clear the form?"
         );
         if (!confirmClear) return;
-        /* Reset to the same empty shape the page initialised the form with, which
-        for this form means every field left as the trip is stored */
-        setEditTripData(emptyForm);
+       
+        setEditTripData(emptyForm);//Reset to the same empty shape. every field left as the trip is stored 
         setTouched({ country: false, endDate: false });
         setFormError(null);
     }
