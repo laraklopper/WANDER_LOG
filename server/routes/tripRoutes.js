@@ -1,15 +1,4 @@
-// tripRoutes.js
-/* Trip endpoints, mounted at /trip by app.js
-
-- GET /fetchTrips - List current loggedIn users trips
-- GET /fetchTrip/:id - Get one trip (?with entries)
-- POST /addTrip - create a new trip
-- PATCH /editTrip/:id - update a trip
-- DELETE /deleteTrip/:id - Delete a single trip by id
-
-all routes require JWT Auth
-*/
-
+/*/ tripRoutes.js: Trip endpoints, mounted at /trip by app.js*/
 /* Load environment variables from a .env
 file using the dotenv package*/
 require('dotenv').config();
@@ -39,7 +28,11 @@ about the casing it arrived in: the form shows its options in upper case, while
 the schema stores 'Holiday' and 'upcoming'. Returns the stored spelling, or
 undefined when the value is not one of the allowed ones */
 const matchEnum = (value, allowed) =>
-    allowed.find((option) => option.toLowerCase() === String(value ?? '').trim().toLowerCase());
+    allowed.find(
+        (option) => option.toLowerCase() === String(value ?? '')
+    .trim()
+    .toLowerCase()
+    );
 
 /* Reads one value off a submission by the schema path the form names its input
 by, so a destination arrives as 'destination.tripLocation' and a date as
@@ -314,7 +307,8 @@ router.get('/fetchTrips', checkJwtToken, async (req, res) => {
         return res.status(500).json({ success: false, message: 'Internal Server Error' });// Respond with a 500 (Internal Server Error) status code
     }
 })
-
+// Route to fetch a single trip
+// GET /fetchTrip/:id - Get one trip
 /*──────────────────────────── POST ROUTES ──────────────────────────────
     POST: Used to create a new resource/submit data to the database
  ─────────────────────────────────────────────────────────────────────────*/
@@ -545,5 +539,22 @@ router.patch('/editTrip/:id', checkJwtToken, async (req, res) => {
 /*──────────────────────────── DELETE ROUTES ───────────────────────────────────
     DELETE: Used to remove an item from the database
  ────────────────────────────────────────────────────────────────────────────────*/
+router.delete('/deleteTrip/:id', checkJwtToken, async (req, res) => {
+    try {
+        const userId = req.user?.userId;
 
+        if (!userId) {
+            console.error('[ERROR: tripRoutes.js, /deleteTrip/:id ]: Unauthorized');
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+        const tripId = String(req.params.id ?? '').trim();
+
+        if (!mongoose.Types.ObjectId.isValid(budgetId)) {
+                    console.warn('[WARN: budgetRoutes.js, DELETE /deleteBudget/:id] Invalid budget id', budgetId);// Log a warning message in the console for debugging purposes
+                    return res.status(400).json({ success: false, message: 'That budget id is not valid' });// Respond with a 400 (Bad Request) status code
+                }
+    } catch (error) {
+        
+    }
+})
 module.exports = router

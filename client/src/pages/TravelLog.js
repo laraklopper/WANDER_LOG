@@ -293,6 +293,7 @@ export default function TravelLog(//Export the default TravelLog.js function com
     }
   },[submittingTrip, editingTripId, editingTrip, editTripData, setError, fetchUserTrips])
 
+
   //====================USE EFFECTS==========================
   /* Loads the trips once, when the page mounts. fetchUserTrips only changes
   when setError does, so this does not re-run as the lists are toggled */
@@ -354,6 +355,8 @@ export default function TravelLog(//Export the default TravelLog.js function com
                   fetchUserTrips={fetchUserTrips}
                   toggleEditTrip={toggleEditTrip}
                   showEditTrip={showEditTrip}
+                  setShowEditTrip={setShowEditTrip}
+                  setError={setError}
                 />
               </div>
             </Col>

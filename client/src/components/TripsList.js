@@ -8,9 +8,7 @@ import {Link} from 'react-router-dom'
 // IMPORT UTILITY FUNCTIONS
 import { NOT_AVAILABLE, rowClass, toLongDate } from '../util/formatCalculations';
 import FilterTrips from './FilterTrips';
-/* The travel log's trip list. The request itself lives on TravelLog.js, which
-owns the list state, and arrives here as `userTrips` with `fetchUserTrips` to
-reload it - the same arrangement as VatCalculationsList.js */
+
 export default function TripsList(
     {//PROPS PASSED FROM PARENT COMPONENT (TravelLog.js)
         currentUser,
@@ -18,7 +16,9 @@ export default function TripsList(
         loadingTrips = false,
         fetchUserTrips,
         toggleEditTrip,
-        showEditTrip
+        showEditTrip,
+        setShowEditTrip,
+        setError
 
     }
 ) {
@@ -44,6 +44,34 @@ export default function TripsList(
         [userTrips, selectedId]
     )
 
+      const deleteTrip = useCallback(async (id) => {
+    try {
+      const token = localStorage.getItem('token')
+      if(!token) return
+
+      const response = await fetch(`http://localhost:3001/trip/deleteTrip/:${id}`, {
+        method: 'DELETE',
+        mode: 'cors',
+        headers: {
+          'Authorization': `Bearer ${token}`,//Attatch the token in the Authorization header
+        },
+      })
+
+      const data = await response.json().catch(() => ({}));// Safely parse JSON (avoid crash if server returns non-JSON)
+      if (!response.ok) {
+        throw new Error(data?.message || 'Error deleting trip');
+        
+      }
+      // If the deleted trip is currently open in the details panel, close it
+      if (selectedTrip?._id) {
+        setSelectedId(null)
+        setShowEditTrip(false)
+      }
+    //    window.confirm to confirm if user wants to delete the trip
+    } catch (error) {
+      setError('Error deleting account:', error.message)
+    }
+  },[setError, selectedTrip?._id, setShowEditTrip ])
     //================EVENT LISTENERS========================
     // Opens the details panel on one trip
     const handleSelect = useCallback((tripId) => {
@@ -383,7 +411,7 @@ export default function TripsList(
         variant='danger'
         id='deleteItemBtn'
         type='button'
-        // onClick={}
+        onClick={deleteTrip}
         >DELETE:</Button>
       </div>
     </Stack>
