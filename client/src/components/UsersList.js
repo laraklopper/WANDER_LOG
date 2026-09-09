@@ -223,7 +223,7 @@ export default function UsersList(
             <div id='usersHeaderBlock'>
             <Stack direction="horizontal" gap={3} id='userHeaderStack'>
       <div className="p-2">
-        <h4>{toFullName(selectedUser.fullName)}</h4>
+        <h4 id='userDetailsFullName'>{toFullName(selectedUser.fullName)}</h4>
       </div>
       <div className="p-2 ms-auto">
         <Button
@@ -259,7 +259,7 @@ export default function UsersList(
                 <Stack gap={3} id='userDetailsStack1'>
       <div className="p-2">
         {/* Username */}
-        <span className='details-span'>
+        <span className='detail-span'>
             <p className='details-label'>USERNAME:</p>
             <p className='details-value'>{selectedUser.username || NOT_AVAILABLE}</p>
         </span>
@@ -267,18 +267,18 @@ export default function UsersList(
       </div>
       <div className="p-2">
         {/* Email */}
-            <span>
-                <p className='details-label'>EMAIL</p>
+            <span className='detail-span'>
+                <p className='details-label'>EMAIL:</p>
                 <p className='details-value'>{selectedUser.email || NOT_AVAILABLE}</p>
             </span>
       </div>
       <div className="p-2" id='userDetailsAddress'>
         {/* address */}
-        <div>
+        <div id='userDetailsAddress1'>
             <p className='nested-details-label'>ADDRESS:</p>
         </div>
-        <div>
-            <span>
+        <div id='userAddressDetails2'>
+            <span className='detail-span'>
                 <p className='details-label'>STREET ADDRESSS</p>
                 <p className='details-value'>{selectedUser.address?.line1 || NOT_AVAILABLE}</p>
             </span>
@@ -286,21 +286,21 @@ export default function UsersList(
             schema stores a blank as undefined, so the row is left off rather
             than shown with nothing against it */}
             {selectedUser.address?.line2 && (
-            <span>
+            <span className='detail-span'>
                 <p className='details-label'>OPTIONAL ADDRESS DETAILS:</p>
                 <p className='details-value'>{selectedUser.address.line2}</p>
             </span>
             )}
-            <span>
+            <span className='detail-span'>
                 <p className='details-label'>CITY/TOWN:</p>
                 <p className='details-value'>{selectedUser.address?.city || NOT_AVAILABLE}</p>
             </span>
-            <span>
+            <span className='detail-span'>
                 <p className='details-label'>PROVINCE:</p>
                 <p className='details-value'>{selectedUser.address?.province || NOT_AVAILABLE}</p>
             </span>
             <span>
-                <span className='details-span'>
+                <span className='detail-span'>
             <p className='details-label'>DATE OF BIRTH:</p>
             {/* Stored as a Date and arrives as an ISO string, so it is read
             through toLongDate rather than printed raw */}
@@ -327,7 +327,7 @@ export default function UsersList(
         this account, so it is counted rather than displayed. Read as a length
         rather than through || , which would report an account with none of
         them as NOT AVAILABLE */}
-        <span className='details-span'>
+        <span className='detail-span'>
             <p className='details-label'>JOURNAL ENTRIES:</p>
             <p className='details-value'>
                 {Array.isArray(selectedUser.entries) ? selectedUser.entries.length : 0}
@@ -338,14 +338,14 @@ export default function UsersList(
         {/* Admin: always NO here, because an admin account has no VIEW button
         to open this panel with. Shown all the same, so the panel says which
         kind of account it is displaying rather than leaving it to be assumed */}
-        <span className='details-span'>
+        <span className='detail-span'>
             <p className='details-label'>IS ADMIN:</p>
             <p className='details-value'>{selectedUser.admin ? 'YES' : 'NO'}</p>
         </span>
       </div>
       <div className="p-2">
         {/* Registered: the createdAt timestamp mongoose stores on the account */}
-        <span className='details-span'>
+        <span className='detail-span'>
             <p className='details-label'>REGISTERED:</p>
             <p className='details-value'>{toLongDate(selectedUser.createdAt)}</p>
         </span>

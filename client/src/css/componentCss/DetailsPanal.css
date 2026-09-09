@@ -70,6 +70,9 @@ under the group's own label rather than run on beside it */
     border: solid 2px #323A42;
 }
 .detail-span{
-    display: flex;
+        display: flex;
     align-items: baseline;
+    gap: 10px;
+    margin: 0px;
+    padding: 0px;
 }

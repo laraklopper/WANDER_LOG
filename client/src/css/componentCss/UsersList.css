@@ -165,6 +165,11 @@ background-color: #D6D6D6;
     padding: 0px;
     width: 100%;
 }
+#userAddressDetails{
+    display: flex;
+    flex-direction: column;
+    
+}
 #closeUserPanalBtn{
    display: flex;
     align-items: center;
@@ -181,5 +186,22 @@ background-color: #D6D6D6;
 }
 #userDetailsAddress{
     display: flex;
+    gap: 10px;
+}
+#userDetailsAddress1,
+#userDetailsAddress2{
+    display: flex;
     align-items: baseline;
+        gap: 10px;
+margin: 0px;
+padding: 0px;
+}
+#userDetailsFullName{
+    margin: 0px;
+    padding: 0px;
+    text-transform: uppercase;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-decoration: underline;
 }
