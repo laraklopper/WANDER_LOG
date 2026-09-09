@@ -1,3 +1,6 @@
+/* EditTrip.css
+EditTripForm.css
+*/
 #editTripForm{
         display: flex;
     flex-direction: column;
@@ -8,6 +11,7 @@
     align-items: center;
     background-color: #A8AEB3;
 }
+/* TEXT */
 .editTrip-label{
  color: #000000;
     font-weight: 700;
@@ -28,6 +32,7 @@
 /* ======================
 LAYOUT
 ========*/
+/* TRIP INPUT */
 #editTripInput{
     display: flex;
     flex-direction: column;
@@ -40,7 +45,7 @@ LAYOUT
     border-radius: 8px;
     overflow-y: scroll;
 }
-/* GROUP 1 */
+/* GROUP 1: EDIT TITLE + EDIT TRIP PURPOSE + EDIT TRIP STATUS*/
 #editTripGroup1{
     display: flex;
     border: solid #323A42 2px;
@@ -51,7 +56,7 @@ LAYOUT
     padding: 5px;
 }
 /* BOOTSTRAP: LAYOUT */
-/* STACK 1 */
+/* STACK 1:https://react-bootstrap.netlify.app/docs/layout/stack */
 #editTripStack1{
     display: flex;
     width: 100%;
@@ -88,7 +93,7 @@ LAYOUT
     margin: 0px;
 }
 /* BOOTSTRAP:LAYOUT */
-/* STACK 2 */
+/* STACK 2:https://react-bootstrap.netlify.app/docs/layout/stack */
 #editTripStack2{
     display: flex;
     width: 100%;
@@ -101,7 +106,7 @@ LAYOUT
     margin: 0px;
     padding: 0px;
 }
-/* GROUP 3 */
+/* GROUP 3: EDIT START DATE AND END DATE */
 #editTripGroup3{
     display: flex;
     flex-direction: column;
@@ -113,12 +118,16 @@ LAYOUT
     padding: 5px;
     gap: 10px;
 }
-/* STACK 3 */
+/* STACK 3: https://react-bootstrap.netlify.app/docs/layout/stack*/
 #editTripStack3{
     display: flex;
     width: 100%;
     margin: 0px;
     padding: 0px;
+}
+#editTripDateBlock{
+    width: 100%;
+    margin: 0px;
 }
 .date-input{
     display: flex;
@@ -132,7 +141,10 @@ LAYOUT
     align-items: center;
     gap: 10px;
 }
-/* GROUP 5 */
+
+/* GROUP 4 : TO BE ADDED LATER*/
+/* =====END OF INPUT=============== */
+/* GROUP 5: SUBMIT BUTTON + CLEAR FORM BUTTON */
 #editTripGroup5{
     display: flex;
     justify-content: center;
@@ -140,14 +152,14 @@ LAYOUT
     margin: 0px;
     padding: 0px;
 }
-/* BUTTON STACK */
+/* BUTTON STACK: https://react-bootstrap.netlify.app/docs/layout/stack */
 #editTripBtnStack{
     display: flex;
     width: 85%;
     margin: 0px;
     padding: 0px;
 }
-/* BUTTON */
+/* BUTTON: https://react-bootstrap.netlify.app/docs/components/buttons */
 #editTripBtn{
    display: flex;
     align-items: center;

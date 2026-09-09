@@ -128,8 +128,9 @@ export default function EditTripForm() {//Export the default EditTripForm.js Com
                 <Calendars style={{margin: '0px', padding: '0px'}} fontWeight={700} size={24} aria-hidden='true' focusable='false'/>
               </span>
               </div>
+              {/* STACK 3 */}
                  <Stack direction="horizontal" gap={3} id='editTripStack3'>
-      <div className="p-2">
+      <div className="p-2" id='editTripDateBlock'>
         <div className='date-input'>
         {/* START DATE */}
             <div className='input-div'>
@@ -148,7 +149,7 @@ export default function EditTripForm() {//Export the default EditTripForm.js Com
             </div>
             {/* END DATE */}
             <div className='input-div'>
-                <label className='editTrip-label'>EDIT END DATE:</label>
+                <label className='editTrip-label' htmlFor=''>EDIT END DATE:</label>
                 <input
                     className='input'
                     // id=''
@@ -159,19 +160,18 @@ export default function EditTripForm() {//Export the default EditTripForm.js Com
                     onFocus={() => setDateMsg(true)}
                     onBlur={() => setDateMsg(false)}
                     // onChange={}
-                    
+                    //ARIA ATTRIBUTES: 
                 />
             </div>
-            
-
         </div>
       </div>
       <div className="p-2"/>
       <div className="p-2  ms-auto">
         {/* DATE MESSAGE */}
         {dateMsg && (
-            <span>
-                <p className='dateinfoText'>End date must be on or after the start date</p></span>
+            <span aria-live='polite'>
+                <p className='dateinfoText'>End date must be on or after the start date</p>
+            </span>
         )}
       </div>
     </Stack>
