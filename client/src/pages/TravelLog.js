@@ -202,6 +202,78 @@ export default function TravelLog(//Export the default TravelLog.js function com
     }
   },[setError])
 
+  /* Loads one trip from GET /trip/fetchTrip/:id, with the journal entries filed
+  against it.
+
+  The route matches the id against the account on the token, so another user's
+  trip is reported as missing rather than returned.
+
+  The entries are what this reads for. fetchUserTrips already returns every trip
+  whole, so the trip itself is not new — the entries are their own documents and
+  no other route returns them, which is what the travel log's entries list needs
+  once it is built. Both are handed back together rather than the trip alone, so
+  a caller reading one trip does not have to ask twice.
+
+  Returns `{ trip, entries }`, or null when it could not be read */
+  const fetchTrip = useCallback(async (tripId) => {
+    // Conditional rendering to check a trip was identified
+    if (!tripId) {
+      console.warn('[WARN: TravelLog.js] No trip id given, cannot fetch the trip');
+      return null;
+    }
+
+    const token = localStorage.getItem('token');
+    // Conditional rendering to check a session is still stored
+    if (!token) {
+      setError?.('Your session has expired. Please log in again.')
+      console.warn('[WARN: TravelLog.js] No token stored, cannot fetch the trip');
+      return null;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3001/trip/fetchTrip/${tripId}`, {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      /* Safely parse the JSON response. Guarded because the body is empty or is
+      not JSON at all on a 429 from the rate limiter, and response.json() would
+      throw before the status could be reported */
+      const data = await response.json().catch(() => ({}))
+
+      if (response.ok) {
+        console.log(`[SUCCESS: TravelLog.js] Loaded trip ${data.trip?._id} with ${data.count ?? 0} entries`)
+        // Conditional rendering to check the trip actually came back with the 200
+        if (!data.trip) {
+          console.warn('[WARN: TravelLog.js] Trip', tripId, 'was answered without a trip on it');
+          return null
+        }
+        return {
+          trip: data.trip,
+          // Defaulted to an empty array, so a caller always maps over one
+          entries: Array.isArray(data.entries) ? data.entries : [],
+        }
+      }
+
+      /* A 400 for a malformed id, a 404 for a trip that is not on this account,
+      and a 401 once the session has gone all arrive with their own message, so
+      it is reported as it was given */
+      const message = data?.message || response?.statusText || 'Could not load that trip.';
+      setError?.(message)
+      console.error(`[ERROR: TravelLog.js] Fetch trip failed with status ${response.status}: ${message}`)
+      return null
+    } catch (error) {
+      // Only a network level failure reaches here, a 4xx or 5xx is handled above
+      setError?.('Could not reach the server. Please check your connection and try again.')
+      console.error(`[ERROR: TravelLog.js] Fetch trip request failed: ${error.message}`)
+      return null
+    }
+  },[setError])
+
   /* Sends the filled in fields of the edit form to PATCH /trip/editTrip/:id.
   The id is the trip's own, and the route matches it against the account on the
   token, so another user's trip is reported as missing rather than written to.
@@ -437,6 +509,12 @@ export default function TravelLog(//Export the default TravelLog.js function com
                   toggleEditTrip={toggleEditTrip}
                   showEditTrip={showEditTrip}
                   deleteTrip={deleteTrip}
+                  /* Handed over ready for the details panel to read a trip back
+                  by its id, the way BudgetList.js opens its own panel. Not read
+                  by the list yet: its panel is still resolved out of userTrips,
+                  which already holds every field it displays, so nothing reads
+                  the entries this returns until the entries list is built */
+                  fetchTrip={fetchTrip}
                 />
               </div>
             </Col>

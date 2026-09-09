@@ -125,17 +125,18 @@ These apply to every table below, so they are not repeated in each one.
 
 | Method | Endpoint | Auth | Status | Description |
 |---|---|---|---|---|
-| `GET` | [`/trip/fetchTrips`](../server/routes/tripRoutes.js#L157) | JWT | Implemented | Lists every trip belonging to the logged in user, newest start date first, each with a resolved `hasBudget` |
-| `GET` | `/trip/fetchTrip/:id` | JWT | Planned | Get one trip (optionally with its entries) |
-| `POST` | [`/trip/addTrip`](../server/routes/tripRoutes.js#L211) | JWT | Implemented | Creates one trip for the logged in user |
-| `PATCH` | [`/trip/editTrip/:id`](../server/routes/tripRoutes.js#L422) | JWT | Implemented | Updates the fields the body carries on one of the user's trips |
-| `DELETE` | [`/trip/deleteTrip/:id`](../server/routes/tripRoutes.js#L573) | JWT | Implemented | Deletes one trip, and the entries and budget filed against it |
+| `GET` | [`/trip/fetchTrips`](../server/routes/tripRoutes.js#L277) | JWT | Implemented | Lists every trip belonging to the logged in user, newest start date first, each with a resolved `hasBudget` |
+| `GET` | [`/trip/fetchTrip/:id`](../server/routes/tripRoutes.js#L338) | JWT | Implemented | Reads one trip back whole, with the journal entries filed against it |
+| `POST` | [`/trip/addTrip`](../server/routes/tripRoutes.js#L411) | JWT | Implemented | Creates one trip for the logged in user |
+| `PATCH` | [`/trip/editTrip/:id`](../server/routes/tripRoutes.js#L501) | JWT | Implemented | Updates the fields the body carries on one of the user's trips |
+| `DELETE` | [`/trip/deleteTrip/:id`](../server/routes/tripRoutes.js#L652) | JWT | Implemented | Deletes one trip, and the entries and budget filed against it |
 
 **Notes**
 
 | Endpoint | Body / params | Other |
 |---|---|---|
 | `GET /trip/fetchTrips` | — | Returns `{ success, count, trips }`, each trip whole. Fills the journal's add-entry trip select and the travel log's trip list. `hasBudget` is answered off the caller's budgets rather than read from the flag stored on the trip, which no route writes to |
+| `GET /trip/fetchTrip/:id` | `:id` is the trip's own `_id` | Matched on the id and the owner in a single query, so another account's trip behaves exactly like one that does not exist, and the entries are only looked up once that has answered. **The entries are what this route adds** — `/fetchTrips` already returns every trip whole, while an entry is its own document filed against a trip by id and no other route returns them. Sorted newest first, the order [`entrySchema`'s](../server/models/entrySchema.js#L80) `{ tripId, date }` index is built in. `hasBudget` is resolved off the caller's budgets, the same as on the list, so the two routes cannot answer it differently. `400` on a malformed id, `404` when it is not on the caller's account. Returns `{ success, trip, entries, count }`, where `count` is the entries this read returned — the trip's own `entryCount` is left as stored, and reporting the two separately is what would show them drifting apart |
 | `POST /trip/addTrip` | `title`, `purpose`, `destination.destinationType`, `destination.tripLocation`, `destination.country`, `date.startDate`, `date.endDate`, `status` | `userId` and `username` come from the token and the database, never the body. `purpose` is `Holiday` \| `Business`, `destinationType` is `Domestic` \| `International`, `status` is `upcoming` \| `ongoing` \| `completed` (default `upcoming`) — all matched case-insensitively. `country` is required for an international trip and dropped from a domestic one. `entryCount` is maintained by the hooks on `entrySchema` |
 | `DELETE /trip/deleteTrip/:id` | `:id` is the trip's own `_id` | Read back on the id and the owner together before anything is removed, so the dependents of another account's trip are never touched and a trip that is not on the caller's account behaves exactly like one that does not exist. **The entries and the budget go with it**, because the schemas do not cascade a delete: the journal entries filed against the trip are removed, and so is its budget along with the expenses embedded in it (an expense is a sub-document of its trip's budget, not a model of its own). The dependents are cleared first and the trip last, so a failure part way through leaves the trip in place to be deleted again rather than leaving records with no trip to reach them through. `400` on a malformed id, `404` when it is not on the caller's account. Returns `{ success, message, tripId, removedEntries, removedBudget, removedExpenses }`, and the message names the counts because the journal and the expenses page are built from those records |
 
@@ -145,7 +146,7 @@ These apply to every table below, so they are not repeated in each one.
 
 | Method | Endpoint | Auth | Status | Description |
 |---|---|---|---|---|
-| `GET` | `/entry/fetchEntries` | JWT | Planned | Fetch all entries for the logged in user |
+| `GET` | `/entry/fetchEntries` | JWT | Planned | Fetch all entries for the logged in user — the entries of **one** trip are served by [`GET /trip/fetchTrip/:id`](#15-trips) |
 | `GET` | `/entry/fetchEntry/:id` | JWT | Planned | Fetch one entry |
 | `POST` | [`/entry/addEntry`](../server/routes/entryRoutes.js#L119) | JWT | Implemented | Creates one journal entry against one of the user's trips |
 | `PATCH` | `/entry/editEntry/:id` | JWT | Planned | Edit / update an entry |

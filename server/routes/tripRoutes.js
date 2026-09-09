@@ -6,14 +6,14 @@ const express = require('express');
 const mongoose = require('mongoose');
 const Trip = require('../models/tripSchema');
 const User = require('../models/userSchema');
-/* Read for hasBudget on the trip list below — a budget is filed against the trip
-it was set for, so whether one exists is answered by the budget collection rather
-than by the flag stored on the trip — and written by the delete below, which
-clears the budget of the trip it removes */
+/* Read for hasBudget on the two read routes below — a budget is filed against
+the trip it was set for, so whether one exists is answered by the budget
+collection rather than by the flag stored on the trip — and written by the delete
+below, which clears the budget of the trip it removes */
 const Budget = require('../models/budgetSchema');
-/* Only for the delete below: an entry is filed against a trip by id, so the
-entries of a removed trip are cleared with it rather than left pointing at a trip
-that is no longer stored */
+/* An entry is filed against a trip by id, so the entries of one trip are read
+back with it by /fetchTrip/:id and cleared with it by the delete below, rather
+than left pointing at a trip that is no longer stored */
 const Entry = require('../models/entrySchema');
 const { checkJwtToken } = require('./middleware');
 const router = express.Router()
@@ -256,27 +256,10 @@ const validationErrors = (error) => Object.fromEntries(
 /*──────────────────────────── GET ROUTES ─────────────────────────────────────
    GET: READ — Used to fetch information from the database
 ────────────────────────────────────────────────────────────────────────────────*/
-/*=====================================
-LIST THE LOGGED IN USER'S TRIPS
-=======================================*/
-/* trip/fetchTrips - Lists every trip belonging to the logged in user.
-
-Filtered on the userId taken from the JWT, so the list can only ever hold the
-caller's own trips. Used by the journal's add entry form, which needs the trips
-to fill its trip select: an entry is filed against a trip by id, so the form
-cannot be completed without them. Also used by the travel log's trip list, which
-displays the whole trip, which is why every field is returned rather than only
-the few the select reads. Sorted newest first, by the date the trip starts, so
-the trip most likely to be written about is nearest the top.
-
-hasBudget is answered here rather than read off the stored flag. The field
-defaults to false on tripSchema and no route ever writes to it, so a trip that
-has been given a budget still carries false: the ids of the caller's budgets are
-read and each trip is reported against them, so the list cannot say NO about a
-trip whose budget the expenses page is already spending against */
+// trip/fetchTrips - Route to list every trip belonging to the logged in user.
 router.get('/fetchTrips', checkJwtToken, async (req, res) => {
     try {
-        const userId = req.user?.userId;
+        const userId = req.user?.userId;// Extract the userId from the decoded JWT token payload
 
         // Conditional rendering to check if userId is present
         if (!userId) {
@@ -287,7 +270,8 @@ router.get('/fetchTrips', checkJwtToken, async (req, res) => {
         /* Both filtered on the owner, and requested together because neither
         needs the other's answer: the budgets are only read for their tripId */
         const [trips, budgets] = await Promise.all([
-            Trip.find({ userId }).sort({ 'date.startDate': -1 }).exec(),
+            Trip.find({ userId })
+            .sort({ 'date.startDate': -1 }).exec(),
             Budget.find({ userId }).select('tripId').exec(),
         ]);
 
@@ -312,26 +296,76 @@ router.get('/fetchTrips', checkJwtToken, async (req, res) => {
         return res.status(500).json({ success: false, message: 'Internal Server Error' });// Respond with a 500 (Internal Server Error) status code
     }
 })
-// Route to fetch a single trip
-// GET /fetchTrip/:id - Get one trip
+/*=====================================
+READ ONE OF THE LOGGED IN USER'S TRIPS
+=======================================*/
+/* trip/fetchTrip/:id - Reads one trip back whole, with the journal entries filed
+against it. */
+router.get('/fetchTrip/:id', checkJwtToken, async (req, res) => {
+    try {
+        const userId = req.user?.userId;// Extract the userId from the decoded JWT token payload
+
+        // Conditional rendering to check if userId is present
+        if (!userId) {
+            console.error('[ERROR: tripRoutes.js, GET /fetchTrip/:id] userId missing from token');// Log an error message in the console for debugging purposes
+            return res.status(401).json({ success: false, message: 'Unauthorized' });// Respond with a 401 (Unauthorised) status code
+        }
+
+        const tripId = String(req.params.id ?? '').trim();
+
+        /* Checked before the trip is looked up, so a malformed id is reported as
+        a 400 rather than reaching Mongoose as a CastError and being reported as a 500 */
+        if (!mongoose.Types.ObjectId.isValid(tripId)) {
+            console.warn('[WARN: tripRoutes.js, GET /fetchTrip/:id] Invalid trip id', tripId);// Log a warning message in the console for debugging purposes
+            return res.status(400).json({ success: false, message: 'That trip id is not valid' });// Respond with a 400 (Bad Request) status code
+        }
+
+        /* Matched on the trip and the owner together, so another account's trip
+        is not found at all rather than found and then refused. Read before the
+        entries and the budget, so neither is looked up for a trip this account
+        cannot see */
+        const trip = await Trip.findOne({ _id: tripId, userId }).exec();
+
+        // Conditional rendering to check a trip with that id exists on this account
+        if (!trip) {
+            console.warn('[WARN: tripRoutes.js, GET /fetchTrip/:id] No trip found for id', tripId, 'and user', userId);// Log a warning message in the console for debugging purposes
+            return res.status(404).json({ success: false, message: 'That trip could not be found on your account' });// Respond with a 404 (Not Found) status code
+        }
+
+        /* Both filtered on the owner as well as the trip, and requested together
+        because neither needs the other's answer. The budget is only asked about,
+        not read: nothing here reports on it beyond whether one exists */
+        const [entries, budget] = await Promise.all([
+            Entry.find({ tripId: trip._id, userId }).sort({ date: -1 }).exec(),
+            Budget.exists({ tripId: trip._id, userId }),
+        ]);
+
+        console.log(`[SUCCESS: tripRoutes.js, GET /fetchTrip/:id] Found trip ${tripId} with ${entries.length} entry(s) for user ${userId}`);// Log a success message in the console for debugging purposes
+        return res.status(200).json({
+            success: true,
+            /* Converted with toObject so hasBudget can be replaced, which a
+            Mongoose document would otherwise reject as a write to a loaded
+            field. Virtuals are kept, since the schema is set to return them */
+            trip: {
+                ...trip.toObject({ virtuals: true }),
+                hasBudget: Boolean(budget),
+            },
+            entries,
+            count: entries.length,
+        });// Respond with a 200 (OK) status code, the trip and its entries
+    } catch (error) {
+        console.error('[ERROR: tripRoutes.js, GET /fetchTrip/:id]', error.message);// Log an error message in the console for debugging purposes
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });// Respond with a 500 (Internal Server Error) status code
+    }
+})
 /*──────────────────────────── POST ROUTES ──────────────────────────────
     POST: Used to create a new resource/submit data to the database
  ─────────────────────────────────────────────────────────────────────────*/
-/*=====================================
-CREATE A TRIP
-=======================================*/
-/* Creates one trip for the logged in user.
-
-The owner is taken from the JWT and the username is read from the database, so a
-body carrying another account's userId or username cannot file a trip against
-someone else. The form shows the username as a read only field for that reason:
-it is there to confirm who the trip is being logged for, not to be submitted.
-
-Everything else goes through parseTripInput, so the whole submission is checked
-and normalised in one place before the document is built. */
+// Route to create a newTrip
+/*/trip/addTrip - Creates one trip for the logged in user.*/
  router.post('/addTrip', checkJwtToken, async (req, res) => {
    try {
-      const userId = req.user?.userId;
+      const userId = req.user?.userId;// Extract the userId from the decoded JWT token payload
 
       // Conditional rendering to check if userId is present
         if (!userId) {
@@ -390,19 +424,7 @@ and normalised in one place before the document is built. */
 EDIT A TRIP
 =======================================*/
 /* trip/editTrip/:id - Edits one of the logged in user's trips.
-
-The trip is matched on its id and the owner together, so another account's trip
-is not found at all rather than found and then refused — which is also why a
-missing one is reported as a 404 either way, and never says whether it exists on
-someone else's account.
-
-A PATCH, so only the fields the body carries are written and the rest are left as
-they are stored. Nothing on the form is required for that reason: the edit form
-leaves every input empty, shows what is currently stored beside it, and sends
-only the fields that were actually filled in.
-
 Four things cannot be written through here:
-
 - the owner, userId and username, which come from the token and the account for
   the same reason they do on a create
 - hasBudget, which is not read off the trip at all: /fetchTrips answers it from
@@ -411,14 +433,9 @@ Four things cannot be written through here:
 - entryCount, which is maintained by the post save and post delete hooks on
   entrySchema, so a body carrying its own count would be overwritten by the next
   entry anyway
-
 The country is the one field an edit can remove: switching a trip to domestic
 unsets it, rather than leaving the name of a country stored against a trip that
-is no longer said to be in one.
-
-Saved through the document rather than with findOneAndUpdate, so the schema
-validates the whole trip, including the validator on date.endDate that compares
-the two dates as they will actually be stored. */
+is no longer said to be in one. */
 router.patch('/editTrip/:id', checkJwtToken, async (req, res) => {
     try {
         const userId = req.user?.userId;
