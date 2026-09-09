@@ -17,7 +17,8 @@ export default function TripsList(
         userTrips = [],
         loadingTrips = false,
         fetchUserTrips,
-        toggleEditTrip
+        toggleEditTrip,
+        showEditTrip
 
     }
 ) {
@@ -184,14 +185,15 @@ export default function TripsList(
                                 not by the flag stored on the trip, which no
                                 route writes to */}
                                 <td>{trip.hasBudget ? 'YES' : 'NO'}</td>
-                                <td>
-                                    {/* A button per row rather than a click
+                                {/* A button per row rather than a click
                                     handler on the row itself, so the panel can
                                     be opened from the keyboard without
                                     rebuilding what a button already does */}
+                                <td>
+                                    <div id='viewTrip-div'>
                                     <Button
                                         variant='light'
-                                        className='viewTripBtn'
+                                        id='viewTripBtn'
                                         type='button'
                                         onClick={() => handleSelect(trip._id)}
                                         // ARIA ATTRIBUTES:
@@ -199,7 +201,10 @@ export default function TripsList(
                                         aria-pressed={trip._id === selectedId}
                                     >
                                         VIEW
-                                    </Button>
+                                    </Button>   
+                                    </div>
+                                    
+                                    
                                 </td>
                             </tr>
                         ))
@@ -227,8 +232,13 @@ export default function TripsList(
         variant='warning'
         id='toggleEditTripBtn'
         onClick={toggleEditTrip}
+        type='button'
+        // ARIA ATTRIBUTES:
+        aria-label={showEditTrip ? 'Hide Form' : 'Edit Trip'}
+        aria-pressed={showEditTrip}
+        aria-expanded={showEditTrip}
         >
-            EDIT
+        {showEditTrip ? 'Hide Form' : 'Edit Trip'}
         </Button>
       </div>
       <div className="vr" />

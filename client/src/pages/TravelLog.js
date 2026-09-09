@@ -162,6 +162,7 @@ export default function TravelLog(//Export the default TravelLog.js function com
                   loadingTrips={loadingTrips}
                   fetchUserTrips={fetchUserTrips}
                   toggleEditTrip={toggleEditTrip}
+                  showEditTrip={showEditTrip}
                 />
               </div>
             </Col>

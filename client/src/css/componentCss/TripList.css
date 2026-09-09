@@ -28,6 +28,7 @@
     margin: 0px;
     padding: 10px 0px;
 }
+/* TABLE */
 #tripsListTable{
     width: 100%;
     margin: 0px;
@@ -37,25 +38,29 @@
     background-color: #D6D6D6;
     text-align: center;
 }
-
-
-
 #tripsListMainHead{
 text-transform: uppercase;
     letter-spacing: 2px;
     border: solid #000 1px;
+    margin: 0px;
+    padding: 5px;
+    font-family: "Fira Sans", sans-serif;
+    font-size: 20px;
+    text-decoration: underline;
 }
 #tripsListHeadRow th{
     letter-spacing: 2px;
     text-transform: uppercase;
     text-align: center;
     margin: 0px;
-    padding: 0px;
+    padding: 5px 0px;
+    font-family: "Fira Sans", sans-serif;
+    border: solid 1px #323A42;
 }
 #tripsListTable td{
     font-family: "Fira Mono", monospace;
     text-align: center;
-    padding: 8px 6px;
+    padding: 8px 0px;
     border: solid 1px #323A42;
 }
 /* Row striping: STYLES.md 1.5. TABLES. Applied by rowClass() in
@@ -76,7 +81,11 @@ button reports the same thing to a screen reader */
 .selectedRow td:first-child{
     border-left: solid 5px #323A42;
 }
-.viewTripBtn{
+#viewTrip-div{
+    margin: 0px;
+    padding: 0px;
+}
+#viewTripBtn{
     font-family: "Fira Mono", monospace;
     font-weight: 700;
     text-transform: uppercase;
@@ -84,8 +93,9 @@ button reports the same thing to a screen reader */
     color: #000;
     padding: 2px 12px;
     border: solid 2px #323A42;
+    width: 150px;
 }
-.viewTripBtn:hover{
+#viewTripBtn:hover{
     color: #E8F0F6;
     background-color: #323A42;
 }
@@ -127,6 +137,14 @@ so the button reads as unavailable at a glance as well as through aria-disabled 
     border: solid 2px #444;
 }
 /* DETAILS PANAL */
+/* The panel's own heading, which carries the title of the trip on screen */
+#trip-details-heading{
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0px;
+}
 #trip-details-body{
     display: flex;
     align-items: baseline;
@@ -190,19 +208,10 @@ the table above it rather than reading as more of the list */
     padding: 0px;
     border: solid 2px #323A42;
 }
-/* ACTIVE FORM BUTTON */
-#toggleEditTripBtn:active,
-#closeTripDetailsBtn:active{
+
+#toggleEditTripBtn[aria-expanded="true"]{
     background-color: #323A42;
     color: #E8F0F6;
     border: solid 2px #000;
     text-decoration: underline;
-}
-/* The panel's own heading, which carries the title of the trip on screen */
-#trip-details-heading{
-    font-family: "Fira Mono", monospace;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin: 0px;
 }
