@@ -92,10 +92,83 @@ LAYOUT
     padding: 10px 0px;
     margin: 0px;
 }
-/* BUTTONS */
+/* BUTTONS: https://react-bootstrap.netlify.app/docs/components/buttons */
 /* Buttons for Expenses + BudgetList  and toggle Calculators+ ConverterList*/
+/* #toggleBudgetListBtn is the Expenses.js button, not one of this page's. It is
+carried here because this file is a global import and has always styled it */
+#toggleExpListBtn,
+#toggleBudgetsBtn,
+#toggleBudgetListBtn,
+#toggleCalcBtn,
+#toggleVatCalcBtn,
+#toggleConverterBtn{
+    width: 250px;
+    height: 40px;
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    color: #000;
+    text-transform: uppercase;
+    border: solid 2px #323A42;
+}
+#toggleExpListBtn:hover,
+#toggleBudgetsBtn:hover,
+#toggleBudgetListBtn:hover,
+#toggleCalcBtn:hover,
+#toggleVatCalcBtn:hover,
+#toggleConverterBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
+}
+/* While the mouse button is held down. Press feedback only - what is on screen
+is marked by the aria-expanded rules below */
+#toggleExpListBtn:active,
+#toggleBudgetsBtn:active,
+#toggleBudgetListBtn:active,
+#toggleCalcBtn:active,
+#toggleVatCalcBtn:active,
+#toggleConverterBtn:active{
+    background-color: #1F2529;
+    color: #E8F0F6;
+}
+/* WHAT IS CURRENTLY ON SCREEN: selected on the aria-expanded Budget.js already
+sets from each show* flag, rather than on :active, which only lasts while the
+mouse button is held down and so left an open calculator or list unmarked as
+soon as the button was released. Reading the same attribute the screen reader
+does keeps the two from disagreeing, and no second class is needed to carry it.
+Compounded with the id so it outranks the .btn-light rules Bootstrap applies to
+the same buttons. Marked by more than colour alone - the border thickens and the
+label is underlined - so the open panel is still visible to a user who cannot
+tell the two backgrounds apart. The buttons are sized in border-box, so the
+thicker border does not shift the stack */
+#toggleExpListBtn[aria-expanded="true"],
+#toggleBudgetsBtn[aria-expanded="true"],
+#toggleBudgetListBtn[aria-expanded="true"],
+#toggleCalcBtn[aria-expanded="true"],
+#toggleVatCalcBtn[aria-expanded="true"],
+#toggleConverterBtn[aria-expanded="true"]{
+    background-color: #323A42;
+    color: #E8F0F6;
+    border: solid 3px #000;
+    text-decoration: underline;
+}
+/* Hovering a button whose panel is already open must not lighten it back
+towards the closed look, which would read as though the panel had closed */
+#toggleExpListBtn[aria-expanded="true"]:hover,
+#toggleBudgetsBtn[aria-expanded="true"]:hover,
+#toggleBudgetListBtn[aria-expanded="true"]:hover,
+#toggleCalcBtn[aria-expanded="true"]:hover,
+#toggleVatCalcBtn[aria-expanded="true"]:hover,
+#toggleConverterBtn[aria-expanded="true"]:hover{
+    background-color: #1F2529;
+    color: #E8F0F6;
+}
 /* =================
-LISTS SECTION: 
+LISTS SECTION:
 ==============*/
 .budgetListSection{
       display: flex;
@@ -213,19 +286,15 @@ LAYOUT
     padding: 0px;
 }
 /* BUTTONS: https://react-bootstrap.netlify.app/docs/components/buttons */
-/* toggleButtons for vatCalculationsList + ConversionsList */
-#toggleCalcBtn,
-#toggleVatCalcBtn,
-#toggleConverterBtn,
-#toggleExpListBtn,
-#toggleBudgetListBtn,
+/* toggleButtons for vatCalculationsList + ConversionsList. Same look as the
+Section 1 toggles above, and the reasoning behind the aria-expanded rules is
+written out there */
 #toggleVatCalculationsBtn,
 #toggleConversionsBtn{
     width: 250px;
     height: 40px;
     margin: 0px;
     padding: 0px;
-    color: #000000;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -235,11 +304,6 @@ LAYOUT
     text-transform: uppercase;
     border: solid 2px #323A42;
 }
-#toggleExpListBtn:hover,
-#toggleCalcBtn:hover,
-#toggleVatCalcBtn:hover,
-#toggleConverterBtn:hover,
-#toggleBudgetListBtn:hover,
 #toggleVatCalculationsBtn:hover,
 #toggleConversionsBtn:hover{
     color: #E8F0F6;
@@ -247,31 +311,13 @@ LAYOUT
 }
 /* While the mouse button is held down. Press feedback only - what is on screen
 is marked by the aria-expanded rules below */
-#toggleCalcBtn:active,
-#toggleVatCalcBtn:active,
-#toggleConverterBtn:active,
-#toggleExpListBtn:active,
-#toggleBudgetListBtn:active,
 #toggleVatCalculationsBtn:active,
 #toggleConversionsBtn:active{
     background-color: #1F2529;
     color: #E8F0F6;
 }
-/* WHAT IS CURRENTLY ON SCREEN: selected on the aria-expanded Budget.js already
-sets from each show* flag, rather than on :active, which only lasts while the
-mouse button is held down and so left an open calculator or list unmarked as
-soon as the button was released. Reading the same attribute the screen reader
-does keeps the two from disagreeing, and no second class is needed to carry it.
-Compounded with the id so it outranks the .btn-light rules Bootstrap applies to
-the same buttons. Marked by more than colour alone - the border thickens and the
-label is underlined - so the open panel is still visible to a user who cannot
-tell the two backgrounds apart. The buttons are sized in border-box, so the
-thicker border does not shift the stack */
-#toggleCalcBtn[aria-expanded="true"],
-#toggleVatCalcBtn[aria-expanded="true"],
-#toggleConverterBtn[aria-expanded="true"],
-#toggleExpListBtn[aria-expanded="true"],
-#toggleBudgetListBtn[aria-expanded="true"],
+/* WHAT IS CURRENTLY ON SCREEN: marked off the aria-expanded Budget.js already
+sets, by colour, a thicker border and an underline */
 #toggleVatCalculationsBtn[aria-expanded="true"],
 #toggleConversionsBtn[aria-expanded="true"]{
     background-color: #323A42;
@@ -281,11 +327,6 @@ thicker border does not shift the stack */
 }
 /* Hovering a button whose panel is already open must not lighten it back
 towards the closed look, which would read as though the panel had closed */
-#toggleCalcBtn[aria-expanded="true"]:hover,
-#toggleVatCalcBtn[aria-expanded="true"]:hover,
-#toggleConverterBtn[aria-expanded="true"]:hover,
-#toggleExpListBtn[aria-expanded="true"]:hover,
-#toggleBudgetListBtn[aria-expanded="true"]:hover,
 #toggleVatCalculationsBtn[aria-expanded="true"]:hover,
 #toggleConversionsBtn[aria-expanded="true"]:hover{
     background-color: #1F2529;
