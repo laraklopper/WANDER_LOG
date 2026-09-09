@@ -16,7 +16,8 @@ export default function TripsList(
         currentUser,
         userTrips = [],
         loadingTrips = false,
-        fetchUserTrips
+        fetchUserTrips,
+        toggleEditTrip
 
     }
 ) {
@@ -25,6 +26,7 @@ export default function TripsList(
     const toggleFilter = useCallback(() => {
         setShowFilter(prev => !prev)
     },[])
+   
     const username = currentUser?.username || '';
 
     /* Which trip the details panel is showing, held as an id rather than as the
@@ -224,6 +226,7 @@ export default function TripsList(
         <Button
         variant='warning'
         id='toggleEditTripBtn'
+        onClick={toggleEditTrip}
         >
             EDIT
         </Button>

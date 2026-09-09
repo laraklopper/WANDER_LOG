@@ -11,6 +11,7 @@ import Stack from 'react-bootstrap/Stack';
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import TripsList from '../components/TripsList';
+import EditTripForm from '../components/EditTripForm';
 
 //=======MAIN TRAVELLOG FUNCTION COMPONENT=========
 export default function TravelLog(//Export the default TravelLog.js function component
@@ -23,6 +24,7 @@ export default function TravelLog(//Export the default TravelLog.js function com
   // ========STATE VARIABLES=============================
   const [showTrips, setShowTrips] = useState(false)
   const [showEntries, setShowEntries] = useState(false)
+  const [showEditTrip, setShowEditTrip] = useState(false)
   /* The logged in user's trips, displayed by the trip list. Held here rather
   than in TripsList.js so the page owns the request, the same arrangement the
   journal and the expenses page use for their own lists */
@@ -38,6 +40,10 @@ export default function TravelLog(//Export the default TravelLog.js function com
   const toggleEntries = useCallback(() => {
     setShowEntries(prev => (!prev))
     setShowTrips(false)
+  },[])
+  const toggleEditTrip = useCallback(() => {
+    setShowEditTrip(prev => (!prev))
+
   },[])
 
   //======================CALLBACKS/REQUEST FUNCTIONS========================
@@ -155,6 +161,7 @@ export default function TravelLog(//Export the default TravelLog.js function com
                   userTrips={userTrips}
                   loadingTrips={loadingTrips}
                   fetchUserTrips={fetchUserTrips}
+                  toggleEditTrip={toggleEditTrip}
                 />
               </div>
             </Col>
@@ -174,8 +181,21 @@ export default function TravelLog(//Export the default TravelLog.js function com
       )}
         </div>
 
-
       </section>
+      {/* SHOW EDIT TRIP FORM */}
+      {showEditTrip && (
+        <section className='travelLogSec2'>
+        <div id='edit-trip-panal'>
+            <Row id='editTripRow'>
+            <Col id='editTripCol'>
+              <EditTripForm/>
+            </Col>
+          </Row>
+        </div>
+          
+        </section>
+      )}
+      {/* SHOW EDIT ENTRY */}
       <Footer logout={logout}/>
     </div>
   )

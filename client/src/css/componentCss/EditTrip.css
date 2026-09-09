@@ -1,0 +1,157 @@
+#editTripForm{
+        display: flex;
+    flex-direction: column;
+    width: 80%;
+    margin: 0px;
+    gap: 10px;
+    padding: 10px;
+    align-items: center;
+    background-color: #A8AEB3;
+}
+.editTrip-label{
+ color: #000000;
+    font-weight: 700;
+    margin: 0px;
+    padding: 0px;
+    font-family: "Fira Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+/* ======================
+LAYOUT
+========*/
+#editTripInput{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width:  85%;
+    gap: 10px;
+    background-color: #BFBFBF;
+    padding: 10px;
+    border: solid #323A42 2px;
+    border-radius: 8px;
+    overflow-y: scroll;
+}
+/* GROUP 1 */
+#editTripGroup1{
+    display: flex;
+    border: solid #323A42 2px;
+    background: #D6D6D6;
+    border-radius: 8px;
+    width: 100%;
+    margin: 0px;
+    padding: 5px;
+}
+/* BOOTSTRAP: LAYOUT */
+/* STACK 1 */
+#editTripStack1{
+    display: flex;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#editTitleBlock,
+#editPurposeBlock,
+#editStatusBlock{
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    width: 100%;
+    padding: 0px;
+}
+/* GROUP 2 */
+#editTripGroup2{
+    display: flex;
+    flex-direction: column;
+    border: solid #323A42 2px;
+    background: #D6D6D6;
+    border-radius: 8px;
+    width: 100%;
+    margin: 0px;
+    padding: 5px;
+    gap: 10px;
+}
+#editTrigroup2Head-span{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 0px;
+    margin: 0px;
+}
+/* BOOTSTRAP:LAYOUT */
+/* STACK 2 */
+#editTripStack2{
+    display: flex;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#editLocationBlock{
+    display: flex;
+    gap: 10px;
+    margin: 0px;
+    padding: 0px;
+}
+/* GROUP 3 */
+#editTripGroup3{
+    display: flex;
+    flex-direction: column;
+    border: solid #323A42 2px;
+    background: #D6D6D6;
+    border-radius: 8px;
+    width: 100%;
+    margin: 0px;
+    padding: 5px;
+    gap: 10px;
+}
+/* STACK 3 */
+#editTripStack3{
+    display: flex;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+.date-input{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+}
+#editTripGroup3Head-span{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+#editTripGroup5{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#editTripBtnStack{
+    display: flex;
+    width: 85%;
+    margin: 0px;
+    padding: 0px;
+}
+#editTripBtn{
+   display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 180px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #000;
+    margin: 0px;
+    padding: 0px;
+    border: solid 2px #323A42;
+}
+#editTripBtn:hover{
+    background-color: #323A42;
+    color: #E8F0F6;
+}

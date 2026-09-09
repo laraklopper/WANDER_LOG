@@ -107,3 +107,29 @@ towards the closed look, which would read as though the list had closed */
     background-color: #1F2529;
     color: #E8F0F6;
 }
+.travelLogSec2{
+      display: flex;
+   justify-content: center;
+   align-items: center;
+  background-color: #7BA428;
+  width: 100%;
+  margin: 10px 0px 10px 0px;
+  padding: 0px;
+}
+#edit-trip-panal{
+    width: 100%;
+    margin: 0px;
+    padding: 10px 0px;
+}
+#editTripRow{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#editTripCol{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
