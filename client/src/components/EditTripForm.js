@@ -17,12 +17,15 @@ export default function EditTripForm() {//Export the default EditTripForm.js Com
 
     //==========JSX RENDERING============
   return (
-    <form id='editTripForm' method='PATCH' aria-labelledby='formHeading'>
+    <form id='editTripForm' method='PATCH' aria-labelledby='formHeading'
+    // onSubmit={}
+    >
         <div id='formHeadingBlock'>
             <h3 id='formHeading'>EDIT TRIP</h3>
         </div>
+        {/* =====FORM INPUT============ */}
         <div id='editTripInput'>
-        {/* GROUP 1 */}
+        {/* GROUP 1: EDIT TITLE + EDIT PURPOSE + EDIT STATUS */}
             <div id='editTripGroup1'>
             {/* STACK1 */}
                 <Stack gap={3} id='editTripStack1'>

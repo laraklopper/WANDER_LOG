@@ -279,6 +279,7 @@ export default function AddTripForm({
         {/* GROUP 1: USERNAME + TITLE + PURPOSE */}
             <div id='addTrip-group1'>
                 <Stack gap={3} id='addTrip-stack1'>
+                {/* USERNAME: value={`${currentUser?.username || 'USERNAME'}`} */}
                     <div className="p-2" id='add-trip-block1'>
                         <label className='add-trip-label' htmlFor='new-trip-username'>USERNAME:</label>
                         <div className='input-div'>
@@ -300,6 +301,7 @@ export default function AddTripForm({
                     </div>
                     <div className="p-2" id='add-trip-block2'>
                     <div className='trip-input-group'>
+                    {/* TITLE: value={newTripData.title || ''}*/}
                         <div className='trip-input-div'>
                             <label className='add-trip-label' htmlFor='newTripTitle'>TITLE:</label>
                             <input
@@ -327,6 +329,7 @@ export default function AddTripForm({
                               <p id={titleErrorId} className='visually-hidden' role='alert'>Trip title is required.</p>
                             )}
                         </div>
+                        {/* PURPOSE: value={newTripData.purpose || ''}*/}
                         <div className='trip-input-div'>
                             <label className='add-trip-label' htmlFor='newTripPurpose'>PURPOSE:</label>
                             <select
@@ -371,6 +374,7 @@ export default function AddTripForm({
             </div>
             {/* STACK 2 */}
                  <Stack direction="horizontal" gap={3} id='addTrip-stack2'>
+                 {/* TYPE: value={newTripData.destination?.destinationType || ''} */}
       <div className="p-2" id='destination-type-block'>
         <label className='add-trip-label' htmlFor='newTripDestinationType'>TYPE:</label>
         <div className='trip-input-div'>
@@ -411,6 +415,7 @@ export default function AddTripForm({
     </Stack>
     {/* STACK 3 */}
  <Stack direction="horizontal" gap={3} id='addTrip-stack3'>
+ {/* LOCATION: value={newTripData.destination?.tripLocation || ''} */}
       <div className="p-2" id='addTrip-location-block'>
         <label className='add-trip-label' htmlFor='newTripLocation'>LOCATION:</label>
         <div className='trip-input-div'>
@@ -442,7 +447,8 @@ export default function AddTripForm({
       </div>
       <div className="p-2 ms-auto"></div>
       <div className="p-2">
-      {/* ONLY DISPLAY IF DESTINATION TYPE IS INTERNATIONAL */}
+      {/* COUNTRY:  value={newTripData.destination?.country || ''}
+      ONLY DISPLAY IF DESTINATION TYPE IS INTERNATIONAL: A domestic trip stores no country at all */}
         {isInternational && (
         <div id='tripCountryInput-div'>
             <label className='add-trip-label' htmlFor='newTripCountry'>COUNTRY:</label>
@@ -454,7 +460,7 @@ export default function AddTripForm({
                     placeholder='COUNTRY'
                     /* Required only while this input is on screen. A domestic
                     trip stores no country at all */
-                    required
+                    required//Required only while this input is on screen.  
                     maxLength={50}
                     name='destination.country'
                     value={newTripData.destination?.country || ''}
@@ -492,6 +498,7 @@ export default function AddTripForm({
                 </div>
                 {/* STACK 4 */}
                 <Stack gap={3} id='addTrip-stack4'>
+                {/* STATUS: value={newTripData.status || ''} */}
       <div className="p-2" id='addTrip-status-block'>
         <label className='add-trip-label' htmlFor='newTripStatus'>STATUS:</label>
         <div className='input-div'>
@@ -523,8 +530,9 @@ export default function AddTripForm({
           <p id={statusErrorId} className='visually-hidden' role='alert'>Trip status is required.</p>
         )}
       </div>
-      <div className="p-2">
+      <div className="p-2" id='addTripDatesBlock'>
         <div className='trip-input-group'>
+        {/* START DATE: value={newTripData.date?.startDate || ''}  */}
             <div className='trip-input-div'>
                 <label className='add-trip-label' htmlFor='newTripStartDate'>START DATE:</label>
                  <input
@@ -550,6 +558,7 @@ export default function AddTripForm({
                   <p id={startDateErrorId} className='visually-hidden' role='alert'>Start date is required.</p>
                 )}
             </div>
+            {/* END DATE: value={newTripData.date?.endDate || ''} */}
             <div className='trip-input-div'>
                 <label className='add-trip-label' htmlFor='newTripEndDate'>END DATE:</label>
                 <input
@@ -628,8 +637,7 @@ export default function AddTripForm({
         variant='light'
         id='addTripBtn'
         type='submit'
-        // Disabled while the request runs, so the trip cannot be added twice
-        disabled={submitting}
+        disabled={submitting}// Disabled while the request runs, so the trip cannot be added twice
         // ARIA ATTRIBUTES:
         aria-label={submitting ? 'Adding trip, please wait' : 'Add trip'}
         aria-disabled={submitting}
@@ -647,7 +655,7 @@ export default function AddTripForm({
         variant='danger'
         id='clearFormBtn'
         type='button'
-        disabled={submitting}
+        disabled={submitting}// Disabled while the request runs, so the trip cannot be added twice
         onClick={handleClear}
         // ARIA ATTRIBUTES:
         aria-label='Clear add trip form'
@@ -655,7 +663,6 @@ export default function AddTripForm({
         >CLEAR</Button>
       </div>
     </Stack>
-
         </div>
     </form>
   )
