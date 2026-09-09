@@ -128,8 +128,8 @@ These apply to every table below, so they are not repeated in each one.
 | `GET` | [`/trip/fetchTrips`](../server/routes/tripRoutes.js#L157) | JWT | Implemented | Lists every trip belonging to the logged in user, newest start date first, each with a resolved `hasBudget` |
 | `GET` | `/trip/fetchTrip/:id` | JWT | Planned | Get one trip (optionally with its entries) |
 | `POST` | [`/trip/addTrip`](../server/routes/tripRoutes.js#L211) | JWT | Implemented | Creates one trip for the logged in user |
-| `PATCH` | `/trip/editTrip/:id` | JWT | Planned | Update a trip |
-| `DELETE` | `/trip/deleteTrip/:id` | JWT | Planned | Delete a single trip by id |
+| `PATCH` | [`/trip/editTrip/:id`](../server/routes/tripRoutes.js#L422) | JWT | Implemented | Updates the fields the body carries on one of the user's trips |
+| `DELETE` | [`/trip/deleteTrip/:id`](../server/routes/tripRoutes.js#L573) | JWT | Implemented | Deletes one trip, and the entries and budget filed against it |
 
 **Notes**
 
@@ -137,6 +137,7 @@ These apply to every table below, so they are not repeated in each one.
 |---|---|---|
 | `GET /trip/fetchTrips` | — | Returns `{ success, count, trips }`, each trip whole. Fills the journal's add-entry trip select and the travel log's trip list. `hasBudget` is answered off the caller's budgets rather than read from the flag stored on the trip, which no route writes to |
 | `POST /trip/addTrip` | `title`, `purpose`, `destination.destinationType`, `destination.tripLocation`, `destination.country`, `date.startDate`, `date.endDate`, `status` | `userId` and `username` come from the token and the database, never the body. `purpose` is `Holiday` \| `Business`, `destinationType` is `Domestic` \| `International`, `status` is `upcoming` \| `ongoing` \| `completed` (default `upcoming`) — all matched case-insensitively. `country` is required for an international trip and dropped from a domestic one. `entryCount` is maintained by the hooks on `entrySchema` |
+| `DELETE /trip/deleteTrip/:id` | `:id` is the trip's own `_id` | Read back on the id and the owner together before anything is removed, so the dependents of another account's trip are never touched and a trip that is not on the caller's account behaves exactly like one that does not exist. **The entries and the budget go with it**, because the schemas do not cascade a delete: the journal entries filed against the trip are removed, and so is its budget along with the expenses embedded in it (an expense is a sub-document of its trip's budget, not a model of its own). The dependents are cleared first and the trip last, so a failure part way through leaves the trip in place to be deleted again rather than leaving records with no trip to reach them through. `400` on a malformed id, `404` when it is not on the caller's account. Returns `{ success, message, tripId, removedEntries, removedBudget, removedExpenses }`, and the message names the counts because the journal and the expenses page are built from those records |
 
 ### 1.6. ENTRIES
 
@@ -342,8 +343,8 @@ Points where the code does not yet match the tables above. Recorded here so the 
 | [budgetRoutes.js:235](../server/routes/budgetRoutes.js#L235) | `GET /budget/fetchBudgets` is a comment, not a handler. Listing a user's budgets is served by `/expense/fetchBudgets`, which returns only the four fields its trip select reads |
 | [budgetSchema.js:204](../server/models/budgetSchema.js#L204) | `tripId` is documented as unique but carries a plain index, so the one-budget-per-trip rule is enforced by the `409` in `POST /budget/addBudget` rather than by the database. Two concurrent creates for the same trip could both pass that check |
 | [userRoutes.js](../server/routes/userRoutes.js) | No delete handler, so an account cannot be removed through the API |
-| [tripRoutes.js:270-275](../server/routes/tripRoutes.js#L270-L275), [entryRoutes.js:190-197](../server/routes/entryRoutes.js#L190-L197), [expenseRoutes.js:555-562](../server/routes/expenseRoutes.js#L555-L562) | The `PATCH` and `DELETE` sections are placeholder comments with no handlers. Trips, entries and expenses can be created and read but not edited or removed. [TripsList.js](../client/src/components/TripsList.js#L222) records `/trip/editTrip/:id` and `/trip/deleteTrip/:id` |
-| [SCHEMAS.md §9](SCHEMAS.md#9-relationships) | Deletes are not cascaded by the schemas, so the delete routes above are responsible for clearing dependents — removing a trip must also clear its entries and its budget |
+| [entryRoutes.js:190-197](../server/routes/entryRoutes.js#L190-L197), [expenseRoutes.js:555-562](../server/routes/expenseRoutes.js#L555-L562) | The `PATCH` and `DELETE` sections are placeholder comments with no handlers. Entries and expenses can be created and read but not edited or removed on their own routes — though both are cleared by `DELETE /trip/deleteTrip/:id`, and an expense by `DELETE /budget/deleteBudget/:id` |
+| [SCHEMAS.md §9](SCHEMAS.md#9-relationships) | Deletes are not cascaded by the schemas, so each delete route is responsible for clearing its own dependents. `DELETE /trip/deleteTrip/:id` does this for a trip's entries and budget; nothing does it for an account, which has no delete route at all |
 
 ## 5. REFERENCES
 

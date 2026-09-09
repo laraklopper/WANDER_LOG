@@ -6,10 +6,15 @@ const express = require('express');
 const mongoose = require('mongoose');
 const Trip = require('../models/tripSchema');
 const User = require('../models/userSchema');
-/* Read only, and only for hasBudget on the trip list below: a budget is filed
-against the trip it was set for, so whether one exists is answered by the budget
-collection rather than by the flag stored on the trip */
+/* Read for hasBudget on the trip list below — a budget is filed against the trip
+it was set for, so whether one exists is answered by the budget collection rather
+than by the flag stored on the trip — and written by the delete below, which
+clears the budget of the trip it removes */
 const Budget = require('../models/budgetSchema');
+/* Only for the delete below: an entry is filed against a trip by id, so the
+entries of a removed trip are cleared with it rather than left pointing at a trip
+that is no longer stored */
+const Entry = require('../models/entrySchema');
 const { checkJwtToken } = require('./middleware');
 const router = express.Router()
 
@@ -539,22 +544,113 @@ router.patch('/editTrip/:id', checkJwtToken, async (req, res) => {
 /*──────────────────────────── DELETE ROUTES ───────────────────────────────────
     DELETE: Used to remove an item from the database
  ────────────────────────────────────────────────────────────────────────────────*/
+/*=====================================
+DELETE A TRIP
+=======================================*/
+/* trip/deleteTrip/:id - Removes one of the logged in user's trips, and
+everything filed against it.
+
+The trip is matched on its id and the owner together, so another account's trip
+is not found at all rather than found and then refused — which is also why a
+missing one is reported as a 404 either way, and never says whether it exists on
+someone else's account.
+
+Nothing else clears up after a trip: the schemas do not cascade a delete, so a
+trip removed on its own would leave its journal entries pointing at a trip that
+is no longer stored and its budget holding the expenses of a trip that no longer
+exists. Both are cleared here:
+
+- the entries filed against the trip, which are their own documents
+- the trip's budget, and with it the expenses embedded in it — an expense is a
+  sub-document of its trip's budget rather than a model of its own, so removing
+  the parent removes every expense on that trip in the same write
+
+The dependents go first and the trip itself last, so a failure part way through
+leaves the trip in place to be deleted again rather than leaving records behind
+with no trip to reach them through. Each count is reported back, because the
+journal and the expenses page are built from those records and would otherwise
+appear to lose rows unexplained. */
 router.delete('/deleteTrip/:id', checkJwtToken, async (req, res) => {
     try {
         const userId = req.user?.userId;
 
+        // Conditional rendering to check if userId is present
         if (!userId) {
-            console.error('[ERROR: tripRoutes.js, /deleteTrip/:id ]: Unauthorized');
-            return res.status(401).json({ success: false, message: 'Unauthorized' });
+            console.error('[ERROR: tripRoutes.js, DELETE /deleteTrip/:id] userId missing from token');// Log an error message in the console for debugging purposes
+            return res.status(401).json({ success: false, message: 'Unauthorized' });// Respond with a 401 (Unauthorised) status code
         }
+
         const tripId = String(req.params.id ?? '').trim();
 
-        if (!mongoose.Types.ObjectId.isValid(budgetId)) {
-                    console.warn('[WARN: budgetRoutes.js, DELETE /deleteBudget/:id] Invalid budget id', budgetId);// Log a warning message in the console for debugging purposes
-                    return res.status(400).json({ success: false, message: 'That budget id is not valid' });// Respond with a 400 (Bad Request) status code
-                }
+        /* Checked before the trip is looked up, so a malformed id is reported as
+        a 400 rather than reaching Mongoose as a CastError and being reported as
+        a 500 */
+        if (!mongoose.Types.ObjectId.isValid(tripId)) {
+            console.warn('[WARN: tripRoutes.js, DELETE /deleteTrip/:id] Invalid trip id', tripId);// Log a warning message in the console for debugging purposes
+            return res.status(400).json({ success: false, message: 'That trip id is not valid' });// Respond with a 400 (Bad Request) status code
+        }
+
+        /* Matched on the trip and the owner together, so another account's trip
+        is not found at all rather than found and then deleted. Read before
+        anything is removed, so the dependents of a trip that is not on this
+        account are never touched */
+        const trip = await Trip.findOne({ _id: tripId, userId }).select('title').exec();
+
+        /* Conditional rendering to check a trip with that id exists on this
+        account. Covers both a trip that does not exist and one on another account */
+        if (!trip) {
+            console.warn('[WARN: tripRoutes.js, DELETE /deleteTrip/:id] No trip found for id', tripId, 'and user', userId);// Log a warning message in the console for debugging purposes
+            return res.status(404).json({ success: false, message: 'That trip could not be found on your account' });// Respond with a 404 (Not Found) status code
+        }
+
+        /* Both filtered on the owner as well as the trip, and requested together
+        because neither needs the other's answer. The budget is removed through
+        findOneAndDelete so the document comes back with it: the expenses that
+        went with it are embedded in it, and after this write there is nothing
+        left to count them from */
+        const [removedEntries, removedBudget] = await Promise.all([
+            Entry.deleteMany({ tripId: trip._id, userId }).exec(),
+            Budget.findOneAndDelete({ tripId: trip._id, userId }).exec(),
+        ]);
+
+        const entryCount = removedEntries?.deletedCount ?? 0;
+        const expenseCount = removedBudget?.expenses?.length ?? 0;
+
+        /* What went with the trip, listed for the message below. Each is left out
+        when there was none of it, so a trip that was logged and never written
+        about is reported as the trip alone */
+        const alsoRemoved = [
+            entryCount ? `${entryCount} journal ${entryCount === 1 ? 'entry' : 'entries'}` : null,
+            removedBudget ? 'its budget' : null,
+            expenseCount ? `${expenseCount} expense${expenseCount === 1 ? '' : 's'}` : null,
+        ].filter(Boolean);
+
+        /* Deleted last, so the trip is only gone once everything that pointed at
+        it is. The entryCount stored on it is left alone rather than kept in step:
+        deleteMany does not fire the post delete hook entrySchema decrements it
+        from, and the trip it is stored on is removed on the next line */
+        await Trip.findOneAndDelete({ _id: trip._id, userId }).exec();
+
+        console.log('[SUCCESS: tripRoutes.js, DELETE /deleteTrip/:id] Deleted trip', tripId, 'with', entryCount, 'entry(s),', removedBudget ? 1 : 0, 'budget(s) and', expenseCount, 'expense(s)');// Log a success message in the console for debugging purposes
+        return res.status(200).json({
+            success: true,
+            /* Names what went with the trip rather than reporting the trip
+            alone, because the journal's entry list and the expenses page are
+            built from those records */
+            message: alsoRemoved.length
+                ? `Trip deleted successfully, along with ${alsoRemoved.join(', ')}.`
+                : 'Trip deleted successfully.',
+            /* Returned so the client can drop the row and close any panel or
+            form open on this trip without waiting on a refetch to learn which
+            one went */
+            tripId,
+            removedEntries: entryCount,
+            removedBudget: Boolean(removedBudget),
+            removedExpenses: expenseCount,
+        });// Respond with a 200 (OK) status code and what was removed
     } catch (error) {
-        
+        console.error('[ERROR: tripRoutes.js, DELETE /deleteTrip/:id]', error.message);// Log an error message in the console for debugging purposes
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });// Respond with a 500 (Internal Server Error) status code
     }
 })
 module.exports = router

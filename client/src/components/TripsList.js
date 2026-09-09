@@ -17,8 +17,7 @@ export default function TripsList(
         fetchUserTrips,
         toggleEditTrip,
         showEditTrip,
-        setShowEditTrip,
-        setError
+        deleteTrip
 
     }
 ) {
@@ -44,34 +43,12 @@ export default function TripsList(
         [userTrips, selectedId]
     )
 
-      const deleteTrip = useCallback(async (id) => {
-    try {
-      const token = localStorage.getItem('token')
-      if(!token) return
+    /* The trip whose DELETE is in flight, held as an id rather than as a plain
+    boolean so the button reports itself busy for the trip it is actually
+    removing and not for whichever one the panel has since moved to */
+    const [deletingId, setDeletingId] = useState(null)
+    const isDeleting = Boolean(deletingId)
 
-      const response = await fetch(`http://localhost:3001/trip/deleteTrip/:${id}`, {
-        method: 'DELETE',
-        mode: 'cors',
-        headers: {
-          'Authorization': `Bearer ${token}`,//Attatch the token in the Authorization header
-        },
-      })
-
-      const data = await response.json().catch(() => ({}));// Safely parse JSON (avoid crash if server returns non-JSON)
-      if (!response.ok) {
-        throw new Error(data?.message || 'Error deleting trip');
-        
-      }
-      // If the deleted trip is currently open in the details panel, close it
-      if (selectedTrip?._id) {
-        setSelectedId(null)
-        setShowEditTrip(false)
-      }
-    //    window.confirm to confirm if user wants to delete the trip
-    } catch (error) {
-      setError('Error deleting account:', error.message)
-    }
-  },[setError, selectedTrip?._id, setShowEditTrip ])
     //================EVENT LISTENERS========================
     // Opens the details panel on one trip
     const handleSelect = useCallback((tripId) => {
@@ -82,6 +59,68 @@ export default function TripsList(
     const handleClose = useCallback(() => {
         setSelectedId(null)
     },[])
+
+    /* Removes the trip the details panel is showing.
+
+    Confirmed first, and the confirmation names what goes with it: a trip's
+    journal entries and its budget are cleared with it, and the expenses embedded
+    in that budget go too, so this is the delete that takes the most with it and a
+    user pressing it for the trip alone would not expect that. The counts are read
+    off the trip the panel was filled from — entryCount is maintained by the hooks
+    on entrySchema and hasBudget is answered by the API off the caller's budgets,
+    so both describe what is actually stored.
+
+    `deleteTrip` reports whether the trip actually went. On success TravelLog.js
+    has already reloaded the list, so the panel is closed here rather than left to
+    the row leaving the list — a refetch that failed would otherwise leave a
+    deleted trip on screen. On a failure it set the page error instead, and the
+    panel is deliberately left open on the trip that could not be removed, so the
+    message is read against it and the button can simply be pressed again. */
+    const handleDelete = useCallback(async () => {
+        const tripId = selectedTrip?._id;
+
+        if (!tripId) return;// Nothing on screen to delete
+        if (deletingId) return;// A delete is already running
+
+        const entryCount = Number.isFinite(selectedTrip.entryCount) ? selectedTrip.entryCount : 0;
+
+        /* Listed for the confirmation, and each left out when the trip does not
+        have any: a trip that was logged and never written about is confirmed as
+        the trip on its own */
+        const alsoRemoved = [
+            entryCount ? `${entryCount} journal ${entryCount === 1 ? 'entry' : 'entries'}` : null,
+            selectedTrip.hasBudget ? 'its budget and any expenses logged against it' : null,
+        ].filter(Boolean);
+
+        const confirmDelete = window.confirm(// Ask the user to confirm before the trip is removed
+            `Delete ${selectedTrip.title || 'this trip'}?${
+                alsoRemoved.length ? ` The ${alsoRemoved.join(' and ')} will be deleted with it.` : ''
+            } This cannot be undone.`
+        )
+
+        // Conditional rendering to check the user confirmed the delete
+        if (!confirmDelete) {
+            console.log('[INFO: TripsList.js] Delete of trip', tripId, 'was cancelled');
+            return;
+        }
+
+        setDeletingId(tripId)
+
+        try {
+            const removed = await deleteTrip?.(tripId)
+
+            // Conditional rendering to check the trip was actually removed
+            if (!removed) {
+                console.warn('[WARN: TripsList.js] Trip', tripId, 'was not deleted, the panel was left open on it');
+                return;
+            }
+
+            setSelectedId(null)
+            console.log('[SUCCESS: TripsList.js] Deleted trip', tripId);
+        } finally {
+            setDeletingId(null)
+        }
+    },[selectedTrip, deletingId, deleteTrip])
 
     /* The country is only stored on an international trip, so it is read
     through here: the panel's COUNTRY row is left off a domestic trip rather
@@ -405,14 +444,24 @@ export default function TripsList(
       <div className="p-2 ms-auto"/>
       <div className="vr" />
       <div className="p-2">
-        {/* Left unwired: DELETE /trip/deleteTrip/:id is not written yet, so
-        there is nothing to send the selected trip's id to */}
+        {/* Sends the selected trip's id to DELETE /trip/deleteTrip/:id. A trip's
+        entries and its budget are cleared with it, and the expenses embedded in
+        that budget go too — which is why handleDelete confirms first and names
+        what is going */}
         <Button
         variant='danger'
         id='deleteItemBtn'
         type='button'
-        onClick={deleteTrip}
-        >DELETE:</Button>
+        onClick={handleDelete}
+        /* Blocked while this delete is running, so a second press cannot send
+        the same id again and answer 404 for a trip that has already gone */
+        disabled={isDeleting}
+        // ARIA ATTRIBUTES:
+        aria-label={`Delete ${selectedTrip.title || 'this trip'}`}
+        aria-disabled={isDeleting}
+        >
+        {isDeleting ? 'DELETING...' : 'DELETE'}
+        </Button>
       </div>
     </Stack>
 

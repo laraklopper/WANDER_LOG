@@ -293,6 +293,87 @@ export default function TravelLog(//Export the default TravelLog.js function com
     }
   },[submittingTrip, editingTripId, editingTrip, editTripData, setError, fetchUserTrips])
 
+  /* Sends one trip's id to DELETE /trip/deleteTrip/:id.
+  The route matches that id against the account on the token, so another user's
+  trip is reported as missing rather than removed.
+
+  Nothing filed against a trip outlives it: the route clears the trip's journal
+  entries and its budget, and the expenses embedded in that budget go with it.
+  That is why the list is reloaded rather than the row simply being dropped here
+  — hasBudget is answered off the caller's own budgets, and the journal and the
+  expenses page read those records too.
+
+  Returns whether the trip actually went, so the list can close its details panel
+  on success and leave it open on the trip it failed to remove */
+  const deleteTrip = useCallback(async (tripId) => {
+    // Conditional rendering to check a trip was identified
+    if (!tripId) {
+      console.warn('[WARN: TravelLog.js] No trip id given, cannot delete the trip');
+      return false;
+    }
+
+    const token = localStorage.getItem('token');
+    // Conditional rendering to check a session is still stored
+    if (!token) {
+      setError?.('Your session has expired. Please log in again.')
+      console.warn('[WARN: TravelLog.js] No token stored, cannot delete the trip');
+      return false;
+    }
+
+    try {
+      setError?.(null)
+
+      const response = await fetch(`http://localhost:3001/trip/deleteTrip/${tripId}`, {
+        method: 'DELETE',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      /* Safely parse the JSON response. Guarded because the body is empty or is
+      not JSON at all on a 429 from the rate limiter, and response.json() would
+      throw before the status could be reported */
+      const data = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        /* A 400 for a malformed id, a 404 for a trip that is not on this
+        account, and a 401 once the session has gone all arrive with their own
+        message, so it is reported as it was given */
+        const message = data?.message || response?.statusText || 'Could not delete the trip.';
+        setError?.(message)
+        console.error(`[ERROR: TravelLog.js] Delete trip failed with status ${response.status}: ${message}`)
+        return false
+      }
+
+      /* Closed when the deleted trip is the one the edit form is open on, so an
+      edit cannot be submitted against a trip that is no longer there — the PATCH
+      would only answer 404. A form open on a different trip is left as it is */
+      if (String(editingTripId) === String(tripId)) {
+        setShowEditTrip(false)
+        setEditingTripId(null)
+        setEditTripData(EMPTY_TRIP_EDIT)
+        setTripFieldErrors({})
+        console.log('[INFO: TravelLog.js] Closed the edit form, trip', tripId, 'was deleted');
+      }
+
+      /* Awaited so the caller's delete stays busy until the refreshed list has
+      arrived rather than only until the DELETE answered, and the row is gone
+      from the list by the time the button reports itself done */
+      await fetchUserTrips()
+
+      alert(data.message || 'Trip deleted successfully.')
+      console.log('[SUCCESS: TravelLog.js] Trip deleted:', data.tripId || tripId, 'with', data.removedEntries ?? 0, 'entry(s) and', data.removedExpenses ?? 0, 'expense(s)')
+      return true
+    } catch (error) {
+      // Only a network level failure reaches here, a 4xx or 5xx is handled above
+      setError?.('Could not reach the server. Please check your connection and try again.')
+      console.error(`[ERROR: TravelLog.js] Delete trip request failed: ${error.message}`)
+      return false
+    }
+  },[editingTripId, setError, fetchUserTrips])
+
 
   //====================USE EFFECTS==========================
   /* Loads the trips once, when the page mounts. fetchUserTrips only changes
@@ -355,8 +436,7 @@ export default function TravelLog(//Export the default TravelLog.js function com
                   fetchUserTrips={fetchUserTrips}
                   toggleEditTrip={toggleEditTrip}
                   showEditTrip={showEditTrip}
-                  setShowEditTrip={setShowEditTrip}
-                  setError={setError}
+                  deleteTrip={deleteTrip}
                 />
               </div>
             </Col>
