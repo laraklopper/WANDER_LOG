@@ -1,6 +1,10 @@
 // Budget.js
 //IMPORT REQUIRED MODULES AND PACKAGES
 import React, { useCallback, useState, useEffect } from 'react'
+// IMPORT ROUTING HOOKS
+/* The budget form lives on the expenses page, so the list's EDIT navigates there
+rather than opening a form this page does not hold */
+import { useNavigate } from 'react-router-dom'
 // IMPORT CSS STYLESHEETS
 import '../css/pagesCss/PageSetup.css'
 import '../css/pagesCss/Budget.css'
@@ -29,9 +33,13 @@ export default function Budget(//Export default Budget.js component
     currentUser, 
     logout, 
     setError, 
-    error, 
+    error,
     loggedIn
   }) {
+  /* The budget form is on the expenses page, and a budget can only ever be
+  edited rather than created a second time, so the list's EDIT hands the budget
+  over to that page instead of opening a form here */
+  const navigate = useNavigate()
   // ==========STATE VARIABLES===============
   // VAT CALCULATOR VARIABLES
   const [vatCalculations, setVatCalculations] = useState([])
@@ -53,6 +61,27 @@ export default function Budget(//Export default Budget.js component
   VAT list keeps one: an empty array is both a history with nothing in it and a
   list that has not arrived, and ConversionsList.js has to say which. */
   const [loadingConversions, setLoadingConversions] = useState(false)
+  // TRIP BUDGET LIST VARIABLES
+  /* The logged in user's trip budgets, one per trip. Each row carries only the
+  four fields GET /expense/fetchBudgets returns, so the list's own VIEW reads the
+  whole budget back by its id through fetchBudget below */
+  const [budgets, setBudgets] = useState([])
+  /* Whether the budgets request is in flight, for the same reason the two
+  calculation lists keep one: an empty array is both an account that has set no
+  budgets and a list that has not arrived, and BudgetList.js has to say which */
+  const [loadingBudgets, setLoadingBudgets] = useState(false)
+  /* Kept apart from the page's own `error`, which is passed to the currency
+  converter and the conversions list: a budget that failed to load has to be
+  reported above the list it failed to fill, not in a panel that may be closed */
+  const [budgetsError, setBudgetsError] = useState('')
+  /* Every expense on the account, for the list's EXPENSES column. An expense is
+  embedded in the budget of its trip and carries the budgetId it came out of, so
+  the count per budget is read from this list rather than from the budget rows,
+  which leave the expenses out */
+  const [expenses, setExpenses] = useState([])
+  /* The trips, for the list's TRIP STATUS column: a budget row does not carry
+  the status of the trip it was set for, that is stored on the trip itself */
+  const [trips, setTrips] = useState([])
   // Toggle Buttons State
   const [showExpenses, setShowExpenses] = useState(false)
   const [showBudgetList, setShowBudgetList] = useState(false)
@@ -413,6 +442,288 @@ export default function Budget(//Export default Budget.js component
           }
         },[fetchVatCalculations])
 
+        /*=====================================
+        THE TRIP BUDGET LIST
+        =======================================*/
+        /* Loads the logged in user's trip budgets from
+        GET /expense/fetchBudgets. The route is behind checkJwtToken and filters
+        on the userId it reads off that token, so the list can only ever hold
+        this account's own budgets, and no id is sent.
+
+        Each row carries four fields — the budget's id, its trip, its base
+        currency and its total — so the list's VIEW reads the whole budget back
+        by its id through fetchBudget below rather than opening the panel on the
+        part of it that is already on screen. */
+        const fetchBudgets = useCallback(async () => {
+          const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
+          /* Nothing to fetch without a session, and the endpoint would answer
+          401. Returned before the loading flag is raised, so a signed out user
+          never sees the list report a request that was never sent */
+          if (!token) {
+            console.warn('[WARN: Budget.js, fetchBudgets] No token stored, cannot fetch the budgets');
+            return;
+          }
+
+          try {
+            setLoadingBudgets(true)// The list shows a loading row until this clears
+            const response = await fetch('http://localhost:3001/expense/fetchBudgets',{
+              method: 'GET',//HTTP request method
+              mode: 'cors',//Enable Cross-Origin Resource Sharing
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,// Attach the token in the Authorization header
+              }
+            })
+            const data = await response.json().catch(() => ({}))//Parse the response as json
+
+            //Conditional rendering to check the request succeeded
+            if (!response.ok) {
+              /* Reported without clearing the budgets already on screen, so a
+              failed refresh leaves the list the user is reading as it was */
+              const message = data.message || response.statusText || 'Could not load your trip budgets.';
+              console.error('[ERROR: Budget.js, fetchBudgets]', message);//Log an error message in the console for debugging purposes
+              setBudgetsError(message);// Set the error state to display the error above the list
+              return;// Exit the function early, keeping whatever list is already on screen
+            }
+
+            // Defaulted to an empty array, so the list always maps over one
+            const fetchedBudgets = Array.isArray(data.budgets) ? data.budgets : [];
+            setBudgets(fetchedBudgets)
+            setBudgetsError('');//Clear any previous error messages
+            console.log(`[SUCCESS: Budget.js, fetchBudgets] Loaded ${fetchedBudgets.length} budget(s)`);
+          } catch (error) {
+            // Only a network level failure reaches here, a 4xx or 5xx is handled above
+            console.error('[ERROR: Budget.js, fetchBudgets]', error.message);//Log an error message in the console for debugging purposes
+            setBudgetsError('Could not reach the server. Please check your connection and try again.')
+          } finally {
+            /* Cleared in a finally, so a failed or rejected request leaves the
+            list showing its error rather than a loading row that never ends */
+            setLoadingBudgets(false)
+          }
+        },[])
+
+        /* Loads every expense on the account from GET /expense/fetchExpenses,
+        for the list's EXPENSES column. An expense is embedded in the budget of
+        its trip, so the API gathers them out of the caller's budgets and returns
+        them as one list, each carrying the budgetId it came out of — which is
+        what the count per row is worked out from.
+
+        Failures are only logged: the column falls back to 0 for every row, which
+        is a great deal less than the list itself failing to load and is not
+        worth an error message over the whole table. */
+        const fetchExpenses = useCallback(async () => {
+          const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
+          if (!token) return;
+
+          try {
+            const response = await fetch('http://localhost:3001/expense/fetchExpenses',{
+              method: 'GET',//HTTP request method
+              mode: 'cors',//Enable Cross-Origin Resource Sharing
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,// Attach the token in the Authorization header
+              }
+            })
+            const data = await response.json().catch(() => ({}))//Parse the response as json
+
+            //Conditional rendering to check the request succeeded
+            if (!response.ok) {
+              console.error('[ERROR: Budget.js, fetchExpenses]', data.message || 'Could not load your expenses.');//Log an error message in the console for debugging purposes
+              return;// Exit the function early, the column counts what it has
+            }
+
+            // Defaulted to an empty array, so the count is always reduced over one
+            setExpenses(Array.isArray(data.expenses) ? data.expenses : [])
+            console.log(`[SUCCESS: Budget.js, fetchExpenses] Loaded ${data.expenses?.length || 0} expense(s)`);
+          } catch (error) {
+            console.error('[ERROR: Budget.js, fetchExpenses]', error.message);//Log an error message in the console for debugging purposes
+          }
+        },[])
+
+        /* Loads the logged in user's trips from GET /trip/fetchTrips, for the
+        list's TRIP STATUS column: a budget row carries the title of its trip but
+        not its status, which is stored on the trip itself.
+
+        Failures are only logged, the same as the expenses above: the column
+        falls back to NOT AVAILABLE per row rather than the table failing. */
+        const fetchTrips = useCallback(async () => {
+          const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
+          if (!token) return;
+
+          try {
+            const response = await fetch('http://localhost:3001/trip/fetchTrips',{
+              method: 'GET',//HTTP request method
+              mode: 'cors',//Enable Cross-Origin Resource Sharing
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,// Attach the token in the Authorization header
+              }
+            })
+            const data = await response.json().catch(() => ({}))//Parse the response as json
+
+            //Conditional rendering to check the request succeeded
+            if (!response.ok) {
+              console.error('[ERROR: Budget.js, fetchTrips]', data.message || 'Could not load your trips.');//Log an error message in the console for debugging purposes
+              return;// Exit the function early, the column reports what it has
+            }
+
+            // Defaulted to an empty array, so the statuses are always reduced over one
+            setTrips(Array.isArray(data.trips) ? data.trips : [])
+            console.log(`[SUCCESS: Budget.js, fetchTrips] Loaded ${data.trips?.length || 0} trip(s)`);
+          } catch (error) {
+            console.error('[ERROR: Budget.js, fetchTrips]', error.message);//Log an error message in the console for debugging purposes
+          }
+        },[])
+
+        /* Loads one budget from GET /budget/fetchBudget/:id, whole and with the
+        virtuals the schema is set to include. The route matches the id against
+        the account on the token, so another user's budget is reported as missing
+        rather than returned.
+
+        This is what fills the list's details panel: the rows hold four fields
+        and the panel reports the totals, the ten category limits and the two
+        alerts, none of which /expense/fetchBudgets returns.
+
+        Returns the budget so the list can open its panel on it, or null when it
+        could not be read — the panel is left closed rather than opened on a set
+        of empty labels. */
+        const fetchBudget = useCallback(async (budgetId) => {
+          // Conditional rendering to check a budget was identified
+          if (!budgetId) {
+            console.warn('[WARN: Budget.js, fetchBudget] No budget id given, cannot fetch the budget');
+            return null;
+          }
+
+          const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
+          if (!token) {
+            setBudgetsError('Your session has expired. Please log in again.');
+            console.warn('[WARN: Budget.js, fetchBudget] No token stored, cannot fetch the budget');
+            return null;
+          }
+
+          try {
+            const response = await fetch(`http://localhost:3001/budget/fetchBudget/${budgetId}`,{
+              method: 'GET',//HTTP request method
+              mode: 'cors',//Enable Cross-Origin Resource Sharing
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,// Attach the token in the Authorization header
+              }
+            })
+            const data = await response.json().catch(() => ({}))//Parse the response as json
+
+            //Conditional rendering to check the request succeeded
+            if (!response.ok) {
+              /* A 400 for a malformed id, a 404 for a budget that is not on this
+              account and a 401 once the session has gone all arrive with their
+              own message, so it is reported as it was given */
+              const message = data.message || response.statusText || 'Could not load that budget.';
+              console.error('[ERROR: Budget.js, fetchBudget]', message);//Log an error message in the console for debugging purposes
+              setBudgetsError(message);// Set the error state to display the error above the list
+              return null;
+            }
+
+            setBudgetsError('');//Clear any previous error messages
+            console.log('[SUCCESS: Budget.js, fetchBudget] Loaded budget', data.budget?._id);
+            return data.budget ?? null;
+          } catch (error) {
+            // Only a network level failure reaches here, a 4xx or 5xx is handled above
+            console.error('[ERROR: Budget.js, fetchBudget]', error.message);//Log an error message in the console for debugging purposes
+            setBudgetsError('Could not reach the server. Please check your connection and try again.')
+            return null;
+          }
+        },[])
+
+        /* Opens the budget form on the expenses page as an edit of one budget.
+        The form is not on this page — a budget is set from there, against a trip
+        that already exists — so the budget is handed over on the location the
+        same way the journal's ADD TRIP BUDGET link hands over a new one, and
+        Expenses.js reads editBudgetId off it and opens the form against what is
+        currently stored. */
+        const startBudgetEdit = useCallback((budgetId) => {
+          // Conditional rendering to check a budget was identified
+          if (!budgetId) {
+            console.warn('[WARN: Budget.js, startBudgetEdit] No budget id given, cannot edit the budget');
+            return;
+          }
+
+          console.log('[INFO: Budget.js, startBudgetEdit] Opening budget', budgetId, 'for editing on the expenses page');
+          navigate('/exp', { state: { openBudgetForm: true, editBudgetId: budgetId } })
+        },[navigate])
+
+        /* Sends one budget's id to DELETE /budget/deleteBudget/:id. The route
+        matches that id against the account on the token, so another user's
+        budget is reported as missing rather than removed.
+
+        An expense is embedded in the budget of its trip, so the expenses filed
+        against that trip go with it — which is why the expenses and the trips
+        are reloaded alongside the budgets rather than the budgets alone: the
+        EXPENSES column loses the rows that were counted in it, and each trip's
+        hasBudget is answered off the caller's budgets, so the trip that just
+        lost one is offered a new budget again.
+
+        Returns whether the budget actually went, so the list can close its
+        details panel on success and leave it open on the budget it failed to
+        remove. */
+        const deleteBudget = useCallback(async (budgetId) => {
+          // Conditional rendering to check a budget was identified
+          if (!budgetId) {
+            console.warn('[WARN: Budget.js, deleteBudget] No budget id given, cannot delete the budget');
+            return false;
+          }
+
+          const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
+          if (!token) {
+            setBudgetsError('Your session has expired. Please log in again.');
+            console.warn('[WARN: Budget.js, deleteBudget] No token stored, cannot delete the budget');
+            return false;
+          }
+
+          try {
+            const response = await fetch(`http://localhost:3001/budget/deleteBudget/${budgetId}`,{
+              method: 'DELETE',//HTTP request method
+              mode: 'cors',//Enable Cross-Origin Resource Sharing
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,// Attach the token in the Authorization header
+              }
+            })
+            const data = await response.json().catch(() => ({}))//Parse the response as json
+
+            //Conditional rendering to check the request succeeded
+            if (!response.ok) {
+              const message = data.message || response.statusText || 'Could not delete the budget.';
+              console.error('[ERROR: Budget.js, deleteBudget]', message);//Log an error message in the console for debugging purposes
+              setBudgetsError(message);// Set the error state to display the error above the list
+              return false;
+            }
+
+            setBudgetsError('');//Clear any previous error messages
+            /* Awaited so the caller's delete stays busy until the refreshed
+            lists have arrived rather than only until the DELETE answered, and
+            the row is gone from the table by the time the button reports itself
+            done */
+            await Promise.all([
+              // The budget itself is gone, and this is what the table is built from
+              fetchBudgets(),
+              /* The expenses embedded in it went with it, so the EXPENSES column
+              would otherwise keep counting expenses that are no longer stored */
+              fetchExpenses(),
+              /* hasBudget is answered off the caller's budgets, so the trip is
+              offered a new budget again once this has reloaded */
+              fetchTrips(),
+            ])
+
+            console.log('[SUCCESS: Budget.js, deleteBudget] Deleted budget', data.budgetId || budgetId, 'with', data.removedExpenses ?? 0, 'expense(s)');
+            return true;
+          } catch (error) {
+            // Only a network level failure reaches here, a 4xx or 5xx is handled above
+            console.error('[ERROR: Budget.js, deleteBudget]', error.message);//Log an error message in the console for debugging purposes
+            setBudgetsError('Could not reach the server. Please check your connection and try again.')
+            return false;
+          }
+        },[fetchBudgets, fetchExpenses, fetchTrips])
+
   /* Loads the saved calculations when the panel is opened rather than on mount,
   so a user who never opens it never pays for the request, and reopening it
   shows anything saved since it was last closed. */
@@ -425,6 +736,22 @@ export default function Budget(//Export default Budget.js component
   useEffect(() => {
     if (showConversions) fetchConversions()
   },[showConversions, fetchConversions])
+
+  /* Same for the trip budgets, so opening that panel loads them rather than
+  showing an empty table, and reopening it shows anything set or spent since it
+  was last closed — the totals in the panel move with every expense.
+
+  All three are loaded together: the table's TRIP STATUS is read off the trips
+  and its EXPENSES count off the expenses, neither of which a budget row
+  carries. They are requested side by side rather than in sequence, so a trip
+  list that is slow does not hold up the budgets the table is built from. */
+  useEffect(() => {
+    if (!showBudgetList) return;
+
+    fetchBudgets()
+    fetchExpenses()
+    fetchTrips()
+  },[showBudgetList, fetchBudgets, fetchExpenses, fetchTrips])
 
   //================EVENT LISTENERS========================
   const toggleExpensesList = useCallback(() => {
@@ -509,7 +836,7 @@ setShowBudgetList(false)
          type='button'
           //ARIA ATTRIBUTES:
           aria-label={showBudgetList ? 'Hide Travel Budgets': 'Show Travel Budgets'}
-          aria-controls=''
+          aria-controls='budgetList-panal'
           aria-pressed={showBudgetList}
           aria-expanded={showBudgetList}
          >
@@ -598,8 +925,45 @@ setShowBudgetList(false)
         <div id='budgetList-panal'>
           <Row md={12} id='budgetsListRow'>
             <Col md={12} id='budgetsListCol'>
+              {/* Reported above the table rather than inside it, so a list that
+              failed to load says so where the rows would have been and a
+              failed refresh does not replace the rows already on screen */}
+              {budgetsError && (
+                <p
+                  className='infoText'
+                  id='budgetsListError'
+                  style={{ color: '#C22419' }}
+                  role='alert'
+                  aria-live='assertive'
+                  >
+                  {budgetsError}
+                </p>
+              )}
+              {/* The trip budgets, read from the same GET /expense/fetchBudgets
+              the add expense form's trip select is filled from. Each row carries
+              only the four fields that list returns, so the list's own VIEW
+              reads the whole budget back by its id through fetchBudget */}
               <BudgetList
                 currentUser={currentUser}
+                budgets={budgets}
+                loadingBudgets={loadingBudgets}
+                fetchBudgets={fetchBudgets}
+                /* Reads one budget back from the API by its id, whole and with
+                its virtuals, for the list's details panel */
+                fetchBudget={fetchBudget}
+                /* The budget form is on the expenses page, so this navigates
+                there with the budget to be edited rather than opening a form */
+                startBudgetEdit={startBudgetEdit}
+                /* Removes one budget, and the expenses embedded in it, then
+                reloads all three lists. Reports whether it actually went, so
+                the list can close its details panel on success */
+                deleteBudget={deleteBudget}
+                /* A budget row does not carry the status of the trip it was set
+                for, that is stored on the trip itself */
+                trips={trips}
+                /* An expense carries the budgetId it was filed against, so the
+                list counts the expenses per budget off this one */
+                expenses={expenses}
               />
             </Col>
           </Row>

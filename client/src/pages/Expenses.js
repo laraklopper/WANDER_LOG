@@ -874,17 +874,27 @@ export default function Expenses(//Export default Expenses.js component
     a journal already sitting on this route, where the component is not
     remounted and only the location changes.
 
+    The budget page's list carries editBudgetId alongside that flag, because the
+    form that changes a budget is here rather than there: the budget is read back
+    by that id and the form opens against what is currently stored, exactly as it
+    does for an edit started from this page's own list.
+
     The flag is then replaced out of the history entry, so reloading the page or
     coming back to it does not reopen a form the user has since closed */
     useEffect(() => {
       if (!location.state?.openBudgetForm) return;
 
+      const editBudgetId = location.state.editBudgetId;
+
       setShowAddBudget(true)
       // Closed, the two panels are shown one at a time
       setShowAddExp(false)
+      /* Opened as an edit when a budget was named, which reads it back and fills
+      the form in. Without one the form is left as the create it already is */
+      if (editBudgetId) startBudgetEdit(editBudgetId);
       navigate(location.pathname, { replace: true, state: null })
-      console.log('[INFO: Expenses.js] Opened the budget form from the journal link')
-    }, [location.state, location.pathname, navigate])
+      console.log('[INFO: Expenses.js] Opened the budget form from a link', editBudgetId ? `to edit budget ${editBudgetId}` : 'to set a new budget')
+    }, [location.state, location.pathname, navigate, startBudgetEdit])
 
     /* Loads the budgets once, when the page mounts, so the add expense form's
     trip select is already filled the first time the form is opened */
