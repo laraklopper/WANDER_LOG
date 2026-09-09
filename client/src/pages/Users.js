@@ -4,9 +4,12 @@ import React from 'react'
 // IMPORT CSS STYLESHEETS
 import '../css/pagesCss/PageSetup.css'
 import '../css/pagesCss/Users.css'
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 // IMPORT CUSTOM COMPONENTS
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import UsersList from '../components/UsersList';
 
 //=======MAIN USERS FUNCTION COMPONENT=========
 export default function Users(///Export default Users.js component
@@ -19,6 +22,19 @@ export default function Users(///Export default Users.js component
   return (
     <div id='pageContainer'>
       <Header currentUser={currentUser} heading={'USERS'}/>
+      {/* ===========
+      SECTION 1:
+      ============ */}
+      <section id='usersSection1'>
+        <div id='users-Section1Content'>
+          <Row id='usersListRow'>
+           <Col id='usersListCol'>
+            <UsersList/>
+           </Col>
+         </Row>
+
+        </div>
+      </section>
       <Footer logout={logout}/>
     </div>
   )
