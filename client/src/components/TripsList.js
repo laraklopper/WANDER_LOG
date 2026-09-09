@@ -21,19 +21,17 @@ export default function TripsList(
 
     }
 ) {
+    // ========STATE VARIABLES============
     const [showFilter, setShowFilter] = useState(false)
+    const [selectedId, setSelectedId] = useState(null)//State used to indicate which trip trip the details panel is showing
 
+
+    // Function to toggle the filter form
     const toggleFilter = useCallback(() => {
         setShowFilter(prev => !prev)
     },[])
    
-    const username = currentUser?.username || '';
-
-    /* Which trip the details panel is showing, held as an id rather than as the
-    trip itself. The list is refetched by the REFRESH button, so a stored object
-    could outlive the record it was copied from and leave the panel showing a
-    trip the database no longer holds */
-    const [selectedId, setSelectedId] = useState(null)
+    const username = currentUser?.username || '';//Current loggedin user username
 
     /* Resolved out of the list on every render, so the panel follows the state
     TravelLog.js owns: when a refetch drops the selected trip the panel closes
@@ -60,22 +58,7 @@ export default function TripsList(
         setSelectedId(null)
     },[])
 
-    /* Removes the trip the details panel is showing.
-
-    Confirmed first, and the confirmation names what goes with it: a trip's
-    journal entries and its budget are cleared with it, and the expenses embedded
-    in that budget go too, so this is the delete that takes the most with it and a
-    user pressing it for the trip alone would not expect that. The counts are read
-    off the trip the panel was filled from — entryCount is maintained by the hooks
-    on entrySchema and hasBudget is answered by the API off the caller's budgets,
-    so both describe what is actually stored.
-
-    `deleteTrip` reports whether the trip actually went. On success TravelLog.js
-    has already reloaded the list, so the panel is closed here rather than left to
-    the row leaving the list — a refetch that failed would otherwise leave a
-    deleted trip on screen. On a failure it set the page error instead, and the
-    panel is deliberately left open on the trip that could not be removed, so the
-    message is read against it and the button can simply be pressed again. */
+    //Function to delete a trip
     const handleDelete = useCallback(async () => {
         const tripId = selectedTrip?._id;
 
@@ -122,10 +105,6 @@ export default function TripsList(
         }
     },[selectedTrip, deletingId, deleteTrip])
 
-    /* The country is only stored on an international trip, so it is read
-    through here: the panel's COUNTRY row is left off a domestic trip rather
-    than shown empty, and the list's LOCATION column appends it when it is
-    there. Written once so the two cannot start disagreeing */
     const tripLocation = (trip) => {
         const location = trip?.destination?.tripLocation;
         if (!location) return NOT_AVAILABLE;
@@ -139,9 +118,7 @@ export default function TripsList(
         <Stack direction="horizontal" gap={3}>
       <div className="p-2"/>
       <div className="p-2 ms-auto">
-        {/* Reloads the list from the API. Ignored while a request is already
-        running, so a second press cannot start a fetch that would race the
-        first and answer out of order */}
+        {/* Button to reload the list from the API. */}
         <Button
         id='refreshTripsBtn'
         variant='light'
@@ -156,6 +133,7 @@ export default function TripsList(
         </Button>
       </div>
       <div className="p-2 ">
+      {/* Button to toggle filter form */}
         <Button
         id='toggleFilterBtn'
         variant='light'
@@ -165,14 +143,10 @@ export default function TripsList(
         aria-label={showFilter ? 'Hide the trip filter' : 'Filter your trips'}
         aria-controls='filter-trip-panal'
         aria-pressed={showFilter}
-        /* Reports whether the filter is open, and is what PageSetup.css marks
-        the open button on */
         aria-expanded={showFilter}
         >
         {showFilter ? (
-            <>
-                Hide Filter
-            </>
+            <>Hide Filter</>
         ):(
             <>
                 Filter Trips<ArrowDownAZ fontWeight={700} aria-hidden='true' focusable='false'/>
@@ -190,18 +164,12 @@ export default function TripsList(
         </div>
     )}
         </div>
-        
         <div id='tripListBlock'>
-            {/* aria-busy reports a refresh of a list that already has rows:
-            those rows are deliberately left on screen rather than replaced by
-            the loading row, so nothing else on the table says a request is
-            running */}
+        {/* TRIPS LIST TABLE: table displaying userTrips */}
             <table id='tripsListTable' aria-busy={loadingTrips}>
                 <thead>
                     <tr>
-                        <th colSpan={7} id='tripsListMainHead'>
-                            {username} : TRIPS
-                        </th>
+                        <th colSpan={7} id='tripsListMainHead'>{username} : TRIPS</th>
                     </tr>
                     <tr id='tripsListHeadRow'>
                         <th scope='col'>TITLE</th>
@@ -214,12 +182,6 @@ export default function TripsList(
                     </tr>
                 </thead>
                 <tbody>
-                    {/* Conditional rendering to tell a user with no trips apart
-                    from a list that has not loaded: both are an empty array,
-                    and an empty table with no message reads as a failure rather
-                    than as an account that has logged nothing yet. The request
-                    in flight is reported first, so 'NO TRIPS LOGGED YET' is
-                    only ever shown once the answer is actually in */}
                     {loadingTrips && userTrips.length === 0 ? (
                         <tr>
                             <td colSpan={7} className='trips-list-loading'>
@@ -243,19 +205,9 @@ export default function TripsList(
                                 <td>{trip.title || NOT_AVAILABLE}</td>
                                 <td>{trip.purpose || NOT_AVAILABLE}</td>
                                 <td>{trip.destination?.destinationType || NOT_AVAILABLE}</td>
-                                {/* The country is appended to the location
-                                rather than given a column of its own, which a
-                                domestic trip would always leave empty */}
-                                <td>{tripLocation(trip)}</td>
+                                <td>{tripLocation(trip)}</td>{/* The country is appended to the location*/}
                                 <td>{trip.status || NOT_AVAILABLE}</td>
-                                {/* Answered by the API off the caller's budgets,
-                                not by the flag stored on the trip, which no
-                                route writes to */}
                                 <td>{trip.hasBudget ? 'YES' : 'NO'}</td>
-                                {/* A button per row rather than a click
-                                    handler on the row itself, so the panel can
-                                    be opened from the keyboard without
-                                    rebuilding what a button already does */}
                                 <td>
                                     <div id='viewTrip-div'>
                                     <Button
@@ -269,9 +221,7 @@ export default function TripsList(
                                     >
                                         VIEW
                                     </Button>   
-                                    </div>
-                                    
-                                    
+                                    </div>                      
                                 </td>
                             </tr>
                         ))
@@ -279,23 +229,16 @@ export default function TripsList(
                 </tbody>
             </table>
         </div>
-        {/* DETAILS PANAL: panal to display the data for one trip.
-        Only rendered once a row's VIEW has been pressed, so the panel is never
-        on screen with a set of empty labels in it */}
+        {/* DETAILS PANAL: panal to display the data for one trip.*/}
         {selectedTrip && (
         <div id='trip-details-panal' aria-live='polite'>
             <div id='tripDetailsHeading'>
                 <Stack direction="horizontal" gap={3} id='detailsHeadStack'>
       <div className="p-2">
-        <h3 id='trip-details-heading'>
-            {/* TRIP TITLE */}
-            {selectedTrip.title || NOT_AVAILABLE}
-        </h3>
+      <h3 id='trip-details-heading'>{selectedTrip.title || NOT_AVAILABLE}</h3>
       </div>
       <div className="p-2 ms-auto">
-      {/* TOGGLE EDIT TRIP FORM: the trip whose panel this was pressed from is
-      passed up with the toggle, so the page knows which id to PATCH and the
-      form knows what each field currently holds */}
+      {/* TOGGLE EDIT TRIP FORM */}
         <Button
         variant='warning'
         id='toggleEditTripBtn'
@@ -444,17 +387,11 @@ export default function TripsList(
       <div className="p-2 ms-auto"/>
       <div className="vr" />
       <div className="p-2">
-        {/* Sends the selected trip's id to DELETE /trip/deleteTrip/:id. A trip's
-        entries and its budget are cleared with it, and the expenses embedded in
-        that budget go too — which is why handleDelete confirms first and names
-        what is going */}
         <Button
         variant='danger'
         id='deleteItemBtn'
         type='button'
         onClick={handleDelete}
-        /* Blocked while this delete is running, so a second press cannot send
-        the same id again and answer 404 for a trip that has already gone */
         disabled={isDeleting}
         // ARIA ATTRIBUTES:
         aria-label={`Delete ${selectedTrip.title || 'this trip'}`}
@@ -464,7 +401,6 @@ export default function TripsList(
         </Button>
       </div>
     </Stack>
-
             </div>
         </div>
         )}
