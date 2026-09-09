@@ -16,12 +16,122 @@
     padding: 10px 0px;
 }
 
+/* Holds the refresh button above the table, the same arrangement the trip list
+uses over its own table */
+#usersToolbarStack{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#refreshUsersBtn{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 150px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #000;
+    margin: 0px;
+    padding: 0px;
+    border: solid 2px #323A42;
+}
+#refreshUsersBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
+}
+/* TABLE */
 #usersTable{
     width: 100%;
+    margin: 0px;
+    padding: 0px;
+    border-collapse: collapse;
+    border: solid 2px #323A42;
+    background-color: #D6D6D6;
+    text-align: center;
+}
+#usersHeadRow th{
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+    margin: 0px;
+    padding: 5px 0px;
+    font-family: "Fira Sans", sans-serif;
+    border: solid 1px #323A42;
+}
+#usersTable td{
+    font-family: "Fira Mono", monospace;
+    text-align: center;
+    padding: 8px 0px;
+    border: solid 1px #323A42;
+}
+/* Row striping: STYLES.md 1.5. TABLES. Applied by rowClass() in
+formatCalculations.js, the same as the trip and saved calculation lists */
+.evenRow{
+    background-color: #D6D6D6;
+}
+.oddRow{
+    background-color: #BFBFBF;
+}
+/* The row the details panel is showing. Marked by a left border as well as a
+background, so the link between the row and the panel is still visible to a user
+who cannot tell the three backgrounds apart; aria-pressed on the row's VIEW
+button reports the same thing to a screen reader */
+.selectedRow{
+    background-color: #E8F0F6;
+}
+.selectedRow td:first-child{
+    border-left: solid 5px #323A42;
+}
+/* The two single cell rows the table shows in place of any users: a request in
+flight, and a list that came back empty */
+.users-list-loading,
+.users-list-empty{
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    padding: 15px 6px;
+}
+#viewUser-div{
+    margin: 0px;
+    padding: 0px;
+}
+#viewUserBtn{
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #000;
+    border: solid 2px #323A42;
+    width: 150px;
+}
+#viewUserBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
+}
+/* Stands in the VIEW button's place on the rows that have none: an admin
+account, and the logged in admin's own row with it */
+.users-list-protected{
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    color: #323A42;
 }
 #tableFooterInfo{
     width: 100%;
+    margin: 0px;
+    padding: 3px 0px;
     text-align: center;
+}
+#adminUserBg{
+    font-family: "Fira Mono", monospace;
+    font-size: 14px;
+    margin: 0px;
+    padding: 5px 10px;
+    letter-spacing: 2px;
+    color: #000;
 }
 /* PANAL */
 #userPanal{

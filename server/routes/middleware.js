@@ -67,9 +67,74 @@ const checkJwtToken = (req, res, next) => {
      }
 };
 
+/*====================
+ADMIN ONLY MIDDLEWARE
+===============*/
+/* Confirms the account behind a verified token holds admin rights.
+Placed after checkJwtToken, which is what puts the decoded payload on req.user,
+so this only ever runs once the token itself has been verified.
+
+The stored account is loaded rather than the admin claim on the token being
+taken at face value: a token is signed once at login and carries the flag as it
+stood then, so an account that has since had its rights removed would keep
+presenting a token that still claims them until it expires */
+const checkAdmin = async (req, res, next) => {
+    console.log('[DEBUG: middleware.js] [checkAdmin] Middleware triggered');// Log message in the console for debugging purposes
+    try {
+        /* checkJwtToken assigns the decoded token, not a loaded account, so the
+        id comes from the payload that signToken put there */
+        const userId = req.user?.userId;
+
+        // Conditional rendering to check the token carried an id
+        if (!userId) {
+            console.error('[ERROR: middleware.js, checkAdmin] userId missing from token');// Log an error message in the console for debugging purposes
+            return res.status(401).json({// Respond with a 401 (Unauthorised) status code and an error message
+                success: false,//Success status
+                message: 'Access denied. Please login again.'//JSON message
+            });
+        }
+
+        // Only the two fields this check and its logging need are loaded
+        const user = await User.findById(userId).select('username admin').exec();
+
+        /* Conditional rendering to check the user on the token still exists: a
+        deleted account leaves a token that still verifies, and a 401 tells the
+        client to end the session rather than reporting it as a refusal */
+        if (!user) {
+            console.warn('[WARN: middleware.js, checkAdmin] No user found for id', userId);// Log a warning message in the console for debugging purposes
+            return res.status(401).json({// Respond with a 401 (Unauthorised) status code and an error message
+                success: false,//Success status
+                message: 'Invalid token. Please login again.'//JSON message
+            });
+        }
+
+        //Conditional rendering to check the account holds admin rights
+        if (!user.admin) {
+            console.warn(`[WARN: middleware.js, checkAdmin] ${user.username} is not an admin`);// Log a warning message in the console for debugging purposes
+            return res.status(403).json({// Respond with a 403 (Forbidden) status code and an error message
+                success: false,//Success status
+                message: 'Access denied. This action is for admin users only.'//JSON message
+            });
+        }
+
+        /* Kept on the request so a handler does not have to load the same
+        account a second time, for example to check which admin is acting */
+        req.adminUser = user;
+
+        console.log(`[SUCCESS: middleware.js, checkAdmin] ${user.username} confirmed as an admin`);//Log a message in the console for debugging purposes
+        return next();// Call the next middleware or route handler
+    } catch (error) {
+        console.error('[ERROR: middleware.js, checkAdmin]:', error.message);//Log an error message in the console for debugging purposes
+        return res.status(500).json({// Respond with a 500 (Internal Server Error) status code
+            success: false,//Success status
+            message: 'Internal server Error'//JSON message
+        });
+    }
+};
+
 /*==============
 ===============*/
-/*Middleware to ensure that the password has a minimum of 
+/*Middleware to ensure that the password has a minimum of
 eight characters and at least one special character*/
 const checkPassword = (req, res, next) => {
     console.log('[DEBUG: middleware.js checkPassword] Middleware triggered');// Log message in the console for debugging purposes
@@ -99,5 +164,6 @@ const checkPassword = (req, res, next) => {
 //
 module.exports = {
     checkJwtToken,
+    checkAdmin,
     checkPassword
 }

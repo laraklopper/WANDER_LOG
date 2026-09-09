@@ -29,6 +29,7 @@ const EMPTY_CREDENTIALS = {
 
 export default function App() {
   const [users, setUsers] = useState([])
+  const [loadingUsers, setLoadingUsers] = useState(false)
   const [userData, setUserData] = useState(EMPTY_CREDENTIALS)
   const [currentUser, setCurrentUser] = useState(null)
   /* Seeded from localStorage so a page reload does not drop a valid session.
@@ -39,41 +40,133 @@ export default function App() {
 
   const navigate = useNavigate()
 
- 
-  /* The user list is an admin only endpoint, so it is fetched in its own effect
-  that waits until currentUser has loaded and turns out to be an admin.
-  Requesting it for a regular user would only ever come back as a 403 */
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-         const token = localStorage.getItem('token');
-        if (!token) return;
-        
-        const response = await fetch('http://localhost:3001/users/findUsers', {
-          method: 'GET',
-          mode: 'cors',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-        })
+  /* Loads every registered user for the admin only users page.
+  Held here rather than in pages/Users.js because the list is state the whole
+  app shares, and defined as a callback rather than inside the effect below so
+  that the page's refresh button and deleteUser can both reload it.
 
-        const fetchedUsers = await response.json().catch(() => ({}));
-      
-        if (!response.ok) throw new Error(fetchedUsers?.message || fetchedUsers?.error || 'Failed to fetch users');
-
-        if (Array.isArray(fetchedUsers)) {
-        setUsers(fetchedUsers);//Update the setUsers state with the usersList
-        setError(null);// Clear any previous errors
-        console.log(`[SUCCESS: App.js] Fetched ${fetchedUsers.length} users`);
-        }else{
-          throw new Error('Invalid data format received from server');//Throw an error message if the data format is invalid
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error.message);//Log an error message in the console for debugging purposes
-        setError(`Error fetching user data: ${error.message}`);
-      }
+  loadingUsers is reported to the list so the table can say a request is in
+  flight instead of showing itself empty while the users are on their way */
+  const fetchUsers = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    // Conditional rendering to check a session is still stored
+    if (!token) {
+      console.warn('[WARN: App.js] No token stored, cannot fetch the users');
+      return;
     }
+
+    try {
+      setLoadingUsers(true)
+
+      const response = await fetch('http://localhost:3001/users/findUsers', {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+      })
+
+      const fetchedUsers = await response.json().catch(() => ({}));
+
+      if (!response.ok) throw new Error(fetchedUsers?.message || fetchedUsers?.error || 'Failed to fetch users');
+
+      if (Array.isArray(fetchedUsers)) {
+      setUsers(fetchedUsers);//Update the setUsers state with the usersList
+      setError(null);// Clear any previous errors
+      console.log(`[SUCCESS: App.js] Fetched ${fetchedUsers.length} users`);
+      }else{
+        throw new Error('Invalid data format received from server');//Throw an error message if the data format is invalid
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error.message);//Log an error message in the console for debugging purposes
+      setError(`Error fetching user data: ${error.message}`);
+    } finally {
+      setLoadingUsers(false)
+    }
+  },[])
+
+  /* Sends one user's id to DELETE /users/:id/deleteUser.
+  The route is admin only and refuses both the acting admin's own account and
+  any other admin, so those two are reported back as a 403 rather than removed.
+
+  Nothing an account owns outlives it: the route clears the user's trips,
+  journal entries, budgets, the expenses embedded in those budgets and both
+  saved calculation histories. That is why the list is reloaded rather than the
+  row simply being dropped here.
+
+  Returns whether the user actually went, so the list can close its details
+  panel on success and leave it open on the account it failed to remove */
+  const deleteUser = useCallback(async (userId) => {
+    // Conditional rendering to check a user was identified
+    if (!userId) {
+      console.warn('[WARN: App.js] No user id given, cannot delete the user');
+      return false;
+    }
+
+    const token = localStorage.getItem('token');
+    // Conditional rendering to check a session is still stored
+    if (!token) {
+      setError('Your session has expired. Please log in again.')
+      console.warn('[WARN: App.js] No token stored, cannot delete the user');
+      return false;
+    }
+
+    try {
+      setError(null)
+
+      const response = await fetch(`http://localhost:3001/users/${userId}/deleteUser`, {
+        method: 'DELETE',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      /* Safely parse the JSON response. Guarded because the body may be empty
+      or not JSON at all, and response.json() would throw before the status
+      could be reported */
+      const data = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        /* A 400 for a malformed id, a 403 for an admin account or the admin's
+        own, a 404 for a user that is not stored and a 401 once the session has
+        gone all arrive with their own message, so it is reported as it was given */
+        const message = data?.message || response?.statusText || 'Could not delete the user.';
+        setError(message)
+        console.error(`[ERROR: App.js] Delete user failed with status ${response.status}: ${message}`)
+        return false
+      }
+
+      /* Awaited so the caller's delete stays busy until the refreshed list has
+      arrived rather than only until the DELETE answered, and the row is gone
+      from the table by the time the button reports itself done */
+      await fetchUsers()
+
+      alert(data.message || 'User deleted successfully.')
+      console.log('[SUCCESS: App.js] User deleted:', data.username || userId, 'with', data.removedTrips ?? 0, 'trip(s) and', data.removedEntries ?? 0, 'entry(s)')
+      return true
+    } catch (error) {
+      // Only a network level failure reaches here, a 4xx or 5xx is handled above
+      setError('Could not reach the server. Please check your connection and try again.')
+      console.error(`[ERROR: App.js] Delete user request failed: ${error.message}`)
+      return false
+    }
+  },[fetchUsers])
+
+  /* The user list is only of use on the admin only users page, so it waits
+  until currentUser has loaded and turns out to be an admin. The admin flag is
+  read as a boolean rather than the effect depending on currentUser itself,
+  which is replaced by a new object on every fetch and would re-run this
+  endlessly */
+  useEffect(() => {
+    if (loggedIn && currentUser?.admin) {
+      fetchUsers();
+    }
+  },[loggedIn, currentUser?.admin, fetchUsers])
+
+  useEffect(() => {
  const fetchCurrentUser = async () => {//Define an async function to fetch current user details
       try {
         const token = localStorage.getItem('token');
@@ -111,13 +204,9 @@ export default function App() {
       }
     };
     if (loggedIn) {
-      fetchUsers();
       fetchCurrentUser();
     }
-    
-
-   
-  },[currentUser, loggedIn])
+  },[loggedIn])
 
 
   //========EVENT HANDLERS==================
@@ -206,7 +295,18 @@ export default function App() {
             }/>
             <Route path='/users' element={
               <ProtectedAdminRoute currentUser={currentUser}>
-                <Users currentUser={currentUser} users={users} logout={logout}/>
+                {/* The user list, its loading flag, its reload and its delete
+                are all passed down because they are owned here: the list is
+                fetched on login and reloaded after a delete, so the page
+                displays that state rather than keeping a copy of its own */}
+                <Users
+                  currentUser={currentUser}
+                  users={users}
+                  loadingUsers={loadingUsers}
+                  fetchUsers={fetchUsers}
+                  deleteUser={deleteUser}
+                  logout={logout}
+                />
               </ProtectedAdminRoute>
             }/>
           </>

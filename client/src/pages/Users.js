@@ -14,7 +14,11 @@ import UsersList from '../components/UsersList';
 //=======MAIN USERS FUNCTION COMPONENT=========
 export default function Users(///Export default Users.js component
   {//PROPS PASSED FROM PARENT COMPONENT (App.js)
-    currentUser, 
+    currentUser,
+    users,
+    loadingUsers,
+    fetchUsers,
+    deleteUser,
     logout
 }
 ) {
@@ -29,7 +33,16 @@ export default function Users(///Export default Users.js component
         <div id='users-Section1Content'>
           <Row id='usersListRow'>
            <Col id='usersListCol'>
-            <UsersList/>
+            {/* Passed straight through from App.js, which owns the list: the
+            page is the layout the table and its details panel sit in and does
+            not hold any user state of its own */}
+            <UsersList
+              currentUser={currentUser}
+              users={users}
+              loadingUsers={loadingUsers}
+              fetchUsers={fetchUsers}
+              deleteUser={deleteUser}
+            />
            </Col>
          </Row>
 

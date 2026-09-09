@@ -6,7 +6,15 @@ const express = require('express');
 const mongoose = require('mongoose');
 const rateLimit = require('express-rate-limit');
 const User = require('../models/userSchema');
-const { checkJwtToken, checkPassword } = require('./middleware');
+/* Everything an account owns, required here so the delete below can clear up
+after the user rather than leaving records behind with no account to reach them
+through. The schemas do not cascade a delete of their own */
+const Trip = require('../models/tripSchema');
+const Entry = require('../models/entrySchema');
+const Budget = require('../models/budgetSchema');
+const Vat = require('../models/vatSchema');
+const Conversion = require('../models/currConverterSchema');
+const { checkJwtToken, checkAdmin, checkPassword } = require('./middleware');
 const router = express.Router()
 
 /* A password change has to be told the current password, which makes it a
@@ -283,6 +291,138 @@ router.patch('/:id/editUser', checkJwtToken, async (req, res) => {
 
         console.error('[ERROR: userRoutes.js "/:id/editUser"]:', error.message);//Log an error message in the console for debugging purposes
         return res.status(500).json({ message: 'Internal server Error' });
+    }
+});
+
+/*──────────────────────────── DELETE ROUTES ───────────────────────────────────
+    DELETE: Used to remove an item from the database
+ ────────────────────────────────────────────────────────────────────────────────*/
+/*=====================================
+DELETE A USER
+=======================================*/
+/* users/:id/deleteUser - Removes one account and everything filed against it.
+
+Admin only, so the path is the same shape as the two PATCH routes above but the
+rule behind it is the opposite: those let an account act on itself alone, while
+this lets an admin act on another account and never on their own. checkAdmin
+loads the acting account rather than reading the admin flag off the token, so a
+demoted admin cannot keep using a token that still claims the rights.
+
+Two accounts are refused outright, matching what the users page tells the admin:
+
+- the acting admin's own account, which would end the session that is deleting
+  it and leave the app holding a token for a user that no longer exists
+- any other admin, so the last admin cannot be removed and no admin can be
+  locked out of the system by another
+
+Nothing an account owns outlives it: the schemas do not cascade a delete, so a
+user removed on their own would leave trips, journal entries, budgets and saved
+calculations stored against an id that no longer resolves to anybody. All of it
+is cleared here, and the account itself goes last, so a failure part way through
+leaves the user in place to be deleted again rather than leaving orphaned
+records with no account to reach them through. */
+router.delete('/:id/deleteUser', checkJwtToken, checkAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        // Loaded by checkAdmin, so the acting account does not have to be fetched again
+        const requester = req.adminUser;
+
+        /* Checked before the lookup, otherwise a malformed id reaches Mongoose as
+        a CastError and is reported as a 500 instead of a 400 */
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            console.warn('[WARN: userRoutes.js "/:id/deleteUser"] Invalid user id', id);// Log a warning message in the console for debugging purposes
+            return res.status(400).json({ success: false, message: 'That user id is not valid' });// Respond with a 400 (Bad Request) status code
+        }
+
+        /* An admin may not delete their own account. Checked before the lookup,
+        because the answer does not depend on the stored document, and refused
+        rather than allowed so the request cannot end the session carrying it */
+        if (String(requester._id) === String(id)) {
+            console.warn(`[WARN: userRoutes.js "/:id/deleteUser"] ${requester.username} tried to delete their own account`);// Log a warning message in the console for debugging purposes
+            return res.status(403).json({ success: false, message: 'You cannot delete your own account' });// Respond with a 403 (Forbidden) status code
+        }
+
+        // password and confirmPassword are select: false, so neither is loaded here
+        const user = await User.findById(id).exec();
+
+        //Conditional rendering to check that the account exists
+        if (!user) {
+            console.warn('[WARN: userRoutes.js "/:id/deleteUser"] No user found for id', id);// Log a warning message in the console for debugging purposes
+            return res.status(404).json({ success: false, message: 'That user could not be found' });// Respond with a 404 (Not Found) status code
+        }
+
+        /* Admin accounts are not removable through this route, which is what the
+        users list reports on the table footer. Read off the stored document
+        rather than anything the client sent, so the flag cannot be talked around */
+        if (user.admin) {
+            console.warn(`[WARN: userRoutes.js "/:id/deleteUser"] ${requester.username} tried to delete the admin account ${user.username}`);// Log a warning message in the console for debugging purposes
+            return res.status(403).json({ success: false, message: 'Admin users cannot be removed' });// Respond with a 403 (Forbidden) status code
+        }
+
+        /* Read before anything is removed, because an expense is a sub-document
+        of its trip's budget rather than a model of its own: once the budgets are
+        gone there is nothing left to count the expenses from */
+        const budgets = await Budget.find({ userId: user._id }).select('expenses').lean().exec();
+        const expenseCount = budgets.reduce((total, budget) => total + (budget.expenses?.length ?? 0), 0);
+
+        /* Requested together because none of them needs another's answer, and
+        each filtered on the owner so only this account's records are touched.
+        The two calculation histories store the owner as `user` rather than as
+        `userId`, the field name their own schemas use */
+        const [removedEntries, removedBudgets, removedTrips, removedVat, removedConversions] = await Promise.all([
+            Entry.deleteMany({ userId: user._id }).exec(),
+            Budget.deleteMany({ userId: user._id }).exec(),
+            Trip.deleteMany({ userId: user._id }).exec(),
+            Vat.deleteMany({ user: user._id }).exec(),
+            Conversion.deleteMany({ user: user._id }).exec(),
+        ]);
+
+        const entryCount = removedEntries?.deletedCount ?? 0;
+        const budgetCount = removedBudgets?.deletedCount ?? 0;
+        const tripCount = removedTrips?.deletedCount ?? 0;
+        const vatCount = removedVat?.deletedCount ?? 0;
+        const conversionCount = removedConversions?.deletedCount ?? 0;
+
+        /* What went with the account, listed for the message below. Each is left
+        out when there was none of it, so an account that registered and never
+        used the app is reported as the account on its own */
+        const alsoRemoved = [
+            tripCount ? `${tripCount} trip${tripCount === 1 ? '' : 's'}` : null,
+            entryCount ? `${entryCount} journal ${entryCount === 1 ? 'entry' : 'entries'}` : null,
+            budgetCount ? `${budgetCount} budget${budgetCount === 1 ? '' : 's'}` : null,
+            expenseCount ? `${expenseCount} expense${expenseCount === 1 ? '' : 's'}` : null,
+            vatCount ? `${vatCount} saved VAT calculation${vatCount === 1 ? '' : 's'}` : null,
+            conversionCount ? `${conversionCount} saved conversion${conversionCount === 1 ? '' : 's'}` : null,
+        ].filter(Boolean);
+
+        /* Deleted last, so the account is only gone once everything stored
+        against it is. A failure above leaves the user listed and the delete can
+        be run again, which is recoverable in a way an orphaned record is not */
+        await User.findByIdAndDelete(user._id).exec();
+
+        console.info(`[SUCCESS: userRoutes.js "/:id/deleteUser"] ${requester.username} deleted ${user.username} with ${tripCount} trip(s), ${entryCount} entry(s), ${budgetCount} budget(s), ${expenseCount} expense(s), ${vatCount} VAT calculation(s) and ${conversionCount} conversion(s)`);// Log a success message in the console for debugging purposes
+        return res.status(200).json({
+            success: true,
+            /* Names what went with the account rather than reporting the user
+            alone, because the records removed with it are not on screen and the
+            admin has no other way of seeing what the delete reached */
+            message: alsoRemoved.length
+                ? `${user.username} was deleted successfully, along with ${alsoRemoved.join(', ')}.`
+                : `${user.username} was deleted successfully.`,
+            /* Returned so the client can drop the row and close any panel open
+            on this user without waiting on a refetch to learn which one went */
+            userId: id,
+            username: user.username,
+            removedTrips: tripCount,
+            removedEntries: entryCount,
+            removedBudgets: budgetCount,
+            removedExpenses: expenseCount,
+            removedVatCalculations: vatCount,
+            removedConversions: conversionCount,
+        });// Respond with a 200 (OK) status code and what was removed
+    } catch (error) {
+        console.error('[ERROR: userRoutes.js "/:id/deleteUser"]:', error.message);//Log an error message in the console for debugging purposes
+        return res.status(500).json({ success: false, message: 'Internal server Error' });// Respond with a 500 (Internal Server Error) status code
     }
 });
 
