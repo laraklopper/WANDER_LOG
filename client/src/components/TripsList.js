@@ -226,12 +226,13 @@ export default function TripsList(
         </h3>
       </div>
       <div className="p-2 ms-auto">
-      {/* TOGGLE EDIT TRIP FORM: left unwired, PATCH /trip/editTrip/:id is not
-      written yet, so there is nothing for EditTripForm.js to submit to */}
+      {/* TOGGLE EDIT TRIP FORM: the trip whose panel this was pressed from is
+      passed up with the toggle, so the page knows which id to PATCH and the
+      form knows what each field currently holds */}
         <Button
         variant='warning'
         id='toggleEditTripBtn'
-        onClick={toggleEditTrip}
+        onClick={() => toggleEditTrip?.(selectedTrip)}
         type='button'
         // ARIA ATTRIBUTES:
         aria-label={showEditTrip ? 'Hide Form' : 'Edit Trip'}
@@ -376,9 +377,8 @@ export default function TripsList(
       <div className="p-2 ms-auto"/>
       <div className="vr" />
       <div className="p-2">
-        {/* Left unwired for the same reason as EDIT above: DELETE
-        /trip/deleteTrip/:id is not written yet, so there is nothing to send the
-        selected trip's id to */}
+        {/* Left unwired: DELETE /trip/deleteTrip/:id is not written yet, so
+        there is nothing to send the selected trip's id to */}
         <Button
         variant='danger'
         id='deleteItemBtn'

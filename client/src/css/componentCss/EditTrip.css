@@ -32,6 +32,15 @@ EditTripForm.css
 /* ======================
 LAYOUT
 ========*/
+/* INFO MESSAGE: says once that the form only sends what was filled in */
+#editTripInfoBlock{
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    width: 85%;
+    margin: 0px;
+    padding: 0px;
+}
 /* TRIP INPUT */
 #editTripInput{
     display: flex;

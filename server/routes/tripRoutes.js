@@ -14,6 +14,7 @@ all routes require JWT Auth
 file using the dotenv package*/
 require('dotenv').config();
 const express = require('express');
+const mongoose = require('mongoose');
 const Trip = require('../models/tripSchema');
 const User = require('../models/userSchema');
 /* Read only, and only for hasBudget on the trip list below: a budget is filed
@@ -40,6 +41,44 @@ undefined when the value is not one of the allowed ones */
 const matchEnum = (value, allowed) =>
     allowed.find((option) => option.toLowerCase() === String(value ?? '').trim().toLowerCase());
 
+/* Reads one value off a submission by the schema path the form names its input
+by, so a destination arrives as 'destination.tripLocation' and a date as
+'date.startDate'.
+
+Both shapes are read, the nested one first, so a body built as
+{ date: { startDate: '2025-01-01' } } and one built as
+{ 'date.startDate': '2025-01-01' } are understood the same way. */
+const readPath = (body, group, key) => {
+    const nested = body?.[group]?.[key];
+    return nested === undefined ? body?.[`${group}.${key}`] : nested;
+}
+
+/* The two rules that read more than one of a trip's fields at once, so neither
+can be judged from a single submitted value on its own:
+
+- a country belongs on an international trip, and is required for one, while a
+  domestic trip stores none at all
+- a trip cannot end before it starts
+
+Both are checked against the whole trip, which on a create is the submission and
+on an edit is the merge of the submitted changes over what is already stored: an
+edit that moves only the start date still has to be compared against the stored
+end date, and one that only switches the type to international has to find a
+country either in the body or already on the trip.
+
+Returns `{ message }` describing the problem, or null when the trip is usable. */
+const checkTripRules = ({ destinationType, country, startDate, endDate }) => {
+    if (destinationType === 'International' && !String(country ?? '').trim()) {
+        return { message: 'Country is required for an international trip' };
+    }
+    /* The schema checks this too, through the validator on date.endDate. It is
+    repeated here so the message names the problem before a document is written */
+    if (endDate < startDate) {
+        return { message: 'End date must be after start date' };
+    }
+    return null;
+}
+
 /* Reads a trip's fields off a request body and normalises them into the shape
 tripSchema expects, with the two nested objects built here rather than in the
 handler. Every rule the schema enforces is checked first, so a bad submission is
@@ -48,89 +87,172 @@ reported as a 400 with one clear message instead of a Mongoose ValidationError.
 The owner is deliberately not read here: userId and username come from the token
 and the database, never from the body.
 
+`partial` is the difference between the two routes. A create has to carry the
+whole trip, so a field that is missing is reported as missing. An edit only
+carries what the form was asked to change, so a field the body does not hold at
+all is left as it is stored, while one that is present is checked the same way it
+would be on a create — a blank title is a blank title in both, and is refused
+rather than written over a stored one.
+
 Returns `{ message }` describing the first problem found, or the normalised trip
-fields when the input is usable. */
-const parseTripInput = ({ title, purpose, destination = {}, date = {}, status } = {}) => {
-    const tripTitle = String(title ?? '').trim();
-    // Conditional rendering to check the title was supplied, and is short enough to store
-    if (!tripTitle) {
-        return { message: 'Trip title is required' };
-    }
-    if (tripTitle.length > 100) {
-        return { message: 'Trip title cannot exceed 100 characters' };
+fields when the input is usable — on an edit, only the ones the body supplied. */
+const parseTripInput = (body = {}, { partial = false } = {}) => {
+    const { title, purpose, status } = body;
+    const input = {};
+
+    // ---- THE TITLE -----------------------------------------------------
+    if (!partial || title !== undefined) {
+        const tripTitle = String(title ?? '').trim();
+        // Conditional rendering to check the title was supplied, and is short enough to store
+        if (!tripTitle) {
+            return { message: 'Trip title is required' };
+        }
+        if (tripTitle.length > 100) {
+            return { message: 'Trip title cannot exceed 100 characters' };
+        }
+
+        input.title = tripTitle;
     }
 
-    const tripPurpose = matchEnum(purpose, PURPOSES);
-    // Conditional rendering to check the purpose is one the schema's enum allows
-    if (!tripPurpose) {
-        return { message: `Travel purpose must be one of: ${PURPOSES.join(', ')}` };
+    // ---- THE PURPOSE ---------------------------------------------------
+    if (!partial || purpose !== undefined) {
+        const tripPurpose = matchEnum(purpose, PURPOSES);
+        // Conditional rendering to check the purpose is one the schema's enum allows
+        if (!tripPurpose) {
+            return { message: `Travel purpose must be one of: ${PURPOSES.join(', ')}` };
+        }
+
+        input.purpose = tripPurpose;
     }
 
-    const destinationType = matchEnum(destination.destinationType, DESTINATION_TYPES);
-    // Conditional rendering to check the destination type is one the schema's enum allows
-    if (!destinationType) {
-        return { message: `Destination type must be one of: ${DESTINATION_TYPES.join(', ')}` };
+    // ---- THE DESTINATION -----------------------------------------------
+    const submittedType = readPath(body, 'destination', 'destinationType');
+    const submittedLocation = readPath(body, 'destination', 'tripLocation');
+    const submittedCountry = readPath(body, 'destination', 'country');
+    const destination = {};
+
+    if (!partial || submittedType !== undefined) {
+        const destinationType = matchEnum(submittedType, DESTINATION_TYPES);
+        // Conditional rendering to check the destination type is one the schema's enum allows
+        if (!destinationType) {
+            return { message: `Destination type must be one of: ${DESTINATION_TYPES.join(', ')}` };
+        }
+
+        destination.destinationType = destinationType;
     }
 
-    const tripLocation = String(destination.tripLocation ?? '').trim();
-    // Conditional rendering to check the location was supplied, and is short enough to store
-    if (!tripLocation) {
-        return { message: 'Destination is required' };
-    }
-    if (tripLocation.length > 50) {
-        return { message: 'Destination cannot exceed 50 characters' };
+    if (!partial || submittedLocation !== undefined) {
+        const tripLocation = String(submittedLocation ?? '').trim();
+        // Conditional rendering to check the location was supplied, and is short enough to store
+        if (!tripLocation) {
+            return { message: 'Destination is required' };
+        }
+        if (tripLocation.length > 50) {
+            return { message: 'Destination cannot exceed 50 characters' };
+        }
+
+        destination.tripLocation = tripLocation;
     }
 
-    /* The country only belongs on an international trip. It is required for
-    one, and left off a domestic one rather than stored next to a location that
-    is already inside the user's own country */
-    const country = String(destination.country ?? '').trim();
-    if (destinationType === 'International' && !country) {
-        return { message: 'Country is required for an international trip' };
+    /* Read whenever it was carried, and only measured against the destination
+    type by checkTripRules: on an edit that type may be the one already stored
+    rather than one this body supplied. Capped at the length the form allows,
+    which the schema does not do for this field */
+    if (!partial || submittedCountry !== undefined) {
+        const country = String(submittedCountry ?? '').trim();
+
+        if (country.length > 50) {
+            return { message: 'Country cannot exceed 50 characters' };
+        }
+
+        destination.country = country;
     }
 
-    /* Both dates are converted before they are compared, so a value the browser
-    never validated, such as one sent straight to the API, is caught here rather
-    than reaching Mongoose as a CastError and being reported as a 500 */
-    const startDate = new Date(date.startDate);
-    const endDate = new Date(date.endDate);
+    if (Object.keys(destination).length) input.destination = destination;
 
-    if (!date.startDate || Number.isNaN(startDate.getTime())) {
-        return { message: 'A valid start date is required' };
-    }
-    if (!date.endDate || Number.isNaN(endDate.getTime())) {
-        return { message: 'A valid end date is required' };
-    }
-    /* The schema checks this too, through the validator on date.endDate. It is
-    repeated here so the message names the problem before a document is built */
-    if (endDate < startDate) {
-        return { message: 'End date must be after start date' };
-    }
-
-    /* Defaulted rather than rejected, matching the schema's own default, so a
-    submission that leaves the status unset still creates an upcoming trip */
-    const tripStatus = status === undefined || status === null || status === ''
-        ? 'upcoming'
-        : matchEnum(status, STATUSES);
-
-    // Conditional rendering to check a supplied status is one the schema's enum allows
-    if (!tripStatus) {
-        return { message: `Trip status must be one of: ${STATUSES.join(', ')}` };
-    }
-
-    return {
-        title: tripTitle,
-        purpose: tripPurpose,
-        destination: {
-            destinationType,
-            tripLocation,
-            // Left undefined on a domestic trip, so the field is not stored at all
-            country: destinationType === 'International' ? country : undefined,
-        },
-        date: { startDate, endDate },
-        status: tripStatus,
+    // ---- THE DATES -----------------------------------------------------
+    /* Both are converted before they are stored or compared, so a value the
+    browser never validated, such as one sent straight to the API, is caught here
+    rather than reaching Mongoose as a CastError and being reported as a 500 */
+    const submittedDates = {
+        startDate: readPath(body, 'date', 'startDate'),
+        endDate: readPath(body, 'date', 'endDate'),
     };
+    const date = {};
+
+    for (const field of ['startDate', 'endDate']) {
+        const submitted = submittedDates[field];
+
+        // Conditional rendering to skip a date an edit did not carry
+        if (partial && submitted === undefined) continue;
+
+        const parsed = new Date(submitted);
+
+        // Conditional rendering to check the date was supplied, and can be read
+        if (!submitted || Number.isNaN(parsed.getTime())) {
+            return { message: `A valid ${field === 'startDate' ? 'start' : 'end'} date is required` };
+        }
+
+        date[field] = parsed;
+    }
+
+    if (Object.keys(date).length) input.date = date;
+
+    // ---- THE STATUS ----------------------------------------------------
+    if (!partial || status !== undefined) {
+        /* Defaulted rather than rejected on a create, matching the schema's own
+        default, so a submission that leaves the status unset still creates an
+        upcoming trip. An edit only reaches here when the body carried a status,
+        and a blank one is not a status the schema stores, so it is reported
+        instead of quietly turning the trip back into an upcoming one */
+        const tripStatus = !partial && (status === undefined || status === null || status === '')
+            ? 'upcoming'
+            : matchEnum(status, STATUSES);
+
+        // Conditional rendering to check a supplied status is one the schema's enum allows
+        if (!tripStatus) {
+            return { message: `Trip status must be one of: ${STATUSES.join(', ')}` };
+        }
+
+        input.status = tripStatus;
+    }
+
+    /* Only checked here on a create, where the whole trip arrived at once. An
+    edit is checked against the merge of these changes and the trip as it is
+    stored, which the route does for itself once it has loaded the document */
+    if (!partial) {
+        const problem = checkTripRules({
+            destinationType: destination.destinationType,
+            country: destination.country,
+            startDate: date.startDate,
+            endDate: date.endDate,
+        });
+
+        if (problem) return problem;
+
+        /* The country only belongs on an international trip, so it is left
+        undefined on a domestic one rather than stored next to a location that is
+        already inside the user's own country */
+        if (destination.destinationType !== 'International') destination.country = undefined;
+    }
+
+    return input;
 }
+
+/*=====================================
+VALIDATION ERROR SHAPING
+=======================================*/
+/* Mongoose collects every failed field rule into one ValidationError.
+parseTripInput checks the same rules first, so this is only reached by a value
+only the schema can judge. Flattened into a field keyed object so the form can
+show each message against the input that caused it.
+
+The keys are the schema's own paths — 'title', 'destination.tripLocation',
+'date.endDate' — and both trip forms name each input by that path, so nothing has
+to be translated on the way through. */
+const validationErrors = (error) => Object.fromEntries(
+    Object.entries(error.errors).map(([field, err]) => [field, err.message])
+);
 
 // ======ROUTES=====================
 /*──────────────────────────── GET ROUTES ─────────────────────────────────────
@@ -251,14 +373,9 @@ and normalised in one place before the document is built. */
       console.log('[SUCCESS: tripRoutes.js, POST /] Trip created:', newTrip._id);// Log a success message in the console for debugging purposes
         return res.status(201).json({ success: true, message: 'Trip created successfully.', trip: newTrip });// Respond with a 201 (Created) status code and the new trip object
    } catch (error) {
-      /* Mongoose collects every failed field rule into one ValidationError.
-      parseTripInput checks the same rules first, so this is reached by a value
-      only the schema can judge. Returned as a 400 with a field keyed object so
-      the form can show each message against the input that caused it */
+      // Raised by a rule only the schema can judge, reported against its field
       if (error.name === 'ValidationError') {
-        const errors = Object.fromEntries(
-            Object.entries(error.errors).map(([field, err]) => [field, err.message])
-        );
+        const errors = validationErrors(error);
         console.error('[ERROR: tripRoutes.js, POST /addTrip] Validation failed:', errors);// Log an error message in the console for debugging purposes
         return res.status(400).json({ success: false, message: 'Trip could not be created, please check the highlighted fields', errors });// Respond with a 400 (Bad Request) status code
       }
@@ -270,6 +387,161 @@ and normalised in one place before the document is built. */
 /*──────────────────────────── PATCH ROUTES ───────────────────────────────────
    PATCH: UPDATE — Used to partially update information in the database
 ────────────────────────────────────────────────────────────────────────────────*/
+/*=====================================
+EDIT A TRIP
+=======================================*/
+/* trip/editTrip/:id - Edits one of the logged in user's trips.
+
+The trip is matched on its id and the owner together, so another account's trip
+is not found at all rather than found and then refused — which is also why a
+missing one is reported as a 404 either way, and never says whether it exists on
+someone else's account.
+
+A PATCH, so only the fields the body carries are written and the rest are left as
+they are stored. Nothing on the form is required for that reason: the edit form
+leaves every input empty, shows what is currently stored beside it, and sends
+only the fields that were actually filled in.
+
+Four things cannot be written through here:
+
+- the owner, userId and username, which come from the token and the account for
+  the same reason they do on a create
+- hasBudget, which is not read off the trip at all: /fetchTrips answers it from
+  the caller's own budgets, because a budget is filed against the trip it was set
+  for rather than flagged on it
+- entryCount, which is maintained by the post save and post delete hooks on
+  entrySchema, so a body carrying its own count would be overwritten by the next
+  entry anyway
+
+The country is the one field an edit can remove: switching a trip to domestic
+unsets it, rather than leaving the name of a country stored against a trip that
+is no longer said to be in one.
+
+Saved through the document rather than with findOneAndUpdate, so the schema
+validates the whole trip, including the validator on date.endDate that compares
+the two dates as they will actually be stored. */
+router.patch('/editTrip/:id', checkJwtToken, async (req, res) => {
+    try {
+        const userId = req.user?.userId;
+
+        // Conditional rendering to check if userId is present
+        if (!userId) {
+            console.error('[ERROR: tripRoutes.js, PATCH /editTrip/:id] userId missing from token');// Log an error message in the console for debugging purposes
+            return res.status(401).json({ success: false, message: 'Unauthorized' });// Respond with a 401 (Unauthorised) status code
+        }
+
+        const tripId = String(req.params.id ?? '').trim();
+
+        /* Checked before the trip is looked up, so a malformed id is reported as
+        a 400 rather than reaching Mongoose as a CastError and being reported as
+        a 500 */
+        if (!mongoose.Types.ObjectId.isValid(tripId)) {
+            console.warn('[WARN: tripRoutes.js, PATCH /editTrip/:id] Invalid trip id', tripId);// Log a warning message in the console for debugging purposes
+            return res.status(400).json({ success: false, message: 'That trip id is not valid' });// Respond with a 400 (Bad Request) status code
+        }
+
+        const input = parseTripInput(req.body, { partial: true });// Extract and normalise only the fields the body carries
+
+        // Conditional rendering to check the submitted changes are usable
+        if (input.message) {
+            console.warn('[WARN: tripRoutes.js, PATCH /editTrip/:id]', input.message);// Log a warning message in the console for debugging purposes
+            return res.status(400).json({ success: false, message: input.message });// Respond with a 400 (Bad Request) status code and the reason
+        }
+
+        // Conditional rendering to check the body carried something to change
+        if (!Object.keys(input).length) {
+            console.warn('[WARN: tripRoutes.js, PATCH /editTrip/:id] Nothing to update on trip', tripId);// Log a warning message in the console for debugging purposes
+            return res.status(400).json({ success: false, message: 'There is nothing to update' });// Respond with a 400 (Bad Request) status code
+        }
+
+        /* Matched on the trip and the owner together, so another account's trip
+        is not found at all rather than found and then refused */
+        const trip = await Trip.findOne({ _id: tripId, userId }).exec();
+
+        // Conditional rendering to check a trip with that id exists on this account
+        if (!trip) {
+            console.warn('[WARN: tripRoutes.js, PATCH /editTrip/:id] No trip found for id', tripId, 'and user', userId);// Log a warning message in the console for debugging purposes
+            return res.status(404).json({ success: false, message: 'That trip could not be found on your account' });// Respond with a 404 (Not Found) status code
+        }
+
+        /* The two rules that read more than one field are checked against the
+        trip as this edit will leave it, not against the body on its own: an edit
+        that moves only the end date is still compared to the stored start date,
+        and one that only switches the type to international still has to find a
+        country, whether this body carried one or the trip already holds it */
+        const destinationType = input.destination?.destinationType ?? trip.destination?.destinationType;
+        const startDate = input.date?.startDate ?? trip.date?.startDate;
+        const endDate = input.date?.endDate ?? trip.date?.endDate;
+
+        /* A trip switched to domestic loses its country with the switch, so the
+        merged trip is judged without one rather than against a value that is
+        about to be unset */
+        const country = destinationType === 'International'
+            ? input.destination?.country ?? trip.destination?.country
+            : undefined;
+
+        const problem = checkTripRules({ destinationType, country, startDate, endDate });
+
+        // Conditional rendering to check the trip this edit would leave behind is usable
+        if (problem) {
+            console.warn('[WARN: tripRoutes.js, PATCH /editTrip/:id]', problem.message);// Log a warning message in the console for debugging purposes
+            return res.status(400).json({ success: false, message: problem.message });// Respond with a 400 (Bad Request) status code and the reason
+        }
+
+        // ---- APPLY THE CHANGES ---------------------------------------------
+        if (input.title !== undefined) trip.title = input.title;
+        if (input.purpose !== undefined) trip.purpose = input.purpose;
+        if (input.status !== undefined) trip.status = input.status;
+
+        /* Assigned by path rather than by replacing the nested objects, so an
+        edit that carries one date leaves the other as it is stored instead of
+        clearing it */
+        if (input.destination?.destinationType !== undefined) {
+            trip.set('destination.destinationType', input.destination.destinationType);
+        }
+        if (input.destination?.tripLocation !== undefined) {
+            trip.set('destination.tripLocation', input.destination.tripLocation);
+        }
+        /* Written for an international trip, and unset entirely for a domestic
+        one: set to undefined, the path is removed from the document on save
+        rather than stored as an empty string */
+        if (destinationType === 'International') {
+            if (input.destination?.country !== undefined) {
+                trip.set('destination.country', input.destination.country);
+            }
+        } else {
+            trip.set('destination.country', undefined);
+        }
+
+        if (input.date?.startDate !== undefined) trip.set('date.startDate', input.date.startDate);
+        if (input.date?.endDate !== undefined) trip.set('date.endDate', input.date.endDate);
+
+        /* Saving is what validates the document, so a rule only the schema can
+        judge is raised from here as a ValidationError and handled below rather
+        than being written */
+        await trip.save();
+
+        console.log('[SUCCESS: tripRoutes.js, PATCH /editTrip/:id] Trip updated:', trip._id);// Log a success message in the console for debugging purposes
+        return res.status(200).json({
+            success: true,
+            message: 'Trip updated successfully.',
+            /* Returned whole, with the virtuals the schema is set to include, so
+            the page can show the edited trip without refetching to see it */
+            trip,
+        });// Respond with a 200 (OK) status code and the updated trip
+    } catch (error) {
+        // Raised by a rule only the schema can judge, reported against its field
+        if (error.name === 'ValidationError') {
+            const errors = validationErrors(error);
+            console.error('[ERROR: tripRoutes.js, PATCH /editTrip/:id] Validation failed:', errors);// Log an error message in the console for debugging purposes
+            return res.status(400).json({ success: false, message: 'Trip could not be updated, please check the highlighted fields', errors });// Respond with a 400 (Bad Request) status code
+        }
+
+        console.error('[ERROR: tripRoutes.js, PATCH /editTrip/:id]', error.message);// Log an error message in the console for debugging purposes
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });// Respond with a 500 (Internal Server Error) status code
+    }
+})
+
 /*──────────────────────────── DELETE ROUTES ───────────────────────────────────
     DELETE: Used to remove an item from the database
  ────────────────────────────────────────────────────────────────────────────────*/

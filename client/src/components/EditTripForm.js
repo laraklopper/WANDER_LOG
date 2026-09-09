@@ -1,6 +1,6 @@
-// EditTripForm.js 
+// EditTripForm.js
 //IMPORT REQUIRED MODULES AND PACKAGES
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 // IMPORT CSS STYLESHEETS
 import '../css/componentCss/EditTrip.css'
 import '../css/componentCss/FormSetup.css'
@@ -8,20 +8,308 @@ import '../css/componentCss/FormSetup.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
 // IMPORT ICONS FROM LUCIDE-REACT
-import {  MapPin, Calendars  } from 'lucide-react';
+import {  Bug, MapPin, Calendars  } from 'lucide-react';
+// IMPORT UTILITY FUNCTIONS
+import { toDateInputValue } from '../util/dateFunctions';
+import { NOT_AVAILABLE, toLongDate } from '../util/formatCalculations';
 
-// EditTripForm function component
-export default function EditTripForm() {//Export the default EditTripForm.js Component
+/* The option values the API accepts, spelled the way tripSchema's enums store
+them. The labels are shown in upper case to match the rest of the form, while
+the value that is submitted stays in the schema's own casing. The same three
+lists AddTripForm.js offers, since an edit may set a trip to anything a new one
+could have been created as */
+const PURPOSES = [
+  { value: 'Holiday', label: 'HOLIDAY' },
+  { value: 'Business', label: 'BUSINESS' },
+];
+const DESTINATION_TYPES = [
+  { value: 'Domestic', label: 'DOMESTIC' },
+  { value: 'International', label: 'INTERNATIONAL' },
+];
+const STATUSES = [
+  { value: 'upcoming', label: 'UPCOMING' },
+  { value: 'ongoing', label: 'ONGOING' },
+  { value: 'completed', label: 'COMPLETED' },
+];
+
+/* The empty form used by the clear button when the page does not supply one.
+Kept in sync with EMPTY_TRIP_EDIT in pages/TravelLog.js, which is passed in as a
+prop. The two nested objects mirror the shape tripSchema stores, so a change does
+not have to be reassembled before it is sent */
+const BLANK_EDIT = {
+  title: '',
+  purpose: '',
+  destination: {
+    destinationType: '',
+    tripLocation: '',
+    country: '',
+  },
+  date: {
+    startDate: '',
+    endDate: '',
+  },
+  status: '',
+};
+
+/* The travel log's edit trip form.
+The request lives on TravelLog.js, which owns the form state, and arrives here as
+`editTripData` with `editTrip` to submit it — the same arrangement AddTripForm.js
+has with the journal.
+
+Nothing on this form is required, because it submits a PATCH: an input left alone
+is not sent at all and the field keeps the value it is stored with. Every input
+therefore opens empty rather than filled with the trip, and says what is
+currently saved beside it — as a placeholder on a text field, as the label of the
+leave unchanged option on a select, and as a hint under a date. Filling one in is
+what asks for it to be changed. */
+export default function EditTripForm({
+    // The trip being edited, needed to say what each field currently holds
+    trip,
+    editTripData = BLANK_EDIT,
+    setEditTripData,
+    editTrip,
+    // True while the edit request is in flight, set by the travel log page
+    submitting = false,
+    /* Field keyed messages from the server, for rules the browser cannot check.
+    Keyed by schema path, so a nested field arrives as 'destination.tripLocation' */
+    fieldErrors = {},
+    emptyForm = BLANK_EDIT
+}) {
     // =========STATE VARIABLES=============
     const [dateMsg, setDateMsg] = useState(false)
+    const [formError, setFormError] = useState(null)// Form level error shown above the submit button
+    /* Only the two fields that can be wrong without being empty are tracked. The
+    rest cannot: this form has no required input, so a blank one is a field being
+    left as it is rather than a field with something missing from it */
+    const [touched, setTouched] = useState({
+        country: false,// Tracks if the country field was touched
+        endDate: false,// Tracks if the end date field was touched
+    })
+
+    // Marks a single field as touched so its error message may be announced
+    const markTouched = (field) =>
+        setTouched((prev) => ({ ...prev, [field]: true }));
+
+    //========== WHAT THE TRIP CURRENTLY HOLDS ====================
+    /* Read off the trip rather than out of the form, and shown beside each input
+    so the field can be left alone knowingly. The dates are stored as Dates and
+    arrive as ISO strings, so they are read through the two date helpers rather
+    than printed raw */
+    const storedTitle = trip?.title || '';
+    const storedPurpose = trip?.purpose || '';
+    const storedType = trip?.destination?.destinationType || '';
+    const storedLocation = trip?.destination?.tripLocation || '';
+    const storedCountry = trip?.destination?.country || '';
+    const storedStatus = trip?.status || '';
+    const storedStartDate = toDateInputValue(trip?.date?.startDate, '');
+    const storedEndDate = toDateInputValue(trip?.date?.endDate, '');
+
+    //========== WHAT THE TRIP WOULD BE LEFT AS ====================
+    /* Each field as this edit would leave it: the submitted change where one was
+    made, and the stored value where the input was left alone. The same merge the
+    API makes of the body and the document, so the two cannot disagree about the
+    trip that is being checked */
+    const destinationType = editTripData.destination?.destinationType || storedType;
+
+    /* An international trip has to name its country, a domestic one does not, so
+    the country input is only rendered, and only asked for, while the trip is
+    being left as, or changed to, the former */
+    const isInternational = destinationType === 'International';
+
+    const country = useMemo(
+        () =>
+            String(editTripData.destination?.country || '').trim() ||
+            String(storedCountry).trim(),
+        [editTripData.destination?.country, storedCountry]
+    );
+    const startDate = editTripData.date?.startDate || storedStartDate;
+    const endDate = editTripData.date?.endDate || storedEndDate;
+
+    //========== CHANGE AND CROSS FIELD VALIDATION ====================
+    /* Whether anything was actually filled in. A PATCH with nothing in it is
+    answered by the API with 'There is nothing to update', so it is reported here
+    instead of being sent. The country only counts while its input is on screen:
+    switching the trip to domestic clears the field as well as the type */
+    const hasChanges = useMemo(
+        () =>
+            Boolean(
+                String(editTripData.title || '').trim() ||
+                editTripData.purpose ||
+                editTripData.status ||
+                editTripData.destination?.destinationType ||
+                String(editTripData.destination?.tripLocation || '').trim() ||
+                (isInternational && String(editTripData.destination?.country || '').trim()) ||
+                editTripData.date?.startDate ||
+                editTripData.date?.endDate
+            ),
+        [editTripData, isInternational]
+    );
+
+    /* The browser cannot compare two inputs, and one of the two dates may not be
+    on the form at all, so the order is checked against the merged pair as well
+    as by the min attribute on the end date. Compared as the 'YYYY-MM-DD' strings
+    a date input reads and writes, which sort the same way the dates themselves
+    do */
+    const endBeforeStart = useMemo(
+        () => Boolean(startDate && endDate && String(endDate) < String(startDate)),
+        [startDate, endDate]
+    );
+
+    /* A country is only missing when the trip is one that needs it, and is only
+    missing when neither this edit nor the trip itself supplies one: a trip
+    already stored as international keeps the country it holds */
+    const countryMissing = isInternational && !country;
+
+    const showCountryError = touched.country && countryMissing;
+    const showEndBeforeStartError = touched.endDate && endBeforeStart;
+
+    //================EVENT HANDLERS========================
+    const handleInputChange = (event) => {
+        const { name, value } = event.target;
+
+        setFormError(null);// Any edit clears the form level error
+
+        /* The two nested objects are written by prefix rather than by a flat key,
+        so an input named 'destination.tripLocation' updates that field and leaves
+        the rest of the destination alone */
+        if (name.startsWith('destination.')) {
+            const [, field] = name.split('.');
+            setEditTripData((prev) => ({
+                ...prev,
+                destination: { ...prev.destination, [field]: value },
+            }));
+            return;
+        }
+        if (name.startsWith('date.')) {
+            const [, field] = name.split('.');
+            setEditTripData((prev) => ({
+                ...prev,
+                date: { ...prev.date, [field]: value },
+            }));
+            return;
+        }
+        setEditTripData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
+
+    /* Changing the destination type clears the country as well as setting the
+    type. Without this, a country typed while the trip was being made
+    international would still be sitting in state after it was switched back to
+    domestic, and would be sent with an edit whose input is no longer on screen.
+    The API drops the stored country from a domestic trip anyway, so clearing the
+    field keeps the form saying what the edit will actually do */
+    const handleDestinationTypeChange = (event) => {
+        const { value } = event.target;
+
+        setFormError(null);
+        setEditTripData((prev) => ({
+            ...prev,
+            destination: {
+                ...prev.destination,
+                destinationType: value,
+                country: value === 'International' ? prev.destination?.country || '' : '',
+            },
+        }));
+    };
+
+    /* Only the rules the browser cannot enforce on its own are checked here.
+    maxLength and type constraints are still handled by the native validation on
+    each input, which blocks submit before this runs. There is nothing to check
+    for an empty field: this form requires none of them */
+    const handleEditTrip = (e) => {
+        e.preventDefault()
+        // Ignored while a request is already running, so the form cannot double post
+        if (submitting) return
+
+        // Conditional rendering to check a trip is open for editing
+        if (!trip?._id) {
+            setFormError('No trip is open for editing. Please choose one from the list.')
+            console.warn('[WARN: EditTripForm.js]: No trip open for editing')
+            return
+        }
+        /* Nothing was filled in, so there is no change to send. Reported here
+        rather than by the API, which would answer the empty PATCH with a 400 */
+        if (!hasChanges) {
+            setFormError('Nothing has been changed yet. Fill in only the fields you want to update.')
+            console.warn('[WARN: EditTripForm.js]: Submitted with no changes')
+            return
+        }
+
+        setTouched({ country: true, endDate: true })
+
+        /* The country input is conditionally rendered, so its required attribute
+        is not on the page when the trip is only now being made international */
+        if (countryMissing) {
+            setFormError('Please enter the country for an international trip.')
+            console.warn('[WARN: EditTripForm.js]: Country missing for an international trip')
+            document.getElementById('editTripCountry')?.focus()
+            return
+        }
+        if (endBeforeStart) {
+            setFormError('The end date cannot be before the start date.')
+            console.warn('[WARN: EditTripForm.js]: End date is before the start date')
+            document.getElementById('editTripEndDate')?.focus()
+            return
+        }
+
+        setFormError(null)
+        console.log('[INFO: EditTripForm.js]: Editing trip', trip._id);
+        editTrip?.()
+    }
+
+    const handleClear = () => {
+        const confirmClear = window.confirm(// Ask the user to confirm before clearing all input fields
+            "Are you sure you want to clear the form?"
+        );
+        if (!confirmClear) return;
+        /* Reset to the same empty shape the page initialised the form with, which
+        for this form means every field left as the trip is stored */
+        setEditTripData(emptyForm);
+        setTouched({ country: false, endDate: false });
+        setFormError(null);
+    }
+
+    // ========= IDs USED BY aria-describedby =========
+    const titleHelpId = 'editTripTitleHelp';// ID used for the stored title hint
+    const purposeHelpId = 'editTripPurposeHelp';// ID used for the stored purpose hint
+    const statusHelpId = 'editTripStatusHelp';// ID used for the stored status hint
+    const destinationTypeHelpId = 'editTripTypeHelp';// ID used for the stored destination type hint
+    const locationHelpId = 'editTripLocationHelp';// ID used for the stored location hint
+    const countryHelpId = 'editTripCountryHelp';// ID used for the country hint
+    const countryErrorId = 'editTripCountryError';// ID used for the country error message
+    const startDateHelpId = 'editTripStartDateHelp';// ID used for the stored start date hint
+    const endDateHelpId = 'editTripEndDateHelp';// ID used for the stored end date hint
+    const endBeforeStartErrorId = 'editTripEndBeforeStartError';// ID used for the date order error message
+    const formErrorId = 'editTripFormError';// ID used for the form level error message
+    const serverErrorId = 'editTripServerErrors';// ID used for the block listing the server's field errors
+
+    // Joins the IDs that are currently rendered into a single aria-describedby value
+    const describedBy = (...ids) => ids.filter(Boolean).join(' ') || undefined;
+
+    /* The server returns its errors keyed by schema path, so a nested field
+    arrives as 'destination.tripLocation' or 'date.endDate'. Listed as entries for
+    rendering, and looked up by path to mark the matching input invalid */
+    const serverErrors = Object.entries(fieldErrors || {});
+    const hasServerError = (path) => Boolean(fieldErrors?.[path]);
 
     //==========JSX RENDERING============
   return (
     <form id='editTripForm' method='PATCH' aria-labelledby='formHeading'
-    // onSubmit={}
+    onSubmit={handleEditTrip}
     >
         <div id='formHeadingBlock'>
-            <h3 id='formHeading'>EDIT TRIP</h3>
+            {/* The trip being edited is named in the heading, so the form cannot
+            be filled in for one trip while another is the one open */}
+            <h3 id='formHeading'>EDIT TRIP: {trip?.title || NOT_AVAILABLE}</h3>
+        </div>
+        {/* Says once what every field on the form then relies on, rather than
+        repeating 'leave blank to keep' under each of the eight inputs */}
+        <div id='editTripInfoBlock'>
+            <p className='infoMsg'>
+                <small>Only fill in what you want to change. Anything left blank stays as it is.</small>
+            </p>
         </div>
         {/* =====FORM INPUT============ */}
         <div id='editTripInput'>
@@ -30,55 +318,94 @@ export default function EditTripForm() {//Export the default EditTripForm.js Com
             {/* STACK1 */}
                 <Stack gap={3} id='editTripStack1'>
                     <div className="p-2" id='editTitleBlock'>
-                    {/* EDIT TITLE */}
-                        <label className='editTrip-label' htmlFor=''>EDIT TITLE:</label>
+                        <label className='editTrip-label' htmlFor='editTripTitle'>EDIT TITLE:</label>
                         <div className='input-div'>
+                        {/* The stored title is the placeholder rather than the
+                        value, so an untouched input sends nothing at all */}
                             <input
                                 type='text'
-                                // id=''
                                 className='input'
-                                placeholder='TITLE'//currentTitle
-                                // name=''
-                                // value={}
-                                // onChange={}
-                                //ARIA ATTRIBUTES: 
+                                id='editTripTitle'
+                                placeholder={storedTitle || 'TITLE'}
+                                maxLength={100}
+                                name='title'
+                                value={editTripData.title || ''}
+                                onChange={handleInputChange}
+                                // ARIA ATTRIBUTES:
                                 aria-required='false'
+                                aria-invalid={hasServerError('title') ? 'true' : 'false'}
+                                aria-describedby={describedBy(
+                                  titleHelpId,
+                                  hasServerError('title') && serverErrorId
+                                )}
                             />
                         </div>
+                        <small id={titleHelpId} className='infoText'>
+                            CURRENTLY: {storedTitle || NOT_AVAILABLE}
+                        </small>
                     </div>
                     <div className="p-2" id='editPurposeBlock'>
-                    {/* EDIT TRIP PURPOSE */}
-                        <label className='editTrip-label' htmlFor=''>PURPOSE</label>
+                        <label className='editTrip-label' htmlFor='editTripPurpose'>PURPOSE</label>
                         <div className='input-div'>
-                            <select 
+                        {/* The first option is the purpose the trip already has,
+                        and carries no value, so leaving the select on it sends
+                        no purpose with the edit */}
+                            <select
                             className='input'
-                            // id=''
-                            // name=''
-                            // value={}
-                            // onChange={}
-                            //ARIA ATTRIBUTES: 
-                             aria-required='false'
-                            >
-                                <option>SELECT</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div className="p-2" id='editPurposeBlock'>
-                    {/* EDIT STATUS */}
-                        <label className='editTrip-label' htmlFor=''>EDIT STATUS:</label>
-                        <div className='input-div'>
-                            <select 
-                            className='input'
-                            // id=''
-                            // name=''
-                            // value={}
-                            // onChange={}
-                            //ARIA ATTRIBUTES: 
+                            id='editTripPurpose'
+                            name='purpose'
+                            value={editTripData.purpose || ''}
+                            onChange={handleInputChange}
+                            // ARIA ATTRIBUTES:
                             aria-required='false'
+                            aria-invalid={hasServerError('purpose') ? 'true' : 'false'}
+                            aria-describedby={describedBy(
+                              purposeHelpId,
+                              hasServerError('purpose') && serverErrorId
+                            )}
                             >
-                            <option>SELECT</option>
+                                <option value=''>
+                                    {storedPurpose ? `KEEP: ${storedPurpose.toUpperCase()}` : 'SELECT'}
+                                </option>
+                                {/* The value submitted is the schema's spelling, the label is the one shown */}
+                                {PURPOSES.map(({ value, label }) => (
+                                  <option key={value} value={value}>{label}</option>
+                                ))}
                             </select>
                         </div>
+                        <small id={purposeHelpId} className='infoText'>
+                            CURRENTLY: {storedPurpose || NOT_AVAILABLE}
+                        </small>
+                    </div>
+                    <div className="p-2" id='editStatusBlock'>
+                    {/* EDIT STATUS */}
+                        <label className='editTrip-label' htmlFor='editTripStatus'>EDIT STATUS:</label>
+                        <div className='input-div'>
+                            <select
+                            className='input'
+                            id='editTripStatus'
+                            name='status'
+                            value={editTripData.status || ''}
+                            onChange={handleInputChange}
+                            // ARIA ATTRIBUTES:
+                            aria-required='false'
+                            aria-invalid={hasServerError('status') ? 'true' : 'false'}
+                            aria-describedby={describedBy(
+                              statusHelpId,
+                              hasServerError('status') && serverErrorId
+                            )}
+                            >
+                            <option value=''>
+                                {storedStatus ? `KEEP: ${storedStatus.toUpperCase()}` : 'SELECT'}
+                            </option>
+                            {STATUSES.map(({ value, label }) => (
+                              <option key={value} value={value}>{label}</option>
+                            ))}
+                            </select>
+                        </div>
+                        <small id={statusHelpId} className='infoText'>
+                            CURRENTLY: {storedStatus || NOT_AVAILABLE}
+                        </small>
                     </div>
                 </Stack>
             </div>
@@ -93,47 +420,103 @@ export default function EditTripForm() {//Export the default EditTripForm.js Com
             {/* STACK 2 : destination : Type, location, country*/}
                 <Stack gap={3} id='editTripStack2'>
                     <div className="p-2" id='editTripTypeBlock'>
-                        <label className='editTrip-label' htmlFor=''>EDIT DESTINATION TYPE:</label>
+                        <label className='editTrip-label' htmlFor='editTripDestinationType'>EDIT DESTINATION TYPE:</label>
                         <select
                         className='input'
-                        // id=''
-                        // name=''
-                        // value={}
-                        //ARIA ATTRIBUTES: 
-                    aria-required='false'
+                        id='editTripDestinationType'
+                        name='destination.destinationType'
+                        value={editTripData.destination?.destinationType || ''}
+                        /* Not handleInputChange: switching the type also has to
+                        clear a country typed for the previous selection */
+                        onChange={handleDestinationTypeChange}
+                        // ARIA ATTRIBUTES:
+                        aria-required='false'
+                        aria-invalid={hasServerError('destination.destinationType') ? 'true' : 'false'}
+                        aria-describedby={describedBy(
+                          destinationTypeHelpId,
+                          hasServerError('destination.destinationType') && serverErrorId
+                        )}
                         >
-                            <option>SELECT</option>
+                            <option value=''>
+                                {storedType ? `KEEP: ${storedType.toUpperCase()}` : 'SELECT'}
+                            </option>
+                            {DESTINATION_TYPES.map(({ value, label }) => (
+                              <option key={value} value={value}>{label}</option>
+                            ))}
                         </select>
+                        <small id={destinationTypeHelpId} className='infoText'>
+                            CURRENTLY: {storedType || NOT_AVAILABLE}
+                        </small>
                     </div>
                     <div className="p-2" id='editLocationBlock'>
                         <div className='input-div'>
-                         <label className='editTrip-label' htmlFor=''>EDIT LOCATION:</label>
+                         <label className='editTrip-label' htmlFor='editTripLocation'>EDIT LOCATION:</label>
                             <input
                                 className='input'
-                                id=''
+                                id='editTripLocation'
                                 type='text'
-                                placeholder='LOCATION' //currentLocation
-                                // name=''
-                                // value={}
-                                // onChange={}
+                                placeholder={storedLocation || 'LOCATION'}
+                                maxLength={50}
+                                name='destination.tripLocation'
+                                value={editTripData.destination?.tripLocation || ''}
+                                onChange={handleInputChange}
                                 // ARIA ATTRIBUTES
                                 aria-required='false'
+                                aria-invalid={hasServerError('destination.tripLocation') ? 'true' : 'false'}
+                                aria-describedby={describedBy(
+                                  locationHelpId,
+                                  hasServerError('destination.tripLocation') && serverErrorId
+                                )}
                             />
+                            <small id={locationHelpId} className='infoText'>
+                                CURRENTLY: {storedLocation || NOT_AVAILABLE}
+                            </small>
                         </div>
-                        {/* ONLY DISPLAY IF TYPE IS INTERNATIONAL */}
+                        {/* ONLY DISPLAY IF TYPE IS INTERNATIONAL: read off the
+                        type this edit would leave the trip with, so the input
+                        appears as soon as the select is switched to
+                        international and goes again when it is switched back.
+                        A domestic trip stores no country at all */}
+                        {isInternational && (
                           <div className='input-div'>
-                         <label className='editTrip-label' htmlFor=''>COUNTRY:</label>
+                         <label className='editTrip-label' htmlFor='editTripCountry'>COUNTRY:</label>
                             <input
                                 className='input'
-                                // id=''
-                                placeholder='COUNTRY'//Current country 
-                                // name=''
-                                // value={}
-                                // onChange={}
-                                //ARIA ATTRIBUTES: 
-                                aria-required='false'
+                                id='editTripCountry'
+                                type='text'
+                                /* Only required while the trip is being made
+                                international and holds no country to keep:
+                                without one there would be nothing to store */
+                                required={countryMissing}
+                                maxLength={50}
+                                placeholder={storedCountry || 'COUNTRY'}
+                                name='destination.country'
+                                value={editTripData.destination?.country || ''}
+                                onChange={handleInputChange}
+                                onBlur={() => markTouched('country')}
+                                // ARIA ATTRIBUTES:
+                                aria-required={countryMissing}
+                                aria-invalid={showCountryError || hasServerError('destination.country') ? 'true' : 'false'}
+                                aria-describedby={describedBy(
+                                  countryHelpId,
+                                  showCountryError && countryErrorId,
+                                  hasServerError('destination.country') && serverErrorId
+                                )}
                             />
+                            <small id={countryHelpId} className='infoText'>
+                                {storedCountry
+                                  ? `CURRENTLY: ${storedCountry}`
+                                  : 'REQUIRED FOR AN INTERNATIONAL TRIP'}
+                            </small>
+                            {/* COUNTRY ERROR MESSAGE */}
+                            {showCountryError && (
+                              <p id={countryErrorId} className='formErrorMessage' role='alert'>
+                                <Bug size={16} fontWeight={900} aria-hidden='true' focusable='false' />
+                                Country is required for an international trip
+                              </p>
+                            )}
                         </div>
+                        )}
                     </div>
                 </Stack>
             </div>
@@ -151,37 +534,62 @@ export default function EditTripForm() {//Export the default EditTripForm.js Com
         <div className='date-input'>
         {/* START DATE */}
             <div className='input-div'>
-                <label className='editTrip-label' htmlFor=''>EDIT START DATE:</label>
+                <label className='editTrip-label' htmlFor='editTripStartDate'>EDIT START DATE:</label>
                 <input
                 className='input'
-                // id=''
-                // placeholder=''
-                // name=''
-                // value={}
+                id='editTripStartDate'
+                name='date.startDate'
+                value={editTripData.date?.startDate || ''}
                 type='date'
                 onFocus={() => setDateMsg(true)}
                 onBlur={() => setDateMsg(false)}
-                // onChange={}
-                //ARIA ATTRIBUTES: 
+                onChange={handleInputChange}
+                // ARIA ATTRIBUTES:
                 aria-required='false'
+                aria-invalid={hasServerError('date.startDate') ? 'true' : 'false'}
+                aria-describedby={describedBy(
+                  startDateHelpId,
+                  hasServerError('date.startDate') && serverErrorId
+                )}
                 />
+                {/* A date input has no placeholder to put the stored date in, so
+                it is written out underneath instead, in the long form the trip
+                list and the details panel show it in */}
+                <small id={startDateHelpId} className='infoText'>
+                    CURRENTLY: {toLongDate(trip?.date?.startDate)}
+                </small>
             </div>
             {/* END DATE */}
             <div className='input-div'>
-                <label className='editTrip-label' htmlFor=''>EDIT END DATE:</label>
+                <label className='editTrip-label' htmlFor='editTripEndDate'>EDIT END DATE:</label>
                 <input
                     className='input'
-                    // id=''
-                    // placeholder=''
-                    // name=''
-                    // value={}
+                    id='editTripEndDate'
+                    name='date.endDate'
+                    value={editTripData.date?.endDate || ''}
                     type='date'
+                    /* Stops the picker offering a date before the trip starts,
+                    whether that is the start date this edit is setting or the
+                    one the trip is already stored with */
+                    min={startDate || undefined}
                     onFocus={() => setDateMsg(true)}
-                    onBlur={() => setDateMsg(false)}
-                    // onChange={}
-                    //ARIA ATTRIBUTES: 
+                    onBlur={() => {
+                      setDateMsg(false)
+                      markTouched('endDate')
+                    }}
+                    onChange={handleInputChange}
+                    //ARIA ATTRIBUTES:
                     aria-required='false'
+                    aria-invalid={showEndBeforeStartError || hasServerError('date.endDate') ? 'true' : 'false'}
+                    aria-describedby={describedBy(
+                      endDateHelpId,
+                      showEndBeforeStartError && endBeforeStartErrorId,
+                      hasServerError('date.endDate') && serverErrorId
+                    )}
                 />
+                <small id={endDateHelpId} className='infoText'>
+                    CURRENTLY: {toLongDate(trip?.date?.endDate)}
+                </small>
             </div>
         </div>
       </div>
@@ -193,6 +601,15 @@ export default function EditTripForm() {//Export the default EditTripForm.js Com
                 <p className='dateinfoText'>End date must be on or after the start date</p>
             </span>
         )}
+        {/* DATE ORDER ERROR MESSAGE: the browser cannot compare two inputs, and
+        only one of the two may have been changed, so this is shown on screen as
+        well as enforced by the min attribute above */}
+        {showEndBeforeStartError && (
+          <p id={endBeforeStartErrorId} className='formErrorMessage' role='alert'>
+            <Bug size={16} fontWeight={900} aria-hidden='true' focusable='false' />
+            End date must be on or after the start date
+          </p>
+        )}
       </div>
     </Stack>
         </div>
@@ -200,6 +617,28 @@ export default function EditTripForm() {//Export the default EditTripForm.js Com
         {/* <div id='editTripGroup4'></div> */}
         </div>
         {/* END OF FORM INPUT */}
+        {/* FORM LEVEL ERROR, raised by handleEditTrip when submit is blocked */}
+        {formError && (
+          <div id={formErrorId} className='formErrorBlock' role='alert' aria-live='assertive'>
+            <p className='formErrorMessage'>
+              <Bug size={20} fontWeight={900} aria-hidden='true' focusable='false' />
+              {formError}
+            </p>
+          </div>
+        )}
+        {/* SERVER SIDE FIELD ERRORS, returned when the API rejects the edit.
+        These are rules the browser cannot check on its own, so they can only be
+        reported after a round trip */}
+        {serverErrors.length > 0 && (
+          <div id={serverErrorId} className='formErrorBlock' role='alert' aria-live='assertive'>
+            {serverErrors.map(([field, message]) => (
+              <p key={field} className='formErrorMessage'>
+                <Bug size={20} fontWeight={900} aria-hidden='true' focusable='false' />
+                {message}
+              </p>
+            ))}
+          </div>
+        )}
         {/* GROUP 4 */}
         <div id='editTripGroup5'>
         {/* STACK 4 */}
@@ -207,22 +646,33 @@ export default function EditTripForm() {//Export the default EditTripForm.js Com
                 <div className="p-2"></div>
                 <div className="p-2 ms-auto">
                 {/* Submit Form Button */}
-                    <Button 
+                    <Button
                         variant='warning'
                         id='editTripBtn'
                         type='submit'
+                        disabled={submitting}// Disabled while the request runs, so the trip cannot be edited twice
                         // ARIA ATTRIBUTES:
-                        
-                        >EDIT TRIP</Button>
+                        aria-label={submitting ? 'Saving your changes, please wait' : `Save your changes to ${trip?.title || 'this trip'}`}
+                        aria-disabled={submitting}
+                        aria-busy={submitting}
+                        aria-describedby={describedBy(
+                          formError && formErrorId,
+                          serverErrors.length > 0 && serverErrorId
+                        )}
+                        >{submitting ? 'SAVING...' : 'EDIT TRIP'}</Button>
                 </div>
                 <div className="p-2">
-                {/* Clear Form Button */}
-                    <Button 
-                        variant='danger' 
+                {/* Clear Form Button: empties the form, which for this one means
+                every field left as the trip is stored */}
+                    <Button
+                        variant='danger'
                         id='clearFormBtn'
                         type='button'
-                        // onClick={}
+                        disabled={submitting}// Disabled while the request runs, so a change cannot be cleared mid submit
+                        onClick={handleClear}
                         // ARIA ATTRIBUTES
+                        aria-label='Clear edit trip form'
+                        aria-disabled={submitting}
                         >
                         CLEAR
                     </Button>
