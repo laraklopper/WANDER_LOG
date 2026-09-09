@@ -30,19 +30,24 @@ export default function EditTripForm() {//Export the default EditTripForm.js Com
             {/* STACK1 */}
                 <Stack gap={3} id='editTripStack1'>
                     <div className="p-2" id='editTitleBlock'>
-                        <label className='editTrip-label'>EDIT TITLE:</label>
+                    {/* EDIT TITLE */}
+                        <label className='editTrip-label' htmlFor=''>EDIT TITLE:</label>
                         <div className='input-div'>
                             <input
                                 type='text'
+                                // id=''
                                 className='input'
                                 placeholder='TITLE'//currentTitle
                                 // name=''
                                 // value={}
                                 // onChange={}
+                                //ARIA ATTRIBUTES: 
+                                aria-required='false'
                             />
                         </div>
                     </div>
                     <div className="p-2" id='editPurposeBlock'>
+                    {/* EDIT TRIP PURPOSE */}
                         <label className='editTrip-label' htmlFor=''>PURPOSE</label>
                         <div className='input-div'>
                             <select 
@@ -51,6 +56,8 @@ export default function EditTripForm() {//Export the default EditTripForm.js Com
                             // name=''
                             // value={}
                             // onChange={}
+                            //ARIA ATTRIBUTES: 
+                             aria-required='false'
                             >
                                 <option>SELECT</option>
                             </select>
@@ -66,6 +73,8 @@ export default function EditTripForm() {//Export the default EditTripForm.js Com
                             // name=''
                             // value={}
                             // onChange={}
+                            //ARIA ATTRIBUTES: 
+                            aria-required='false'
                             >
                             <option>SELECT</option>
                             </select>
@@ -90,6 +99,8 @@ export default function EditTripForm() {//Export the default EditTripForm.js Com
                         // id=''
                         // name=''
                         // value={}
+                        //ARIA ATTRIBUTES: 
+                    aria-required='false'
                         >
                             <option>SELECT</option>
                         </select>
@@ -106,6 +117,7 @@ export default function EditTripForm() {//Export the default EditTripForm.js Com
                                 // value={}
                                 // onChange={}
                                 // ARIA ATTRIBUTES
+                                aria-required='false'
                             />
                         </div>
                         {/* ONLY DISPLAY IF TYPE IS INTERNATIONAL */}
@@ -118,6 +130,8 @@ export default function EditTripForm() {//Export the default EditTripForm.js Com
                                 // name=''
                                 // value={}
                                 // onChange={}
+                                //ARIA ATTRIBUTES: 
+                                aria-required='false'
                             />
                         </div>
                     </div>
@@ -148,6 +162,8 @@ export default function EditTripForm() {//Export the default EditTripForm.js Com
                 onFocus={() => setDateMsg(true)}
                 onBlur={() => setDateMsg(false)}
                 // onChange={}
+                //ARIA ATTRIBUTES: 
+                aria-required='false'
                 />
             </div>
             {/* END DATE */}
@@ -164,6 +180,7 @@ export default function EditTripForm() {//Export the default EditTripForm.js Com
                     onBlur={() => setDateMsg(false)}
                     // onChange={}
                     //ARIA ATTRIBUTES: 
+                    aria-required='false'
                 />
             </div>
         </div>
