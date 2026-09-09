@@ -8,6 +8,13 @@
     margin: 0px;
     padding: 0px;
 }
+#conversionHeading{
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0px;
+}
 /* ===============
 SAVED CONVERSIONS TABLE
 ==============*/

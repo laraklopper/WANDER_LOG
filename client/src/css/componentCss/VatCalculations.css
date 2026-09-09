@@ -151,6 +151,25 @@ DISPLAY PANAL: ONE SAVED CALCULATION
     text-transform: uppercase;
     letter-spacing: 1px;
 }
+#vatCalculationHeader{
+    width: 100%;
+    margin: 0px;
+    padding: 0px 0px 5px 0px ;
+    border-bottom: solid 2px #323A42;
+}
+#vatCalculationsFooter{
+     width: 100%;
+    margin: 0px;
+    padding: 5px 0px 0px 0px;
+    border-top: solid 2px #323A42;
+}
+#vatcalculationHeading{
+        font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0px;
+}
 #closePanalBtn,
 #deleteItemBtn{
     display: flex;
@@ -183,6 +202,22 @@ each row is one label against one value rather than a grid to be read across. */
     margin: 0px;
     padding: 6px 4px;
     border-bottom: solid 1px #323A42;
+}
+#vatCalculationHeader{
+    border-bottom: solid #323A42 1.5px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    margin: 0px;
+    padding: 5px 0px;
+}
+#vatCalculationFooter{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    margin: 0px;
+    padding: 5px 0px;
+    border-top: solid 1.5px #323A42;
 }
 .vat-panal-row dt{
     font-weight: 700;

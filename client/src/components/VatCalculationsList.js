@@ -221,9 +221,12 @@ export default function VatCalculationsList(
       with nothing in it. */}
       {selectedCalculation && (
       <div id='vatListPanal' aria-live='polite'>
-        <div>
+        <div id='vatCalculationHeader'>
           <Stack direction="horizontal" gap={3}>
-      <div className="p-2">{toVatMode(selectedCalculation.mode)}</div>
+      <div className="p-2">
+      <h3 id='vatcalculationHeading'>
+        {toVatMode(selectedCalculation.mode)}
+      </h3></div>
       <div className="p-2 ms-auto">
       </div>
       <div className="vr" />
@@ -291,7 +294,7 @@ export default function VatCalculationsList(
             </div>
           </dl>
         </div>
-        <div>
+        <div id='vatCalculationsFooter'>
           <Stack direction="horizontal" gap={3}>
       <div className="p-2">{toRands(selectedCalculation.grossAmount)} INCL. VAT</div>
       <div className="p-2 ms-auto">{toVatRate(selectedCalculation)}</div>

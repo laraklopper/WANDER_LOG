@@ -18,6 +18,7 @@ import ConversionsList from '../components/ConversionsList';
 import Calculator from '../components/Calculator';
 import VatCalculator from '../components/VatCalculator';
 import VatCalculationsList from '../components/VatCalculationsList';
+import BudgetList from '../components/BudgetList'
 // IMPORT UTILITY FUNCTIONS
 import { EMPTY_CONVERT_FORM, FALLBACK_CURRENCIES } from '../util/currencyFunc';
 import ExpensesList from '../components/ExpensesList';
@@ -54,6 +55,7 @@ export default function Budget(//Export default Budget.js component
   const [loadingConversions, setLoadingConversions] = useState(false)
   // Toggle Buttons State
   const [showExpenses, setShowExpenses] = useState(false)
+  const [showBudgetList, setShowBudgetList] = useState(false)
   const [showCalculator, setShowCaculator] = useState(false)
   const [showVatCalc, setShowVatCalc] = useState(false)
   const [showConverter, setShowConverter] = useState(false)
@@ -432,6 +434,13 @@ export default function Budget(//Export default Budget.js component
     setShowConversions(false)
     setShowVatCalculations(false)
   },[])
+  const toggleBudgetList = useCallback(() => {
+    setShowBudgetList(prev => !prev)
+    setShowConversions(false)
+    setShowVatCalculations(false)
+    setShowExpenses(false)
+    setShowConverter(false)
+  }, [])
   //  Function to toggle general/number calculator
   const toggleCalculator = useCallback(() => {
     setShowCaculator(prev => !prev)
@@ -449,7 +458,7 @@ export default function Budget(//Export default Budget.js component
     setShowConverter(prev => !prev)
     setShowCaculator(false)
     setShowVatCalc(false)
-
+setShowBudgetList(false)
   },[])
   const toggleVatCalculations = useCallback(() => {
     setShowVatCalculations(prev => (!prev))
@@ -476,8 +485,9 @@ export default function Budget(//Export default Budget.js component
     <Row id='toggleExpListRow'>
         <Col id='toggleExpListCol1'/>
         <Col xs={5} id='toggleExpListCol'>
-          <div id='toggleExpensesListBlock'>
-            <Button 
+        <Stack gap={3} id='toggleListStack'>
+      <div className="p-2" id='toggleExpensesListBlock'>
+        <Button 
             variant='light'
             id='toggleExpListBtn'
             type='button'
@@ -490,20 +500,30 @@ export default function Budget(//Export default Budget.js component
             >
               {showExpenses ? 'Hide Travel Expenses': 'Show Travel Expenses'}
             </Button>
-          </div>
+      </div>
+      <div className="p-2" id='showBudgetListBlock'>
+        <Button 
+         variant='light'
+         onClick={toggleBudgetList}
+         id='toggleBudgetsBtn'
+         type='button'
+          //ARIA ATTRIBUTES:
+          aria-label={showBudgetList ? 'Hide Travel Budgets': 'Show Travel Budgets'}
+          aria-controls=''
+          aria-pressed={showBudgetList}
+          aria-expanded={showBudgetList}
+         >
+          {showBudgetList ? 'Hide Travel Budgets': 'Show Travel Budgets'}
+         </Button>
+      </div>
+      
+    </Stack>
+          
         </Col>
         <Col id='toggleExpListCol2'/>
       </Row>
-      {/* TOGGLE THE USER EXPENSES LIST */}
-      {showExpenses && (
-   <div id='expenses-list-panal'>
-  <Row id='expenses-listRow'>
-        <Col md={12} id='expListCol'>
-          <ExpensesList/>
-        </Col>
-      </Row>
-      </div>
-      )}
+
+      
           </div>
       <div id='calculator-panal'>
    <Row id='toggle-btns-row'>
@@ -559,6 +579,34 @@ export default function Budget(//Export default Budget.js component
        </div>
        </div>
         </section>
+              <div id='budgetPage-list-panal'>
+{/* TOGGLE THE USER EXPENSES LIST */}
+      {showExpenses && (
+        <section className='budgetListSection'>
+          <div id='expenses-list-panal'>
+            <Row id='expenses-listRow'>
+              <Col md={12} id='expListCol'>
+                <ExpensesList/>
+              </Col>
+            </Row>
+         </div>
+        </section>
+  
+      )}
+      {showBudgetList && (
+        <section className='budgetListSection'>
+        <div id='budgetList-panal'>
+          <Row md={12} id='budgetsListRow'>
+            <Col md={12} id='budgetsListCol'>
+              <BudgetList
+                currentUser={currentUser}
+              />
+            </Col>
+          </Row>
+        </div>
+        </section>
+      )}
+      </div>
       {/* ======CALCULATORS + CURRENCY CONVERTER DISPLAY======= */}
       <div id='calculator-display-panal'>
       {/* TOGGLE THE CALCULATOR */}

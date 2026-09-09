@@ -1,5 +1,6 @@
 /* =================
-SECTION 1: EXPENSE LIST + CALCULATOR & CURRENCY CONVERTER Toggle Btns
+SECTION 1: TOGGLE BUTTONS:EXPENSE LIST +  
+BUDGETLIST + CALCULATOR & CURRENCY CONVERTER Toggle Btns
 ==========*/
 #budget-section1{
     width: 100%;
@@ -62,21 +63,27 @@ LAYOUT
     display: flex;
     justify-content: center;
 }
-#toggleExpensesListBlock{
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    margin: 0px;
-    padding: 10px 0px;
-}
+
+
 /* STACK: https://react-bootstrap.netlify.app/docs/layout/stack */
-#toggle-btns-stack{
+#toggle-btns-stack,
+#toggleListStack{
     display: flex;
     justify-content: center;
     margin: 0px;
     padding: 0px;
     width: 100%;
 }
+/* ToggleLists */
+#toggleExpensesListBlock,
+#showBudgetListBlock{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 0px;
+    padding: 10px 0px;
+}
+/* Toggle Calculators + Converter */
 #toggle-calculator-block,
 #toggle-vatcalculator-block,
 #toggle-converter-block{
@@ -84,6 +91,48 @@ LAYOUT
     justify-content: center;
     padding: 10px 0px;
     margin: 0px;
+}
+/* BUTTONS */
+/* Buttons for Expenses + BudgetList  and toggle Calculators+ ConverterList*/
+/* =================
+LISTS SECTION: 
+==============*/
+.budgetListSection{
+      display: flex;
+   justify-content: center;
+   align-items: center;
+  background-color: #7BA428;
+  width: 100%;
+  margin: 10px 0px 10px 0px;
+  padding: 0px;
+}
+/* ====================
+LAYOUT
+=============*/
+#budgetPage-list-panal{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#expenses-list-panal,
+#budgetList-panal{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#expenses-listRow,
+#budgetsListRow{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#expListCol,
+#budgetsListCol{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+    justify-content: center;
 }
 /*=============
 SECTION 2: CALCULATOR + CURRENCY CONVERTER
@@ -121,24 +170,40 @@ LAYOUT
     margin: 0px;
     gap: 5px;
 }
-#calculations-panal{
-    width: 100%;
-    margin: 0px;
-    padding: 0px;
-}
+/* ===================
+LAYOUT
+============*/
+#calculations-panal,
+#vat-calculations-panal,
 #conversions-list-panal{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     width: 100%;
     margin: 0px;
     padding: 0px;
 }
 /* BOOTSTRAP LAYOUT */
 /* GRID: https://react-bootstrap.netlify.app/docs/layout/grid */
-#toggle-calculations-row{
+#toggle-calculations-row,
+#vatCalculationsRow,
+#conversions-list-Row{
     margin: 0px;
     padding: 0px;
     width: 100%;
 }
-/* STACK */
+#toggle-calculations-col{
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+    justify-content: center;
+}
+#toggle-calculations-col1,
+#toggle-calculations-col2{
+    margin: 0px;
+    padding: 0px;
+}
+/* STACK: https://react-bootstrap.netlify.app/docs/layout/stack */
 #show-calculations-stack{
     width: 100%;
     display: flex;
@@ -147,7 +212,8 @@ LAYOUT
     margin: 0px;
     padding: 0px;
 }
-/* BUTTONS */
+/* BUTTONS: https://react-bootstrap.netlify.app/docs/components/buttons */
+/* toggleButtons for vatCalculationsList + ConversionsList */
 #toggleCalcBtn,
 #toggleVatCalcBtn,
 #toggleConverterBtn,
