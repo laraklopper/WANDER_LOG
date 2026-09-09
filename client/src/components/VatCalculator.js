@@ -16,13 +16,9 @@ import { formatCurrency } from '../util/currencyFunc';
 
 
 export default function VatCalculator() {
+  // =========STATE VARIABLES=============
     const [amount, setAmount] = useState('')
     const [mode, setMode] = useState('exclusive')// 'exclusive' (add VAT) | 'inclusive' (remove VAT)
-  /* The rate to work at, as a typed percentage. Starts at the SARS standard
-  rate, which is what most users want, but any rate up to
-  MAX_VAT_RATE_PERCENT can be entered - a traveller buys in more than one
-  country, and VAT is not 15% in all of them. Held as a string rather than a
-  number so the field can be cleared while typing without becoming NaN. */
   const [ratePercent, setRatePercent] = useState(String(DEFAULT_VAT_RATE_PERCENT));
   const [isZeroRated, setIsZeroRated] = useState(false);
   const [result, setResult] = useState(null);
