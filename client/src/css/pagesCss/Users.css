@@ -14,12 +14,19 @@ LAYOUT
 #users-Section1Content{
     width: 100%;
     margin: 0px;
-    padding: 0px;
+    padding: 10px;
     display: flex;
+    flex-direction: column;
+    align-items: center;
+
 }
 #usersListRow{
     width: 100%;
+        margin: 0px;
+    padding: 0px;
 }
 #usersListCol{
     width: 100%;
+    margin: 0px;
+    padding: 0px;
 }

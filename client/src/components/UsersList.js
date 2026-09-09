@@ -16,8 +16,8 @@ export default function UsersList() {
         <div id='userListTableBlock'>
             <table id='usersTable'>
                 <thead>
-                    <tr colSpan={5}>
-                        <th>USERS</th>
+                    <tr>
+                        <th  colSpan={5}>USERS</th>
                     </tr>
                     <tr>
                         <th>USERNAME</th>
@@ -27,24 +27,30 @@ export default function UsersList() {
                         <th></th>
                     </tr>
                 </thead>
-            </table>
-            <tbody>
+                 <tbody>
+                    <tr>
+                        <td></td>
+                    </tr>
 
             </tbody>
             <tfoot>
-                <tr colSpan={5}>
-                    <td>
+                <tr>
+                    <td  colSpan={5} id='tableFooterInfo'>
                     <Badge pill bg="danger">ADMIN USERS CANNOT BE VIEWED OR REMOVED</Badge>
                     </td>
                 </tr>
             </tfoot>
+            </table>
+           
 
         </div>
         {/* USER PANAL : users cannot view adminUserPanal */}
         <div id='userPanal'>
             <div id='usersHeaderBlock'>
             <Stack direction="horizontal" gap={3} id='userHeaderStack'>
-      <div className="p-2">First item</div>
+      <div className="p-2">
+        <h4>FULL NAME</h4>
+      </div>
       <div className="p-2 ms-auto">
         <Button variant='danger' id='deleteItemBtn'>DELETE USER</Button>
       </div>
@@ -62,8 +68,66 @@ export default function UsersList() {
     </Stack>
 
             </div>
-            <div>
-                
+            <div id='userPanalBody'>
+                <Stack gap={3} id='userDetailsStack1'>
+      <div className="p-2">
+        {/* Username */}
+        <span className='details-span'>
+            <p className='details-label'>USERNAME:</p>
+            <p className='details-value'></p>
+        </span>
+        
+      </div>
+      <div className="p-2">
+        {/* Email */}
+            <span>
+                <p className='details-label'>EMAIL</p>
+                <p className='details-value'></p>
+            </span>
+      </div>
+      <div className="p-2" id='userDetailsAddress'>
+        {/* address */}
+        <div>
+            <p className='nested-details-label'>ADDRESS:</p>
+        </div>
+        <div>
+            <span>
+                <p className='details-label'>STREET ADDRESSS</p>
+                <p className='details-value'></p>
+            </span>
+            <span>
+                <p className='details-label'>OPTIONAL ADDRESS DETAILS:</p>
+            </span>
+            <span>
+                <p className='details-label'>CITY/TOWN:</p>
+                <p className='details-value'></p>
+            </span>
+            <span>
+                <span className='details-span'>
+            <p className='details-label'>DATE OF BIRTH:</p>
+            <p className='details-value'></p>
+        </span>
+            </span>
+        </div>
+
+      </div>
+    </Stack>
+    <Stack gap={3} id='userDetailsStack2'>
+      <div className="p-2">
+        {/* Full name */}
+        <span className='detail-span'>
+            <p className='details-label'>NAME:
+            </p>
+            <p className='details-value'>
+                {/* user.fullName.firstName user.fullName.lastName */}
+            </p>
+        </span>
+      </div>
+      <div className="p-2">
+        {/* Date of birth */}
+      </div>
+
+    </Stack>
             </div>
         </div>
     </div>
