@@ -17,6 +17,14 @@
     text-transform: uppercase;
     letter-spacing: 1px;
 }
+.dateinfoText{
+    text-transform: uppercase;
+    color: #444;
+    text-align: center;
+    margin: 0px;
+    padding: 10px 0px;
+    font-family: "Open Sans", sans-serif;
+}
 /* ======================
 LAYOUT
 ========*/
@@ -124,6 +132,7 @@ LAYOUT
     align-items: center;
     gap: 10px;
 }
+/* GROUP 5 */
 #editTripGroup5{
     display: flex;
     justify-content: center;
@@ -131,12 +140,14 @@ LAYOUT
     margin: 0px;
     padding: 0px;
 }
+/* BUTTON STACK */
 #editTripBtnStack{
     display: flex;
     width: 85%;
     margin: 0px;
     padding: 0px;
 }
+/* BUTTON */
 #editTripBtn{
    display: flex;
     align-items: center;
