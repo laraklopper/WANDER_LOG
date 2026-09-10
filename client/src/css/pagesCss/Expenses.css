@@ -37,6 +37,25 @@ LAYOUT
     margin: 0px;
     padding: 0px;
 }
+#expenses-list-row{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+
+}
+#expensesListCol{
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+    
+}
+#expensesListBlock{
+    display: flex;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+/* ADD EXPENSES AND BUDGETS */
 #toggle-addexp-block,
 #toggleAddBudgetBlock{
     display: flex;

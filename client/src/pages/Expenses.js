@@ -120,6 +120,7 @@ export default function Expenses(//Export default Expenses.js component
     // Variables to to toggle expense and budget Lists and details
     const [showBudgetList, setShowBudgetList] = useState(false)
     const [showExpList, setShowExpList] = useState(false)
+    const [showEditExp, setShowEditExp] = useState(false)
     // State to toggle addExpenseForms and BudgetForms
     const [showAddExp, setShowAddExp] = useState(false)
     /* Read off the location on the first render rather than in an effect, so a
@@ -202,6 +203,12 @@ export default function Expenses(//Export default Expenses.js component
       setNewBudgetData(EMPTY_BUDGET)
       setBudgetFieldErrors({})
       setBudgetFormError(null)
+    },[])
+
+    const toggleEditExpenseForm = useCallback(()=> {
+      setShowEditExp(prev => !prev)
+      setShowAddExp(false)
+      setShowBudgetList(false)
     },[])
 
 
@@ -980,6 +987,7 @@ export default function Expenses(//Export default Expenses.js component
                         editing it against what is currently stored */
                         fetchExpense={fetchExpense}
                         fetchExpenses={fetchExpenses}
+                        currentUser={currentUser}
                         setError={setError}
                     />
                 </div>
