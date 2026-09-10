@@ -1,3 +1,5 @@
+/* LoginForm.css
+LoginForm.js */
 #login-form{
     display: flex;
     flex-direction: column;
@@ -15,7 +17,9 @@
  font-weight: 700;
  text-decoration: underline;
 }
-/*  */
+/*===================
+LAYOUT
+===========*/
 #login-form-input{
     display: flex;
     flex-direction: column;
@@ -46,6 +50,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    text-align: center;
 }
 .loginErrorMessage{
     display: flex;
@@ -58,6 +63,7 @@
     font-weight: 700;
     font-family: "Open Sans", sans-serif;
     letter-spacing: 1px;
+    text-align: center;
     text-align: center;
 }
 #login-stack2{

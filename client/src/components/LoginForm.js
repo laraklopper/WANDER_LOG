@@ -1,54 +1,67 @@
+// LoginForm.js
+//IMPORT REQUIRED MODULES AND PACKAGES
 import React, { useMemo, useState } from 'react'
+// IMPORT CSS STYLESHEETS
 import '../css/componentCss/LoginForm.css'
 import '../css/componentCss/FormSetup.css'
+// IMPORT BOOTSTRAP COMPONENTS
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
+// IMPORT ICONS FROM LUCIDE-REACT
 import { Eye, EyeOff, Bug} from 'lucide-react';
-export default function LoginForm(
-    {
+
+//LoginForm function component
+export default function LoginForm(//Export default LoginForm.js component
+    {//PROPS PASSED FROM PARENT COMPONENT (Login.js)
         userData,
         setUserData,
         submitLogin,
-        // True while the login request is in flight, set by the Login page
-        submitting = false
+        submitting = false// True while the login request is in flight, set by the Login page
     }
 ) {
-    const [showPswd, setShowpswd] = useState(false)
-    const [showPswdMsg, setShowPswdMsg] = useState(false)
-    const [userNameMsg, setUserNameMsg] = useState(false)
+    //=========STATE VARIABLES=========
+    const [showPswd, setShowpswd] = useState(false);// State to toggle password visibility
+    const [showPswdMsg, setShowPswdMsg] = useState(false)// State to control display of password help message
+    const [userNameMsg, setUserNameMsg] = useState(false)// State to control display of username help message
      const [touched, setTouched] = useState({// State to track if fields have been touched for validation purposes
         username: false,
         password: false
     })
 
 
-    const usernameEmpty = useMemo(
-        () => !String (userData.username || '').trim(),
-        [userData.username]
+    //==================FORM VALIDATION LOGIC========================
+    // Checks if username is empty
+    const usernameEmpty = useMemo( // Memorises the validation result until userData.username changes
+        () => !String (userData.username || '').trim(),// Returns true if username is empty, missing, or only contains spaces
+        [userData.username] // Recalculate only when the username value changes
     )
-    const passwordEmpty = useMemo(
-        () => !String (userData.password || '').trim(),
-        [userData.password]
+
+    // Checks if password is empty
+    const passwordEmpty = useMemo(// Memorises the validation result until userData.password changes
+        () => !String (userData.password || '').trim(),// Returns true if password is empty, missing, or only contains spaces
+        [userData.password]// Recalculate only when the password value changes
     )
 
     // Only show validation errors AFTER field was touched
     const showUsernameError = touched.username && usernameEmpty;// Show username error only after field was touched
     const showPasswordError = touched.password && passwordEmpty;// Show password error only after field was touched
 
-    //============================================
+    //===============EVENT HANDLERS/LISTENERS=============================
+    // Function to submit Login
     const handleLogin = (e) => {
-        e.preventDefault();
+        e.preventDefault();//Prevent default form submission
 
         /* The required attribute on both inputs normally stops an empty submit
         before this runs, so this is the fallback for a browser that skips native
         validation. Marking the fields touched reveals the error messages */
+        // Conditional Rendering to check if the necessary fields are entered
         if (usernameEmpty || passwordEmpty) {
             setTouched({ username: true, password: true })
             console.warn('[WARN: LoginForm.js]: Username and password are required')
             return
         }
 
-        submitLogin();
+        submitLogin();// Call the submitLogin function passed as a prop from the parent component (Login.js)
     }
 
     //Function to handle Input change in the Login Form
@@ -76,12 +89,13 @@ export default function LoginForm(
     The separator must be a space: several IDs run together as one string would
     not match any element, so the screen reader would announce nothing */
     const describedBy = (...ids) => ids.filter(Boolean).join(' ') || undefined;
-    //========================================================
+    //=====================JSX RENDERING===================================
   return (
     <form id='login-form' 
     method='POST'
     onSubmit={handleLogin}
     aria-labelledby={formTitleId} >
+    {/* --------Screen reader Heading */}
     <p className='visually-hidden' id={formTitleId}>LOGIN FORM</p>
         <div id='formHeadingBlock'>
             <h3 id='formHeading'>SIGN IN</h3>
@@ -98,7 +112,6 @@ export default function LoginForm(
             placeholder='USERNAME'
             required
             autoComplete='username'
-            
             name='username'
             value={userData.username || ''}
             disabled={submitting}
@@ -112,8 +125,6 @@ export default function LoginForm(
             // ARIA ATTRIBUTES:
             aria-label='username'
             aria-required='true'
-            /* Only flagged invalid once the field has been touched, so an
-            untouched empty form is not announced as being in error */
             aria-invalid={showUsernameError ? 'true': 'false'}
             aria-describedby={describedBy(
                 userNameMsg && usernameHelpId,
@@ -130,13 +141,14 @@ export default function LoginForm(
             </p>
         </div>
       )}  
+      {/* USERNAME HELP MESSAGE */}
     {userNameMsg &&(
     <div className="p-2" id={usernameHelpId} aria-live='polite'>
          <p className='loginHelpMessage'>Enter your username</p>
     </div>
     )}
     </Stack>
-    {/* PASSWORD */}
+    {/* PASSWORD: value={userData.password || ''} */}
      <Stack gap={3} id='login-stack2'>
       <div className="p-2" id='login-pswd-block1'>
         <label className='login-label' htmlFor='loginPassword'>PASSWORD:</label>
@@ -172,6 +184,7 @@ export default function LoginForm(
         />
       </div>
       <div className="p-2" id='login-pswd-block2'>
+      {/* SHOW PASSWORD BUTTON */}
         <Button
         variant='warning'
         type='button'
