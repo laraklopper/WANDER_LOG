@@ -128,10 +128,11 @@ export default function Register(//Export default Registration function componen
       {/* Render the MainHeader.js component with 'REGISTER' mainHeading */}
       <MainHeader mainHeading={'REGISTER'}/>
       <section id='regis-section1'>
-   <Row id='register-row'>
+      <div id='regis-form-panal'>
+<Row id='register-row'>
         <Col md={12}>
-          <div id='regis-form-panal'>
-            <div>
+        
+           
              <RegistrationForm
               newUserData={newUserData}
               setNewUserData={setNewUserData}
@@ -140,10 +141,18 @@ export default function Register(//Export default Registration function componen
               fieldErrors={fieldErrors}
               emptyForm={EMPTY_FORM}
              />
-            </div>
-          </div>
+           
+          
         </Col>
       </Row>
+       <Row id='regisAdminMsgRow'>
+        <Col id='adminMsgCol1'/>
+        <Col xs={6} id='adminMsgCol'>
+          <h6 className='regisAdminMsg'>REGISTRATION GRANTS ADMIN USERS ACCESS TO YOUR INFORMATION</h6>
+        </Col>
+        <Col id='adminMsgCol2'/>
+      </Row>
+      </div>
       </section>
       {/* ======FOOTER============= */}
    

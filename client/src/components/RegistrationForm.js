@@ -753,12 +753,6 @@ export default function RegistrationForm({
                 </p>
               )}
             </div>
-            {/* ----PASSWORD MESSAGE---------- */}
-            {passwordMsg && (
-              <div className=" ms-auto" id={passwordHelpId} aria-live='polite'>
-                <p className='formHelpMessage'>WE WILL NEVER SHARE YOUR PASSWORD</p>
-              </div>
-            )}
             {/* SHOW/HIDE PASSWORD BUTTON BLOCK */}
             <div className="p-2 ms-auto" id='regis-showPasswordBtn-block'>
               {/* SHOW/HIDE PASSWORD BUTTON */}
@@ -786,6 +780,16 @@ export default function RegistrationForm({
               </Button>
             </div>
           </Stack>
+           <Stack direction="horizontal" gap={3} id='passwordMsgStack'>
+      <div className="p-2"/>
+      <div className="p-2"/>
+      {/* ----PASSWORD MESSAGE---------- */}
+       {passwordMsg && (
+              <div className=" ms-auto" id={passwordHelpId} aria-live='polite'>
+                <p className='formHelpMessage'>WE WILL NEVER SHARE YOUR PASSWORD</p>
+              </div>
+            )}
+    </Stack>
         </div>
         {/* =======END OF INPUT============ */}
       </div>
@@ -798,6 +802,8 @@ export default function RegistrationForm({
           </p>
         </div>
       )}
+     
+
       {/* SERVER SIDE FIELD ERRORS, returned when the API rejects the submission.
       These are rules the browser cannot check on its own, such as a username
       already being taken, so they can only be reported after a round trip */}

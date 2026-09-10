@@ -57,15 +57,29 @@ SECTION 1
 /* ==================
 LAYOUT
 =============*/
+#regisSection1Panal{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 10px;
+    margin: 0px;
+    padding: 10px;
+}
 #regis-form-panal{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     width: 100%;
     background-color: #9E9E9E;
     margin: 0px;
     padding: 10px;
+    gap: 10px;
 }
 /* BOOTSTRAP LAYOUT */
 /* GRID: https://react-bootstrap.netlify.app/docs/layout/grid */
-#register-row{
+#register-row,
+#regisAdminMsgRow{
     width: 100%;
     margin: 0px;
     padding: 0px;
@@ -76,4 +90,22 @@ LAYOUT
     padding: 0px;
     display: flex;
     justify-content: center;
+}
+#regisAdminMsgRow{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+
+#adminMsgCol{
+    display: flex;
+    justify-content: center;
+    margin: 0px;
+    padding: 0px;
+}
+
+#adminMsgCol1,
+#adminMsgCol2{
+    margin: 0px;
+    padding: 0px;
 }
