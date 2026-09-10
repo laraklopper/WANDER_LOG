@@ -16,3 +16,95 @@
     margin: 0px;
     padding: 0px;
 }
+.editEntryLabel{
+     color: #000000;
+    font-weight: 700;
+    margin: 0px;
+    padding: 0px;
+    font-family: "Fira Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.editEntryTextInput{
+    width: 250px;
+    border: solid 2px;
+    border-radius: 5px;
+    overflow-y: scroll;
+    margin: 0px;
+    padding: 5px;
+}
+/* =================
+LAYOUT
+============*/
+#editEntryInput{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: 85%;
+    background-color: #BFBFBF;
+    margin: 0px;
+    padding: 10px;
+}
+/* GROUP 1: Trip, Edit Entry Body */
+#editEntryGroup1{
+    border: solid #323A42 2px;
+    background: #D6D6D6;
+    border-radius: 8px;
+    width: 100%;
+    margin: 0px;
+    padding: 5px;
+}
+/* STACK 1: https://react-bootstrap.netlify.app/docs/layout/stack */
+#editEntryStack1{
+    display: flex;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#editEntryTripBlock,
+#editEntryBodyBlock{
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 0px;
+    padding: 0px;
+}
+/* GROUP 2: Photos */
+/* ADD LATER */
+
+/* ======END OF INPUT======== */
+/* GROUP 3: BUTTONS */
+#editEntryGroup3{
+   display: flex;
+   justify-content: center;
+    width: 100%;
+    margin: 0px;
+    padding: 5px;
+}
+/* STACK: https://react-bootstrap.netlify.app/docs/layout/stack */
+#editEntryBtnStack{
+    width: 85%;
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+    align-items: baseline;
+}
+/* BUTTONS: https://react-bootstrap.netlify.app/docs/components/buttons */
+#editEntryBtn{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0px;
+    padding: 0px;
+    width: 180px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    color: #000000;
+    border: #323A42 solid 2px;
+}
+#editEntryBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
+}
