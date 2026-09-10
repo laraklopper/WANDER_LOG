@@ -133,3 +133,13 @@ towards the closed look, which would read as though the list had closed */
     margin: 0px;
     padding: 0px;
 }
+#entriesListRow{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#entriesListCol{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}

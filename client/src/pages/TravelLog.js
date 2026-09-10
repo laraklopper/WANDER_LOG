@@ -12,16 +12,9 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import TripsList from '../components/TripsList';
 import EditTripForm from '../components/EditTripForm';
+import EntriesList from '../components/EntriesList';
 
-/* The empty edit trip form, used for the initial state, each time the form is
-opened on a trip, and by its clear button. The two nested objects mirror the
-shape tripSchema stores, so a change does not have to be reassembled before it
-is sent.
 
-Empty rather than filled with the trip because the form submits a PATCH: nothing
-on it is required, and a field left blank is one being left as it is stored
-rather than one being cleared. The form shows what each field currently holds
-beside the input instead */
 const EMPTY_TRIP_EDIT = {
   title: '',
   purpose: '',
@@ -37,15 +30,6 @@ const EMPTY_TRIP_EDIT = {
   status: '',
 };
 
-/* Builds the body the PATCH is sent with, holding only the fields the form was
-actually filled in with: an input left alone is not sent at all, and the API
-leaves that field as it is stored. A blank is not a value here, it is the form
-saying nothing about that field.
-
-The country is only sent while the trip is, or is being made, international. A
-switch to domestic sends the type on its own and the API unsets the stored
-country with it, which is also why the type this edit would leave behind is what
-decides whether the country travels rather than the one currently stored. */
 const tripChanges = (form = {}, trip = null) => {
   const changes = {};
 
@@ -92,30 +76,14 @@ export default function TravelLog(//Export the default TravelLog.js function com
   const [showTrips, setShowTrips] = useState(false)
   const [showEntries, setShowEntries] = useState(false)
   const [showEditTrip, setShowEditTrip] = useState(false)
-  /* The logged in user's trips, displayed by the trip list. Held here rather
-  than in TripsList.js so the page owns the request, the same arrangement the
-  journal and the expenses page use for their own lists */
-  const [userTrips, setUserTrips] = useState([])
+  const [userTrips, setUserTrips] = useState([])//State to display the users trips
   const [loadingTrips, setLoadingTrips] = useState(false)
   // ============EDIT TRIP STATE=============
-  /* Which trip the edit form is open on, held as an id rather than as the trip
-  itself for the same reason the list holds its selection that way: the trips are
-  refetched after an edit, and a stored object could outlive the record it was
-  copied from and leave the form saying a field currently holds something the
-  database no longer has */
-  const [editingTripId, setEditingTripId] = useState(null)
-  // The changes typed into the edit form, empty until a field is filled in
-  const [editTripData, setEditTripData] = useState(EMPTY_TRIP_EDIT)
-  // Blocks a second submit while the first request is in flight
-  const [submittingTrip, setSubmittingTrip] = useState(false)
-  /* Field keyed messages returned by the server when Mongoose validation fails,
-  for example { 'date.endDate': 'End date must be after start date' }. Passed to
-  the form so each message can be shown against its own input */
+  const [editingTripId, setEditingTripId] = useState(null)//State to indicate which trip is being edited
+  const [editTripData, setEditTripData] = useState(EMPTY_TRIP_EDIT)// The changes typed into the edit form, empty until a field is filled in
+  const [submittingTrip, setSubmittingTrip] = useState(false)// Blocks a second submit while the first request is in flight
   const [tripFieldErrors, setTripFieldErrors] = useState({})
 
-  /* Resolved out of the list on every render, so the form follows the state this
-  page owns: when a refetch drops the trip being edited, the form is left with
-  nothing to report as currently stored rather than showing a stale copy */
   const editingTrip = useMemo(
     () => userTrips.find((trip) => trip._id === editingTripId) || null,
     [userTrips, editingTripId]
@@ -132,11 +100,7 @@ export default function TravelLog(//Export the default TravelLog.js function com
     setShowTrips(false)
   },[])
 
-  /* Opens the edit form on the trip whose details panel it was pressed from, so
-  the page knows which id to PATCH and the form knows what each field currently
-  holds. The form is emptied either way, on the way in as well as on the way out,
-  so a change typed for one trip cannot be left sitting in the inputs when the
-  form is opened on another */
+  // Toggle button to display edit trip form
   const toggleEditTrip = useCallback((trip = null) => {
     const opening = !showEditTrip;
 
@@ -147,16 +111,7 @@ export default function TravelLog(//Export the default TravelLog.js function com
   },[showEditTrip])
 
   //======================CALLBACKS/REQUEST FUNCTIONS========================
-  /* Loads the logged in user's trips from GET /trip/fetchTrips.
-  The route is behind checkJwtToken and filters on the userId it reads off that
-  token, so the list only ever holds this account's own trips. Each trip carries
-  its destination, dates, status, entryCount and hasBudget, which is every column
-  the list displays, so no second request is needed to fill a row.
-
-  Called on mount rather than when the list is opened, so the trips are already
-  in hand by the time SHOW TRIPS is pressed, and passed to TripsList.js as
-  fetchUserTrips as well, so the list can reload itself after an edit or a
-  delete without the page being reloaded */
+  /* Loads the logged in user's trips from GET /trip/fetchTrips.*/
   const fetchUserTrips = useCallback(async () => {
     const token = localStorage.getItem('token');
     // Conditional rendering to check a session is still stored
@@ -203,18 +158,7 @@ export default function TravelLog(//Export the default TravelLog.js function com
   },[setError])
 
   /* Loads one trip from GET /trip/fetchTrip/:id, with the journal entries filed
-  against it.
-
-  The route matches the id against the account on the token, so another user's
-  trip is reported as missing rather than returned.
-
-  The entries are what this reads for. fetchUserTrips already returns every trip
-  whole, so the trip itself is not new — the entries are their own documents and
-  no other route returns them, which is what the travel log's entries list needs
-  once it is built. Both are handed back together rather than the trip alone, so
-  a caller reading one trip does not have to ask twice.
-
-  Returns `{ trip, entries }`, or null when it could not be read */
+  against it.Returns `{ trip, entries }`, or null when it could not be read */
   const fetchTrip = useCallback(async (tripId) => {
     // Conditional rendering to check a trip was identified
     if (!tripId) {
@@ -240,9 +184,7 @@ export default function TravelLog(//Export the default TravelLog.js function com
         },
       })
 
-      /* Safely parse the JSON response. Guarded because the body is empty or is
-      not JSON at all on a 429 from the rate limiter, and response.json() would
-      throw before the status could be reported */
+
       const data = await response.json().catch(() => ({}))
 
       if (response.ok) {
@@ -253,15 +195,11 @@ export default function TravelLog(//Export the default TravelLog.js function com
           return null
         }
         return {
-          trip: data.trip,
-          // Defaulted to an empty array, so a caller always maps over one
-          entries: Array.isArray(data.entries) ? data.entries : [],
+          trip: data.trip,         
+          entries: Array.isArray(data.entries) ? data.entries : [],// Defaulted to an empty array, so a caller always maps over one
         }
       }
 
-      /* A 400 for a malformed id, a 404 for a trip that is not on this account,
-      and a 401 once the session has gone all arrive with their own message, so
-      it is reported as it was given */
       const message = data?.message || response?.statusText || 'Could not load that trip.';
       setError?.(message)
       console.error(`[ERROR: TravelLog.js] Fetch trip failed with status ${response.status}: ${message}`)
@@ -274,15 +212,7 @@ export default function TravelLog(//Export the default TravelLog.js function com
     }
   },[setError])
 
-  /* Sends the filled in fields of the edit form to PATCH /trip/editTrip/:id.
-  The id is the trip's own, and the route matches it against the account on the
-  token, so another user's trip is reported as missing rather than written to.
-
-  A PATCH, so only what was actually typed is sent and every other field keeps
-  the value it is stored with — which is why nothing on the form is required and
-  why the body is built by tripChanges rather than from the state as it stands.
-  The owner is not sent either, for the same reason it is not on a create: userId
-  and username are read from the token and the account */
+  // Function to edit ad trip
   const editTrip = useCallback(async () => {
     if (submittingTrip) return;
 
@@ -326,9 +256,7 @@ export default function TravelLog(//Export the default TravelLog.js function com
         body: JSON.stringify(changes)
       })
 
-      /* Safely parse the JSON response. Guarded because the body is empty or is
-      not JSON at all on a 429 from the rate limiter, and response.json() would
-      throw before the status could be reported */
+     
       const data = await response.json().catch(() => ({}))
 
       if (response.ok) {
@@ -338,8 +266,7 @@ export default function TravelLog(//Export the default TravelLog.js function com
         setShowEditTrip(false)
         setEditingTripId(null)
         setEditTripData(EMPTY_TRIP_EDIT)
-        /* Reloaded so the edited trip is what the list and its details panel
-        show, both of which are built from this page's copy */
+      
         fetchUserTrips()
         alert(data.message || 'Trip updated successfully.')
         console.log('[SUCCESS: TravelLog.js] Trip updated:', data.trip?._id)
@@ -365,18 +292,7 @@ export default function TravelLog(//Export the default TravelLog.js function com
     }
   },[submittingTrip, editingTripId, editingTrip, editTripData, setError, fetchUserTrips])
 
-  /* Sends one trip's id to DELETE /trip/deleteTrip/:id.
-  The route matches that id against the account on the token, so another user's
-  trip is reported as missing rather than removed.
-
-  Nothing filed against a trip outlives it: the route clears the trip's journal
-  entries and its budget, and the expenses embedded in that budget go with it.
-  That is why the list is reloaded rather than the row simply being dropped here
-  — hasBudget is answered off the caller's own budgets, and the journal and the
-  expenses page read those records too.
-
-  Returns whether the trip actually went, so the list can close its details panel
-  on success and leave it open on the trip it failed to remove */
+//  Function to delete a trip
   const deleteTrip = useCallback(async (tripId) => {
     // Conditional rendering to check a trip was identified
     if (!tripId) {
@@ -404,24 +320,16 @@ export default function TravelLog(//Export the default TravelLog.js function com
         },
       })
 
-      /* Safely parse the JSON response. Guarded because the body is empty or is
-      not JSON at all on a 429 from the rate limiter, and response.json() would
-      throw before the status could be reported */
+     
       const data = await response.json().catch(() => ({}))
 
       if (!response.ok) {
-        /* A 400 for a malformed id, a 404 for a trip that is not on this
-        account, and a 401 once the session has gone all arrive with their own
-        message, so it is reported as it was given */
         const message = data?.message || response?.statusText || 'Could not delete the trip.';
         setError?.(message)
         console.error(`[ERROR: TravelLog.js] Delete trip failed with status ${response.status}: ${message}`)
         return false
       }
 
-      /* Closed when the deleted trip is the one the edit form is open on, so an
-      edit cannot be submitted against a trip that is no longer there — the PATCH
-      would only answer 404. A form open on a different trip is left as it is */
       if (String(editingTripId) === String(tripId)) {
         setShowEditTrip(false)
         setEditingTripId(null)
@@ -496,7 +404,11 @@ export default function TravelLog(//Export the default TravelLog.js function com
         </Col>
         <Col id='travelLogToggleCol2'/>
       </Row>
+         </div>
+
+      </section>
       {showTrips && (
+        <section className='travelLogSec2'>
         <div id='trips-list-panal'>
           <Row id='tripsListRow'>
             <Col id='tripsListCol'>
@@ -509,32 +421,27 @@ export default function TravelLog(//Export the default TravelLog.js function com
                   toggleEditTrip={toggleEditTrip}
                   showEditTrip={showEditTrip}
                   deleteTrip={deleteTrip}
-                  /* Handed over ready for the details panel to read a trip back
-                  by its id, the way BudgetList.js opens its own panel. Not read
-                  by the list yet: its panel is still resolved out of userTrips,
-                  which already holds every field it displays, so nothing reads
-                  the entries this returns until the entries list is built */
                   fetchTrip={fetchTrip}
                 />
               </div>
             </Col>
           </Row>
         </div>
+         </section>
       )}
       {showEntries && (
-        <div>
-          <Row>
-            <Col>
-              <div>
-                ENTRIES LIST
-              </div>
+        <section className='travelLogSec2'>
+        <div id='entriesListPanal'>
+          <Row id='entriesListRow'>
+            <Col id='entriesListCol'>
+                <EntriesList
+                  currentUser={currentUser}
+                />
             </Col>
           </Row>
         </div>
+        </section>
       )}
-        </div>
-
-      </section>
       {/* SHOW EDIT TRIP FORM: only rendered once a trip's EDIT TRIP has been
       pressed, so the form is never on screen without a trip to say what each of
       its fields currently holds */}
