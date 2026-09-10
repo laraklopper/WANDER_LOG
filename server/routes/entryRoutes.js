@@ -135,7 +135,42 @@ const validationErrors = (error) => Object.fromEntries(
 /*──────────────────────────── GET ROUTES ─────────────────────────────────────
    GET: READ — Used to fetch information from the database
 ────────────────────────────────────────────────────────────────────────────────*/
-// entry/fetchEntries - Fetch all entries for loggedIn user
+/*=====================================
+READ EVERY ENTRY THE LOGGED IN USER HAS WRITTEN
+=======================================*/
+/* entry/fetchEntries - Lists every journal entry belonging to the logged in
+user, newest first.
+
+Filtered on the userId read off the token, never one carried in the query, so the
+list only ever holds this account's own entries.
+
+The entries of a single trip are served by GET /trip/fetchTrip/:id instead: this
+route is the whole journal across every trip, which is what the travel log's
+entries list is built from. Each entry stores the title of the trip it is filed
+against, so nothing has to be populated to name it — the trip is kept in step by
+PATCH /editEntry/:id, which reads that title off the trip document. */
+router.get('/fetchEntries', checkJwtToken, async (req, res) => {
+    try {
+        const userId = req.user?.userId;// Extract the userId from the decoded JWT token payload
+
+        // Conditional rendering to check if userId is present
+        if (!userId) {
+            console.error('[ERROR: entryRoutes.js, GET /fetchEntries] userId missing from token');// Log an error message in the console for debugging purposes
+            return res.status(401).json({ success: false, message: 'Unauthorized' });// Respond with a 401 (Unauthorised) status code
+        }
+
+        /* Sorted newest first, the order the entries of one trip are already
+        read back in by GET /trip/fetchTrip/:id, so the journal reads the same
+        way whichever route filled it */
+        const entries = await Entry.find({ userId }).sort({ date: -1 }).exec();
+
+        console.log(`[SUCCESS: entryRoutes.js, GET /fetchEntries] Found ${entries.length} entries for user ${userId}`);// Log a success message in the console for debugging purposes
+        return res.status(200).json({ success: true, count: entries.length, entries });// Respond with a 200 (OK) status code and the list of entries
+    } catch (error) {
+        console.error('[ERROR: entryRoutes.js, GET /fetchEntries]', error.message);// Log an error message in the console for debugging purposes
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });// Respond with a 500 (Internal Server Error) status code
+    }
+})
 // entry/fetchEntry/:id - Fetch one entry
 /*──────────────────────────── POST ROUTES ─────────────────────────────────────
    POST: CREATE — Used to send information to the server
@@ -384,5 +419,72 @@ router.patch('/editEntry/:id', checkJwtToken, async (req, res) => {
 /*──────────────────────────── DELETE ROUTES ────────────────────────────────────
    DELETE: Used to remove an item from the database
 ────────────────────────────────────────────────────────────────────────────────*/
-// entry/delete/:id - Delete a user entry
+/*=====================================
+DELETE AN ENTRY
+=======================================*/
+/* entry/delete/:id - Removes one of the logged in user's journal entries.
+
+The entry is matched on its id and the owner together, so another account's entry
+is not found at all rather than found and then refused — which is also why a
+missing one is reported as a 404 either way, and never says whether it exists on
+someone else's account.
+
+Nothing is filed against an entry, so unlike a trip there is nothing to clear up
+after it: the only other record that knows about it is the entryCount stored on
+its trip, and that is maintained by the post findOneAndDelete hook on entrySchema.
+Removed through findOneAndDelete for exactly that reason — deleteOne would not
+fire the hook, and the trip would go on counting an entry that is no longer
+stored. */
+router.delete('/delete/:id', checkJwtToken, async (req, res) => {
+    try {
+        const userId = req.user?.userId;
+
+        // Conditional rendering to check if userId is present
+        if (!userId) {
+            console.error('[ERROR: entryRoutes.js, DELETE /delete/:id] userId missing from token');// Log an error message in the console for debugging purposes
+            return res.status(401).json({ success: false, message: 'Unauthorized' });// Respond with a 401 (Unauthorised) status code
+        }
+
+        const entryId = String(req.params.id ?? '').trim();
+
+        /* Checked before the entry is looked up, so a malformed id is reported
+        as a 400 rather than reaching Mongoose as a CastError and being reported
+        as a 500 */
+        if (!mongoose.Types.ObjectId.isValid(entryId)) {
+            console.warn('[WARN: entryRoutes.js, DELETE /delete/:id] Invalid entry id', entryId);// Log a warning message in the console for debugging purposes
+            return res.status(400).json({ success: false, message: 'That entry id is not valid' });// Respond with a 400 (Bad Request) status code
+        }
+
+        /* Matched on the entry and the owner together, so another account's
+        entry is not found at all rather than found and then deleted. The
+        document comes back with the delete, so the trip it was filed against can
+        be reported without a read of its own */
+        const entry = await Entry.findOneAndDelete({ _id: entryId, userId }).exec();
+
+        /* Conditional rendering to check an entry with that id existed on this
+        account. Covers both an entry that does not exist and one on another
+        account */
+        if (!entry) {
+            console.warn('[WARN: entryRoutes.js, DELETE /delete/:id] No entry found for id', entryId, 'and user', userId);// Log a warning message in the console for debugging purposes
+            return res.status(404).json({ success: false, message: 'That entry could not be found on your account' });// Respond with a 404 (Not Found) status code
+        }
+
+        console.log('[SUCCESS: entryRoutes.js, DELETE /delete/:id] Deleted entry', entryId, 'from trip', String(entry.tripId));// Log a success message in the console for debugging purposes
+        return res.status(200).json({
+            success: true,
+            /* Names the entry that went, because the list it was deleted from
+            shows several and the panel it was deleted through is closing */
+            message: `${entry.title || 'Entry'} deleted successfully.`,
+            /* Both returned so the client can drop the row and close any panel
+            or form open on this entry without waiting on a refetch to learn
+            which one went, and can reload the trip whose entryCount the hook on
+            entrySchema has just decremented */
+            entryId,
+            tripId: entry.tripId,
+        });// Respond with a 200 (OK) status code and what was removed
+    } catch (error) {
+        console.error('[ERROR: entryRoutes.js, DELETE /delete/:id]', error.message);// Log an error message in the console for debugging purposes
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });// Respond with a 500 (Internal Server Error) status code
+    }
+})
 module.exports = router

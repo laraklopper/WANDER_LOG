@@ -17,7 +17,111 @@ EntriesList.js */
     padding: 0px;
     margin: 0px;
 }
-/* TABLE */
+/* The row above the table, holding the reload button. Kept to the right, the
+same side the trip list carries its own */
+#entriesListToolbar{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#entriesToolbarStack{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#refreshEntriesBtn{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 150px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #000;
+    margin: 0px;
+    letter-spacing: 2px;
+    padding: 0px;
+    border: solid 2px #323A42;
+}
+#refreshEntriesBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
+}
+/* Disabled while its request is in flight. Dimmed rather than only relabelled,
+so the button reads as unavailable at a glance as well as through aria-disabled */
+#refreshEntriesBtn:disabled{
+    color: #444;
+    background-color: #BFBFBF;
+    border: solid 2px #444;
+}
+/* TABLE: the trip list's table, in section 1.5. TABLES of STYLES.md, so the two
+lists of the travel log read as one */
+#entriesListTable{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+    border-collapse: collapse;
+    border: solid 2px #323A42;
+    background-color: #D6D6D6;
+    text-align: center;
+}
+#entriesListMainHead{
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    border: solid #000 1px;
+    margin: 0px;
+    padding: 5px;
+    font-family: "Fira Sans", sans-serif;
+    font-size: 20px;
+    text-decoration: underline;
+}
+#entriesListHeadRow th{
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+    margin: 0px;
+    padding: 5px 0px;
+    font-family: "Fira Sans", sans-serif;
+    border: solid 1px #323A42;
+}
+#entriesListTable td{
+    font-family: "Fira Mono", monospace;
+    text-align: center;
+    padding: 8px 0px;
+    border: solid 1px #323A42;
+}
+/* Row striping and the selected row are shared with the trip list, so
+.evenRow, .oddRow and .selectedRow are not repeated here */
+#viewEntry-div{
+    margin: 0px;
+    padding: 0px;
+}
+#viewEntryBtn{
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #000;
+    padding: 2px 12px;
+    border: solid 2px #323A42;
+    width: 150px;
+}
+#viewEntryBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
+}
+/* The two single cell rows the table shows in place of any entries: a request
+in flight, and an account that has not written one yet */
+.entries-list-loading,
+.entries-list-empty{
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    padding: 15px 6px;
+}
 
 /* DETAILS PANAL */
 #entryDetailsPanal{
@@ -115,4 +219,44 @@ EntriesList.js */
 #entryPanalStack1{
     display: flex;
     align-items: baseline;
+}
+/* The panel's own heading, which carries the title of the entry on screen */
+#entry-details-heading{
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0px;
+}
+#closePanalBtn{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 150px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #000;
+    margin: 0px;
+    letter-spacing: 2px;
+    padding: 0px;
+    border: solid 2px #323A42;
+}
+/* When the entry was logged, and when it was last edited. Set smaller than the
+panel's own labels: they report the entry, this reports the record of it */
+.entryTimestamp{
+    font-family: "Fira Mono", monospace;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #323A42;
+}
+/* Disabled while its own delete is in flight. Dimmed rather than only
+relabelled, so the button reads as unavailable at a glance as well as through
+aria-disabled */
+#deleteItemBtn:disabled{
+    color: #444;
+    background-color: #BFBFBF;
+    border: solid 2px #444;
 }

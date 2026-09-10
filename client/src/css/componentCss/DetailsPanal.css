@@ -23,8 +23,13 @@
 }
 /* A label and its value sit on one line, so both drop their own bottom margin:
 Bootstrap's Reboot gives every <p> one, which would otherwise split the pair */
+/* The entry panel names its pairs in the singular — .detail-label and
+.detail-value — so both spellings are carried here and the two panels report a
+label and its value the same way */
 .details-label,
 .details-value,
+.detail-label,
+.detail-value,
 .nested-details-label{
     margin: 0px;
     padding: 0px;
@@ -35,6 +40,7 @@ Bootstrap's Reboot gives every <p> one, which would otherwise split the pair */
     padding: 0px;
 }
 .details-label,
+.detail-label,
 .nested-details-label{
     font-weight: 700;
     text-transform: uppercase;
@@ -43,7 +49,8 @@ Bootstrap's Reboot gives every <p> one, which would otherwise split the pair */
 }
 /* The value a label is reporting. Left in the casing it was stored in, so a
 trip's own title reads as it was typed */
-.details-value{
+.details-value,
+.detail-value{
     font-weight: 400;
 }
 /* DESTINATION and DATE hold more than one label, so their rows are stacked

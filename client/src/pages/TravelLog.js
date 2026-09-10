@@ -116,6 +116,8 @@ export default function TravelLog(//Export the default TravelLog.js function com
   const [showEditEntry, setShowEditEntry] = useState(false)
   const [userTrips, setUserTrips] = useState([])//State to display the users trips
   const [loadingTrips, setLoadingTrips] = useState(false)
+  const [userEntries, setUserEntries] = useState([])//State to display the users journal entries
+  const [loadingEntries, setLoadingEntries] = useState(false)
   // ============EDIT TRIP STATE=============
   const [editingTripId, setEditingTripId] = useState(null)//State to indicate which trip is being edited
   const [editTripData, setEditTripData] = useState(EMPTY_TRIP_EDIT)// The changes typed into the edit form, empty until a field is filled in
@@ -162,18 +164,24 @@ export default function TravelLog(//Export the default TravelLog.js function com
   fields currently holds, and closed on nothing: the changes and the errors of
   the entry it was open on go with it */
   const toggleEditEntry = useCallback((entry = null) => {
-    const opening = !showEditEntry;
+    /* Guarded on the id, so a press that carried something other than an entry,
+    a click event for instance, is treated as no entry at all: the form then
+    reports that there is nothing open to edit */
+    const nextEntry = entry?._id ? entry : null;
+
+    /* Pressed from an entry the form is not already open on, it switches to
+    that entry rather than closing: the button belongs to the panel, and the
+    panel may have moved to another entry since the form was opened */
+    const opening = !showEditEntry
+      || Boolean(nextEntry && String(nextEntry._id) !== String(editingEntry?._id));
 
     setShowEditEntry(opening)
-    /* Guarded on the id, because the entries list still opens the form from a
-    button that passes its click event rather than an entry. Without one the
-    form reports that there is nothing open to edit */
-    setEditingEntry(opening && entry?._id ? entry : null)
+    setEditingEntry(opening ? nextEntry : null)
     setEditEntryData(EMPTY_ENTRY_EDIT)
     setEntryFieldErrors({})
     setShowEditTrip(false)
     setShowTrips(false)
-  },[showEditEntry])
+  },[showEditEntry, editingEntry])
   //======================CALLBACKS/REQUEST FUNCTIONS========================
   /* Loads the logged in user's trips from GET /trip/fetchTrips.*/
   const fetchUserTrips = useCallback(async () => {
@@ -218,6 +226,56 @@ export default function TravelLog(//Export the default TravelLog.js function com
       console.error(`[ERROR: TravelLog.js] Fetch trips request failed: ${error.message}`)
     } finally {
       setLoadingTrips(false)
+    }
+  },[setError])
+
+  /* Loads every entry the account has written from GET /entry/fetchEntries.
+  The route is behind checkJwtToken and filters on the userId it reads off that
+  token, so the list only ever holds this account's own entries. Called on
+  mount, by the list's own REFRESH, and again after an entry is edited, so a
+  change is on screen without the page being reloaded */
+  const fetchEntries = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    // Conditional rendering to check a session is still stored
+    if (!token) {
+      console.warn('[WARN: TravelLog.js] No token stored, cannot fetch entries');
+      return;
+    }
+
+    try {
+      setLoadingEntries(true)
+
+      const response = await fetch('http://localhost:3001/entry/fetchEntries', {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      /* Safely parse the JSON response. Guarded because the body is empty or is
+      not JSON at all on a 429 from the rate limiter, and response.json() would
+      throw before the status could be reported */
+      const data = await response.json().catch(() => ({}))
+
+      if (response.ok) {
+        // Defaulted to an empty array, so the list always maps over one
+        setUserEntries(Array.isArray(data.entries) ? data.entries : [])
+        console.log(`[SUCCESS: TravelLog.js] Loaded ${data.entries?.length || 0} entries`)
+      } else {
+        /* Reported without clearing the entries already on screen, so a failed
+        refresh does not empty a list the user is reading */
+        const message = data?.message || response?.statusText || 'Could not load your entries.';
+        setError?.(message)
+        console.error(`[ERROR: TravelLog.js] Fetch entries failed with status ${response.status}: ${message}`)
+      }
+    } catch (error) {
+      // Only a network level failure reaches here, a 4xx or 5xx is handled above
+      setError?.('Could not reach the server. Please check your connection and try again.')
+      console.error(`[ERROR: TravelLog.js] Fetch entries request failed: ${error.message}`)
+    } finally {
+      setLoadingEntries(false)
     }
   },[setError])
 
@@ -419,8 +477,10 @@ export default function TravelLog(//Export the default TravelLog.js function com
         setShowEditEntry(false)
         setEditingEntry(null)
         setEditEntryData(EMPTY_ENTRY_EDIT)
-        /* Reloaded because a trip carries the number of entries filed against
-        it, and an entry moved to another trip is counted on both */
+        /* Both reloaded: the entries list is what the edit shows up in, and a
+        trip carries the number of entries filed against it, so an entry moved
+        to another trip is re-counted on both */
+        fetchEntries()
         fetchUserTrips()
         alert(data.message || 'Entry updated successfully.')
         console.log('[SUCCESS: TravelLog.js] Entry updated:', data.entry?._id)
@@ -444,7 +504,80 @@ export default function TravelLog(//Export the default TravelLog.js function com
     } finally {
       setSubmittingEntry(false)
     }
-  },[submittingEntry, editingEntry, editEntryData, setError, fetchUserTrips])
+  },[submittingEntry, editingEntry, editEntryData, setError, fetchEntries, fetchUserTrips])
+
+  /* Sends one entry to DELETE /entry/delete/:id.
+  The route is behind checkJwtToken, so the stored token is attached to the
+  request, and it matches the entry on its id and the owner together: an entry
+  on another account is not found at all rather than found and then refused.
+  Returns whether the entry was actually removed, so the list can keep its panel
+  open on it when it was not */
+  const deleteEntry = useCallback(async (entryId) => {
+    // Conditional rendering to check an entry was identified
+    if (!entryId) {
+      console.warn('[WARN: TravelLog.js] No entry id given, cannot delete the entry');
+      return false;
+    }
+
+    const token = localStorage.getItem('token');
+    // Conditional rendering to check a session is still stored
+    if (!token) {
+      setError?.('Your session has expired. Please log in again.')
+      console.warn('[WARN: TravelLog.js] No token stored, cannot delete the entry');
+      return false;
+    }
+
+    try {
+      setError?.(null)
+
+      const response = await fetch(`http://localhost:3001/entry/delete/${entryId}`, {
+        method: 'DELETE',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      /* Safely parse the JSON response. Guarded because the body is empty or is
+      not JSON at all on a 429 from the rate limiter, and response.json() would
+      throw before the status could be reported */
+      const data = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        const message = data?.message || response?.statusText || 'Could not delete the entry.';
+        setError?.(message)
+        console.error(`[ERROR: TravelLog.js] Delete entry failed with status ${response.status}: ${message}`)
+        return false
+      }
+
+      /* The edit form is closed when it was open on the entry that went, rather
+      than left offering fields with nothing to write them to */
+      if (String(editingEntry?._id) === String(entryId)) {
+        setShowEditEntry(false)
+        setEditingEntry(null)
+        setEditEntryData(EMPTY_ENTRY_EDIT)
+        setEntryFieldErrors({})
+        console.log('[INFO: TravelLog.js] Closed the edit form, entry', entryId, 'was deleted');
+      }
+
+      /* Both awaited so the caller's delete stays busy until the refreshed
+      lists have arrived rather than only until the DELETE answered, and the row
+      is gone from the list by the time the button reports itself done. The
+      trips are reloaded because the hook on entrySchema has just taken this
+      entry off its trip's entryCount, which the trip list and its panel show */
+      await Promise.all([fetchEntries(), fetchUserTrips()])
+
+      alert(data.message || 'Entry deleted successfully.')
+      console.log('[SUCCESS: TravelLog.js] Entry deleted:', data.entryId || entryId, 'from trip', data.tripId)
+      return true
+    } catch (error) {
+      // Only a network level failure reaches here, a 4xx or 5xx is handled above
+      setError?.('Could not reach the server. Please check your connection and try again.')
+      console.error(`[ERROR: TravelLog.js] Delete entry request failed: ${error.message}`)
+      return false
+    }
+  },[editingEntry, setError, fetchEntries, fetchUserTrips])
 
 //  Function to delete a trip
   const deleteTrip = useCallback(async (tripId) => {
@@ -492,10 +625,21 @@ export default function TravelLog(//Export the default TravelLog.js function com
         console.log('[INFO: TravelLog.js] Closed the edit form, trip', tripId, 'was deleted');
       }
 
-      /* Awaited so the caller's delete stays busy until the refreshed list has
-      arrived rather than only until the DELETE answered, and the row is gone
-      from the list by the time the button reports itself done */
-      await fetchUserTrips()
+      /* The entries filed against the trip went with it, so a form open on one
+      of them is closed: the entry it was open on is no longer stored */
+      if (editingEntry && String(editingEntry.tripId) === String(tripId)) {
+        setShowEditEntry(false)
+        setEditingEntry(null)
+        setEditEntryData(EMPTY_ENTRY_EDIT)
+        setEntryFieldErrors({})
+        console.log('[INFO: TravelLog.js] Closed the edit entry form, trip', tripId, 'was deleted with its entries');
+      }
+
+      /* Both awaited so the caller's delete stays busy until the refreshed
+      lists have arrived rather than only until the DELETE answered, and the
+      rows are gone by the time the button reports itself done. The entries go
+      with the trip, so that list is reloaded as well */
+      await Promise.all([fetchUserTrips(), fetchEntries()])
 
       alert(data.message || 'Trip deleted successfully.')
       console.log('[SUCCESS: TravelLog.js] Trip deleted:', data.tripId || tripId, 'with', data.removedEntries ?? 0, 'entry(s) and', data.removedExpenses ?? 0, 'expense(s)')
@@ -506,15 +650,17 @@ export default function TravelLog(//Export the default TravelLog.js function com
       console.error(`[ERROR: TravelLog.js] Delete trip request failed: ${error.message}`)
       return false
     }
-  },[editingTripId, setError, fetchUserTrips])
+  },[editingTripId, editingEntry, setError, fetchUserTrips, fetchEntries])
 
 
   //====================USE EFFECTS==========================
-  /* Loads the trips once, when the page mounts. fetchUserTrips only changes
-  when setError does, so this does not re-run as the lists are toggled */
+  /* Loads the trips and the entries once, when the page mounts. Neither fetch
+  changes unless setError does, so this does not re-run as the lists are
+  toggled, and both lists are filled before either is opened */
   useEffect(() => {
     fetchUserTrips()
-  },[fetchUserTrips])
+    fetchEntries()
+  },[fetchUserTrips, fetchEntries])
   //============JSX RENDERING=================
   return (
     <div id='pageContainer'>
@@ -590,8 +736,15 @@ export default function TravelLog(//Export the default TravelLog.js function com
             <Col id='entriesListCol'>
                 <EntriesList
                   currentUser={currentUser}
+                  userEntries={userEntries}
+                  loadingEntries={loadingEntries}
+                  fetchEntries={fetchEntries}
                   toggleEditEntry={toggleEditEntry}
                   showEditEntry={showEditEntry}
+                  deleteEntry={deleteEntry}
+                  /* Marks the entry the edit form is open on, so the panel says
+                  which entry the form below it belongs to */
+                  editingEntryId={editingEntry?._id || null}
                 />
             </Col>
           </Row>

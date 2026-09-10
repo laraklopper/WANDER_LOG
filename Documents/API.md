@@ -146,18 +146,20 @@ These apply to every table below, so they are not repeated in each one.
 
 | Method | Endpoint | Auth | Status | Description |
 |---|---|---|---|---|
-| `GET` | `/entry/fetchEntries` | JWT | Planned | Fetch all entries for the logged in user — the entries of **one** trip are served by [`GET /trip/fetchTrip/:id`](#15-trips) |
+| `GET` | [`/entry/fetchEntries`](../server/routes/entryRoutes.js#L152) | JWT | Implemented | Lists every entry the logged in user has written, newest first — the entries of **one** trip are served by [`GET /trip/fetchTrip/:id`](#15-trips) |
 | `GET` | `/entry/fetchEntry/:id` | JWT | Planned | Fetch one entry |
-| `POST` | [`/entry/addEntry`](../server/routes/entryRoutes.js#L159) | JWT | Implemented | Creates one journal entry against one of the user's trips |
-| `PATCH` | [`/entry/editEntry/:id`](../server/routes/entryRoutes.js#L249) | JWT | Implemented | Updates the fields the body carries on one of the user's entries |
-| `DELETE` | `/entry/delete/:id` | JWT | Planned | Delete an entry |
+| `POST` | [`/entry/addEntry`](../server/routes/entryRoutes.js#L194) | JWT | Implemented | Creates one journal entry against one of the user's trips |
+| `PATCH` | [`/entry/editEntry/:id`](../server/routes/entryRoutes.js#L284) | JWT | Implemented | Updates the fields the body carries on one of the user's entries |
+| `DELETE` | [`/entry/delete/:id`](../server/routes/entryRoutes.js#L438) | JWT | Implemented | Deletes one of the user's entries, and takes it off its trip's `entryCount` |
 
 **Notes**
 
 | Endpoint | Body | Other |
 |---|---|---|
+| `GET /entry/fetchEntries` | — | Returns `{ success, count, entries }`, each entry whole. Filtered on the userId read off the token, never one carried in the query. Sorted newest date first, the same order the entries of one trip are read back in by `GET /trip/fetchTrip/:id`, so the journal reads the same way whichever route filled it. Each entry stores the title of the trip it is filed against, so nothing is populated to name the trip — `PATCH /editEntry/:id` is what keeps that title in step. Fills the travel log's entries list |
 | `POST /entry/addEntry` | `tripId`, `title` (≤150), `body` (≤2000), `date` | The trip is matched on its id **and** the owner together, so an entry cannot be filed against another account's trip — a mismatch returns `404`. The stored trip title is read off the trip document rather than trusted from the body |
 | `PATCH /entry/editEntry/:id` | `:id` is the entry's own `_id`; any of `tripId`, `title` (≤150), `body` (≤2000), `date` | Only the fields the body carries are written, everything else is left as stored, and each one that is present is checked exactly as a create checks it — a blank title is refused rather than written over the stored one. `userId`, `username` and the stored `trip` title cannot be set through here: the owner stays as it was written from the token and the account, and the title is read off the trip document the entry is being moved to. A `tripId` naming the trip the entry is already on is dropped rather than sent as a move, so a body that carries nothing else returns `400`. The entry is matched on its id and the owner together, and so is the trip it is moved to, so another account's entry or trip behaves exactly like one that does not exist. **Moving an entry re-counts both trips** — `entryCount` is `$inc`-ed off the old trip and onto the new one, because [`entrySchema`'s](../server/models/entrySchema.js#L83) hooks only maintain it on a create and a delete. Written through `findOneAndUpdate` for the same reason: the post-save hook cannot tell an edit from a create, so saving the document would count the entry twice. `400` on a malformed id or an unusable field, `404` when the entry or the trip is not on the caller's account. Returns `{ success, message, entry }` |
+| `DELETE /entry/delete/:id` | `:id` is the entry's own `_id` | Matched on the id and the owner together, so another account's entry behaves exactly like one that does not exist. Nothing is filed against an entry, so unlike a trip there is nothing to cascade: the only other record that knows about it is the `entryCount` on its trip, which the post `findOneAndDelete` hook on [`entrySchema`](../server/models/entrySchema.js#L90) decrements. Removed through `findOneAndDelete` for exactly that reason — `deleteOne` would not fire the hook and the trip would go on counting an entry that is no longer stored. `400` on a malformed id, `404` when it is not on the caller's account. Returns `{ success, message, entryId, tripId }`, the trip id so the caller can reload the trip whose count has just changed |
 
 ### 1.7. EXPENSES
 
