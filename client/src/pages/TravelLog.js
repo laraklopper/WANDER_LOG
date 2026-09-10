@@ -13,6 +13,7 @@ import Footer from '../components/Footer'
 import TripsList from '../components/TripsList';
 import EditTripForm from '../components/EditTripForm';
 import EntriesList from '../components/EntriesList';
+import EditEntry from '../components/EditEntry';
 
 
 const EMPTY_TRIP_EDIT = {
@@ -76,6 +77,7 @@ export default function TravelLog(//Export the default TravelLog.js function com
   const [showTrips, setShowTrips] = useState(false)
   const [showEntries, setShowEntries] = useState(false)
   const [showEditTrip, setShowEditTrip] = useState(false)
+  const [showEditEntry, setShowEditEntry] = useState(false)
   const [userTrips, setUserTrips] = useState([])//State to display the users trips
   const [loadingTrips, setLoadingTrips] = useState(false)
   // ============EDIT TRIP STATE=============
@@ -83,6 +85,8 @@ export default function TravelLog(//Export the default TravelLog.js function com
   const [editTripData, setEditTripData] = useState(EMPTY_TRIP_EDIT)// The changes typed into the edit form, empty until a field is filled in
   const [submittingTrip, setSubmittingTrip] = useState(false)// Blocks a second submit while the first request is in flight
   const [tripFieldErrors, setTripFieldErrors] = useState({})
+ 
+
 
   const editingTrip = useMemo(
     () => userTrips.find((trip) => trip._id === editingTripId) || null,
@@ -110,6 +114,11 @@ export default function TravelLog(//Export the default TravelLog.js function com
     setTripFieldErrors({})
   },[showEditTrip])
 
+  const toggleEditEntry = useCallback(() => {
+    setShowEditEntry(prev => !prev)
+    setEditTripData(false)
+    setShowTrips(false)
+  },[])
   //======================CALLBACKS/REQUEST FUNCTIONS========================
   /* Loads the logged in user's trips from GET /trip/fetchTrips.*/
   const fetchUserTrips = useCallback(async () => {
@@ -436,6 +445,8 @@ export default function TravelLog(//Export the default TravelLog.js function com
             <Col id='entriesListCol'>
                 <EntriesList
                   currentUser={currentUser}
+                  toggleEditEntry={toggleEditEntry}
+                  showEditEntry={showEditEntry}
                 />
             </Col>
           </Row>
@@ -466,6 +477,18 @@ export default function TravelLog(//Export the default TravelLog.js function com
         </section>
       )}
       {/* SHOW EDIT ENTRY */}
+      {showEditEntry && (
+        <section>
+          <div>
+            <Row>
+              <Col>
+                <EditEntry
+                />
+              </Col>
+            </Row>
+          </div>
+        </section>
+      )}
       <Footer logout={logout}/>
     </div>
   )

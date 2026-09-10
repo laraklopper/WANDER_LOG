@@ -3,7 +3,7 @@ import '../css/componentCss/DetailsPanal.css'
 import '../css/componentCss/EntriesList.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
-export default function EntriesList({currentUser}) {
+export default function EntriesList({currentUser, toggleEditEntry, showEditEntry}) {
 
     const username = currentUser?.username || '';//Current loggedin user username
   return (
@@ -36,8 +36,10 @@ export default function EntriesList({currentUser}) {
         <h5>ENTRY TITLE</h5>
       </div>
       <div className="p-2 ms-auto">
-        <Button variant='warning'>
-            EDIT ENTRY
+        <Button 
+            variant='warning' 
+            onClick={toggleEditEntry} id='toggleEditEntryBtn' aria-expanded={showEditEntry}>
+            {showEditEntry ? 'Hide Form' : 'Edit Entry'}
         </Button>
       </div>
       <div className="vr" />
