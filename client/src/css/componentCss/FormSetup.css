@@ -4,7 +4,13 @@
     margin: 0px;
     padding: 0px;
 }
-#formHeading{
+.formHeadingSpan{
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+#formHeading,
+.formItem{
   color: #000000;
   font-family: "Fira Sans", sans-serif;
   font-weight: 700;
@@ -115,6 +121,12 @@
   font-family: "Open Sans", sans-serif;
   letter-spacing: 1px;
   color: #323A42;
+}
+.editFormInfoMsg{
+    font-family: "Open Sans", sans-serif;
+    margin: 0px;
+    padding: 0px;
+    text-transform: uppercase;
 }
 #requiredInfo{
     display: flex;

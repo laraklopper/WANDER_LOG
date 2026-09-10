@@ -116,7 +116,7 @@ export default function TravelLog(//Export the default TravelLog.js function com
 
   const toggleEditEntry = useCallback(() => {
     setShowEditEntry(prev => !prev)
-    setEditTripData(false)
+    setShowEditTrip(false)
     setShowTrips(false)
   },[])
   //======================CALLBACKS/REQUEST FUNCTIONS========================
@@ -478,15 +478,19 @@ export default function TravelLog(//Export the default TravelLog.js function com
       )}
       {/* SHOW EDIT ENTRY */}
       {showEditEntry && (
-        <section>
-          <div>
-            <Row>
-              <Col>
+        <section className='travelLogSec2'>
+        <div id='editEntryFormBlock'>
+<Row id='editEntryRow'>
+            <Col id='editEntryCol1'/>
+              <Col xs={12} md={10} id='editEntryCol'>
+              <div id='editEntryPanal'>
                 <EditEntry
                 />
+                </div>
               </Col>
+              <Col id='editEntryCol2'/>
             </Row>
-          </div>
+        </div>  
         </section>
       )}
       <Footer logout={logout}/>

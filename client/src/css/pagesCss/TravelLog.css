@@ -148,3 +148,29 @@ towards the closed look, which would read as though the list had closed */
         margin: 0px;
         padding: 0px;
 }
+#editEntryFormBlock{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 10px;
+}
+#editEntryPanal{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    background-color: #9E9E9E;
+    margin: 0px;
+    padding: 10px;
+    gap: 10px;
+}
+#editEntryRow{
+    padding: 0px;
+    margin: 0px;
+    width: 100%;
+}
+#editEntryCol1,
+#editEntryCol2{
+    margin: 0px;
+    padding: 0px;
+}
