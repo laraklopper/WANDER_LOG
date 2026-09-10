@@ -1,6 +1,6 @@
 // EntriesList.js
 //IMPORT REQUIRED MODULES AND PACKAGES
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 // IMPORT CSS STYLESHEETS
 import '../css/componentCss/DetailsPanal.css'
 import '../css/componentCss/EntriesList.css'
@@ -21,6 +21,10 @@ export default function EntriesList(
         fetchEntries,
         toggleEditEntry,
         showEditEntry,
+        /* Closes the edit form on the travel log page. The form is opened from
+        this panel and names the entry it is editing from it, so it is closed
+        whenever the panel is */
+        closeEditEntry,
         deleteEntry,
         /* The id of the entry the edit form is open on, so the panel says which
         entry the form further down the page belongs to */
@@ -64,10 +68,26 @@ export default function EntriesList(
         setSelectedId(entryId)
     },[])
 
-    // Closes the details panel without touching the list itself
+    /* Closes the details panel without touching the list itself, and closes the
+    edit form with it: the form is opened from this panel and reports the entry
+    it is editing from it, so one left behind would be offering to change an
+    entry that is no longer on screen */
     const handleClose = useCallback(() => {
         setSelectedId(null)
-    },[])
+        closeEditEntry?.()
+    },[closeEditEntry])
+
+    /* The panel also closes on its own, when a refetch no longer holds the
+    entry it was showing — one deleted from another session, for instance. The
+    selected id is dropped and the form closed here too, so a panel that closed
+    without CLOSE being pressed leaves no form open behind it */
+    useEffect(() => {
+        if (!selectedId || selectedEntry) return;
+
+        console.log('[INFO: EntriesList.js] Entry', selectedId, 'is no longer in the list, closed the panel');
+        setSelectedId(null)
+        closeEditEntry?.()
+    },[selectedId, selectedEntry, closeEditEntry])
 
     //Function to delete an entry
     const handleDelete = useCallback(async () => {

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import '../css/componentCss/TripList.css'
 import '../css/componentCss/DetailsPanal.css'
 import Stack from 'react-bootstrap/Stack';
@@ -17,6 +17,10 @@ export default function TripsList(
         fetchUserTrips,
         toggleEditTrip,
         showEditTrip,
+        /* Closes the edit form on the travel log page. The form is opened from
+        this panel and names the trip it is editing from it, so it is closed
+        whenever the panel is */
+        closeEditTrip,
         deleteTrip
 
     }
@@ -53,10 +57,26 @@ export default function TripsList(
         setSelectedId(tripId)
     },[])
 
-    // Closes the details panel without touching the list itself
+    /* Closes the details panel without touching the list itself, and closes the
+    edit form with it: the form is opened from this panel and names the trip it
+    is editing from it, so one left behind would be offering to change a trip
+    that is no longer on screen */
     const handleClose = useCallback(() => {
         setSelectedId(null)
-    },[])
+        closeEditTrip?.()
+    },[closeEditTrip])
+
+    /* The panel also closes on its own, when a refetch no longer holds the trip
+    it was showing — one deleted from another session, for instance. The
+    selected id is dropped and the form closed here too, so a panel that closed
+    without CLOSE being pressed leaves no form open behind it */
+    useEffect(() => {
+        if (!selectedId || selectedTrip) return;
+
+        console.log('[INFO: TripsList.js] Trip', selectedId, 'is no longer in the list, closed the panel');
+        setSelectedId(null)
+        closeEditTrip?.()
+    },[selectedId, selectedTrip, closeEditTrip])
 
     //Function to delete a trip
     const handleDelete = useCallback(async () => {
