@@ -7,13 +7,15 @@ import Button from 'react-bootstrap/Button';
 
 export default function EditEntry() {
   return (
-    <form id='editEntryForm' method='PATCH'>
+    <form id='editEntryForm' method='PATCH' aria-describedby='editEntryName'>
         <div id='formHeadingBlock'>
-        <span className='formHeadingSpan'>
+        {/* FORM HEADING: EDIT ENTRY + entry.title */}
+        <span className='formHeadingSpan' id='editEntryName'>
             <h3 id='formHeading'>EDIT ENTRY:</h3>
             <h3 className='formItem'>ENTRY TITLE</h3>
         </span>
         </div>
+        {/* Form Input Message */}
         <div id='editEntryInfoBlock'>
             <p className='editInfoMsg'>
             <i><small>Only fill in what you want to change. Anything left blank stays as it is.</small></i>
@@ -21,9 +23,11 @@ export default function EditEntry() {
         </div>
         {/* ==FORM INPUT========= */}
         <div id='editEntryInput'>
-        {/* GROUP 1 */}
+        {/* GROUP 1 : username(hidden: readonly) + Trip + Title + Body*/}
             <div id='editEntryGroup1'>
+            {/* STACK 1 */}
             <Stack gap={3} id='editEntryStack1'>
+            {/* USERNAME: value={}*/}
                 <div className="p-2 visually-hidden" id='editEntryUsername'>
                     <label className='editEntryLabel'>USERNAME:</label>
                     <input
@@ -31,9 +35,9 @@ export default function EditEntry() {
                         // value={}//current user username
                     />
                 </div>
-                {/* EDIT TRIP */}
+                {/* EDIT TRIP: value={} */}
                 <div className="p-2" id='editEntryTripBlock'>
-                    <label className='editEntryLabel'>EDIT TRIP:</label>
+                    <label className='editEntryLabel' htmlFor=''>EDIT TRIP:</label>
                     <select
                         className='input'
                         // id=''
@@ -43,25 +47,24 @@ export default function EditEntry() {
                         // ARIA ATTRIBUTES:
                         
                     >
+                    {/* MAP ALL TRIPS WITH THE CURRENT TRIP AS PLACEHOLDER */}
                         <option>SELECT</option>
                     </select>
                 </div>
                 <div className="p-2" id='editEntryBodyBlock'>
-                    <label className='editEntryLabel'>EDIT ENTRY BODY:</label>
+                {/* EDIT ENTRY: value={} */}
+                    <label className='editEntryLabel' htmlFor=''>EDIT ENTRY BODY:</label>
                     <textarea
                         // id=''
                         className='editEntryTextInput'
-                        placeholder='Update your entry'//Current entry
+                        placeholder='Update your entry'
+                        // name=''//Current entry
                         rows={3}
-                        // name=''
                         // value={}
                         // ARIA ATTRIBUTES:
-
-
                     />
                 </div>
     </Stack>
-                
             </div>
             {/* GROUP 2: PHOTOS : ADD LATER */}
             {/* <div id='editEntryGroup2'></div> */}
@@ -69,7 +72,7 @@ export default function EditEntry() {
         {/* ==END OF INPUT=========== */}
         {/* GROUP3: SUBMIT FORM BUTTON + CLEAR FORM BUTTON */}
         <div id='editEntryGroup3'>
-        {/* STACK */}
+        {/* STACK: SUBMIT FORM BUTTON CLEAR FORM BUTTON */}
             <Stack direction="horizontal" gap={3} id='editEntryBtnStack'>
       <div className="p-2"></div>
       <div className="p-2 ms-auto">
@@ -78,7 +81,6 @@ export default function EditEntry() {
             type='submit'
             id='editEntryBtn'
             // ARIA ATTRIBUTES:
-            
         >
             EDIT ENTRY
         </Button>
@@ -88,6 +90,8 @@ export default function EditEntry() {
             variant='danger'
             id='clearFormBtn'
             type='button'
+            // onClick={}
+            // ARIA ATTRIBUTES:
             >
                 CLEAR
             </Button>
