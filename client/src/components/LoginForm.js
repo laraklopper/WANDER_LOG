@@ -51,13 +51,10 @@ export default function LoginForm(//Export default LoginForm.js component
     const handleLogin = (e) => {
         e.preventDefault();//Prevent default form submission
 
-        /* The required attribute on both inputs normally stops an empty submit
-        before this runs, so this is the fallback for a browser that skips native
-        validation. Marking the fields touched reveals the error messages */
         // Conditional Rendering to check if the necessary fields are entered
         if (usernameEmpty || passwordEmpty) {
-            setTouched({ username: true, password: true })
-            console.warn('[WARN: LoginForm.js]: Username and password are required')
+            setTouched({ username: true, password: true })//Mark the fields touched to show the error messages
+            console.warn('[WARN: LoginForm.js]: Username and password are required');// Log a warning message in the console for debugging purposes
             return
         }
 
@@ -95,15 +92,16 @@ export default function LoginForm(//Export default LoginForm.js component
     method='POST'
     onSubmit={handleLogin}
     aria-labelledby={formTitleId} >
-    {/* --------Screen reader Heading */}
+    {/* --------Screen reader Heading---------- */}
     <p className='visually-hidden' id={formTitleId}>LOGIN FORM</p>
         <div id='formHeadingBlock'>
             <h3 id='formHeading'>SIGN IN</h3>
         </div>
         {/* =======LOGIN INPUT======= */}
         <div id='login-form-input'>
-        {/* USERNAME */}
-           <Stack gap={3} id='login-stack1'>
+        {/* USERNAME: value={userData.username || ''} */}
+        {/* STACK 1: UsernameStack */}
+           <Stack gap={3} id='login-stack1' role='group'>
       <div className="p-2" id='login-block1'>
         <label className='login-label' htmlFor='loginUsername'>USERNAME</label>
         <input
@@ -112,9 +110,10 @@ export default function LoginForm(//Export default LoginForm.js component
             placeholder='USERNAME'
             required
             autoComplete='username'
+            disabled={submitting}
+            // Get the input field's name attribute and its current typed value
             name='username'
             value={userData.username || ''}
-            disabled={submitting}
             // EVENT HANDlERS:
             onChange={handleLoginInput}
             onFocus={() => setUserNameMsg(true)}
@@ -133,7 +132,7 @@ export default function LoginForm(//Export default LoginForm.js component
             inputMode="text"
         />
       </div>
-      {/* Error Message */}
+      {/* LOGIN ERROR MESSAGE */}
       {showUsernameError && (
         <div className="p-2" id={usernameErrorId} aria-live='assertive'>
             <p className='loginErrorMessage'>
@@ -148,8 +147,9 @@ export default function LoginForm(//Export default LoginForm.js component
     </div>
     )}
     </Stack>
-    {/* PASSWORD: value={userData.password || ''} */}
+    {/* STACK 2 */}
      <Stack gap={3} id='login-stack2'>
+     {/* PASSWORD: value={userData.password || ''} */}
       <div className="p-2" id='login-pswd-block1'>
         <label className='login-label' htmlFor='loginPassword'>PASSWORD:</label>
         <input
@@ -158,9 +158,8 @@ export default function LoginForm(//Export default LoginForm.js component
             required
             type={showPswd ? 'text': 'password'}
             /* current-password, not password: it tells the browser and password
-            managers to offer the saved password for this site rather than
-            treating the field as a new one */
-            autoComplete='current-password'
+            managers to offer the saved password. */
+            autoComplete='current-password'//
             placeholder='PASSWORD'
             name='password'
             value={userData.password || ''}
@@ -227,10 +226,12 @@ export default function LoginForm(//Export default LoginForm.js component
             <Button
                 variant='light'
                 id='loginBtn'
-                type='submit'
-                // Disabled while the request runs, so it cannot be submitted twice
-                disabled={submitting}
+                type='submit'//Button type
+                disabled={submitting}// Disabled while the request runs, so it cannot be submitted twice
+                // ARIA ATTRIBUTES:
+                aria-label={submitting ? 'LOGGING IN...' : 'LOGIN'}
                 aria-busy={submitting}
+                aria-disabled={submitting}// Disabled while the request runs
                 >
                     {submitting ? 'LOGGING IN...' : 'LOGIN'}
                 </Button>
