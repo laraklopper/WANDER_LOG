@@ -141,13 +141,11 @@ export default function Register(//Export default Registration function componen
               emptyForm={EMPTY_FORM}
              />
             </div>
-            
           </div>
-          
         </Col>
-  
       </Row>
       </section>
+      {/* ======FOOTER============= */}
    
     </div>
   )
