@@ -2,6 +2,7 @@ import React from 'react'
 import '../css/componentCss/DetailsPanal.css'
 import '../css/componentCss/EntriesList.css'
 import Stack from 'react-bootstrap/Stack';
+import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 export default function EntriesList({currentUser, toggleEditEntry, showEditEntry}) {
 
@@ -31,6 +32,13 @@ export default function EntriesList({currentUser, toggleEditEntry, showEditEntry
         {/* ENTRIES DETAILS PANAL */}
         <div id='entryDetailsPanal'>
             <div id='entryHeaderBlock'>
+            <Stack direction="horizontal" gap={3}>
+      <div className="p-2"/>
+      <div className="p-2 ms-auto"/>
+      <div className="p-2">
+        <p className='panalUsername'>@{username}</p>
+      </div>
+    </Stack>
             <Stack direction="horizontal" gap={3} id='entryHeaderStack'>
       <div className="p-2">
         <h5>ENTRY TITLE</h5>
@@ -38,7 +46,9 @@ export default function EntriesList({currentUser, toggleEditEntry, showEditEntry
       <div className="p-2 ms-auto">
         <Button 
             variant='warning' 
-            onClick={toggleEditEntry} id='toggleEditEntryBtn' aria-expanded={showEditEntry}>
+            onClick={toggleEditEntry} 
+            id='toggleEditEntryBtn' 
+            aria-expanded={showEditEntry}>
             {showEditEntry ? 'Hide Form' : 'Edit Entry'}
         </Button>
       </div>
@@ -52,42 +62,61 @@ export default function EntriesList({currentUser, toggleEditEntry, showEditEntry
             </Button>
       </div>
     </Stack>
-
-
             </div>
+            {/* ENTRY PANAL */}
             <div id='entryPanalBody'>
-            <Stack gap={3}>
-            <div className="p-2">
+            <Stack direction="horizontal" gap={3} id='entryPanalStack1'>
+      <div className="p-2">
                 <span className='detail-span'>
                     <p className='detail-label'>TRIP:</p>
                     <p className='detail-value'></p>
-
                 </span>
             </div>
-            <div className="p-2">Second item</div>
-            <div className="p-2">Third item</div>
-            </Stack>
-            <Stack gap={3}>
-            <div className="p-2">
+      <div className="p-2 ms-auto"/>
+      <div className="p-2">
+        <span className='detail-span'>
+            <p className='details-label'>DATE:</p>
+            <p className='detail-value'></p>
+        </span>
+      </div>
+    </Stack>
+      <div id='entryBodyDiv'>
+       <Card id='tripEntryCard'>
+      <Card.Body id='entryCardBody'>
+        <Card.Title id='entryCardTitle' >
+            {/* ENTRY TITLE */}
+            <h5 id='entryCardTitle'>ENTRY TITLE</h5>
+        </Card.Title>
+        <Card.Text>
+          <p id='entryBody'>
+            Entry body text here
+          </p>
+        </Card.Text>
+      </Card.Body>
+  </Card>
                 
             </div>
-            <div className="p-2">Second item</div>
-            <div className="p-2">Third item</div>
-            </Stack>
-
             </div>
             <div id='entryFooterBlock'>
             <Stack direction="horizontal" gap={3} id='entryFooterStack'>
-      <div className="p-2">First item</div>
-      <div className="p-2 ms-auto">Second item</div>
+      <div className="p-2"></div>
+      <div className="p-2 ms-auto"></div>
       <div className="vr" />
-      <div className="p-2">Third item</div>
+      <div className="p-2">
+        <Button
+        variant='danger'
+        id='deleteItemBtn'
+        // onClick={}
+        type='button'
+        >
+            DELETE
+        </Button>
+      </div>
     </Stack>
 
 
 
             </div>
-
         </div>
     </div>
   )

@@ -26,7 +26,11 @@ Bootstrap's Reboot gives every <p> one, which would otherwise split the pair */
 .details-label,
 .details-value,
 .nested-details-label{
-    font-family: "Fira Mono", monospace;
+    margin: 0px;
+    padding: 0px;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 2px;
     margin: 0px;
     padding: 0px;
 }
@@ -75,4 +79,14 @@ under the group's own label rather than run on beside it */
     gap: 10px;
     margin: 0px;
     padding: 0px;
+}
+.panalUsername{
+    margin: 0px;
+    padding: 0px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 2px;
+    text-decoration: underline;
+    
 }
