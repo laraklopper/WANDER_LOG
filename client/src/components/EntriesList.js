@@ -20,9 +20,12 @@ export default function EntriesList({currentUser}) {
                         <th>TRIP</th>
                         <th>TITLE</th>
                         <th>DATE</th>
-                        <th></th>{/*VIEW PANAL BLOCK*/}
+                        <th></th>{/*VIEW PANAL BUTTON*/}
                     </tr>
                 </thead>
+                <tbody>
+
+                </tbody>
             </table>
         </div>
         {/* ENTRIES DETAILS PANAL */}
