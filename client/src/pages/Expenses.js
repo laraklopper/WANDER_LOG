@@ -22,6 +22,7 @@ import BudgetList from '../components/BudgetList';
 import { FALLBACK_CURRENCIES } from '../util/currencyFunc';
 import { todayInputValue } from '../util/dateFunctions';
 import { EXPENSE_CATEGORIES } from '../data/financeData';
+import EditExpense from '../components/EditExpense';
 
 
 /* Empty expense shape, used for the initial state and by the form's clear
@@ -989,6 +990,8 @@ export default function Expenses(//Export default Expenses.js component
                         fetchExpenses={fetchExpenses}
                         currentUser={currentUser}
                         setError={setError}
+                        toggleEditExpenseForm={toggleEditExpenseForm}
+                        showEditExp={showEditExp}
                     />
                 </div>
             </Col>
@@ -1034,6 +1037,19 @@ export default function Expenses(//Export default Expenses.js component
       </div>
                 </div>
             </section>
+            {showEditExp && (
+              <section className='editFormSection'>
+                <div id='editExpenseBlock' style={{width: '100%'}}>
+                  <Row id='editExpRow' style={{width: '100%'}}>
+                    <Col id='editExpenseCol' style={{width: '100%'}}>
+                      <div id='editExpensePanal' style={{width: '100%'}} >
+                        <EditExpense/>
+                      </div>
+                    </Col>
+                  </Row>
+                </div>
+              </section>
+            )}
             {/* SECTION 2 : ADD EXPENSE FORM + BUDGET FORM */}
             <section id='expensesSection2'>
                 <div id='exp-section2-panal'>

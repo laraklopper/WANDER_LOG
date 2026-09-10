@@ -97,6 +97,15 @@ LAYOUT
     margin: 0px;
     padding: 0px;
 }
+.editFormSection{
+          display: flex;
+   justify-content: center;
+   align-items: center;
+  background-color: #7BA428;
+  width: 100%;
+  margin: 10px 0px 10px 0px;
+  padding: 0px;
+}
 #expensesSection2{
      display: flex;
    justify-content: center;
@@ -164,6 +173,27 @@ justify-content: center;
     width: 100%;
     margin: 0px;
     padding: 0px;
+}
+#editExpRow{
+        width: 100%;
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+    justify-content: center;
+}
+#editExpenseCol{
+        width: 100%;
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+    justify-content: center;
+}
+#editExpensePanal{
+        width: 100%;
+    margin: 0px;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
 }
 /* ===============
  BUTTONS https://react-bootstrap.netlify.app/docs/components/buttons 

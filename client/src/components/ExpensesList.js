@@ -106,7 +106,7 @@ export default function ExpensesList({
       </div>
       <div className="p-2 ms-auto">
         <Button variant='warning'
-        // onClick={}
+        onClick={toggleEditExpenseForm}
         >EDIT</Button>
       </div>
       <div className="vr" />

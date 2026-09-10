@@ -1,0 +1,125 @@
+#editExpenseForm{
+        display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 0px;
+    gap: 10px;
+    padding: 10px;
+    align-items: center;
+    background-color: #A8AEB3;
+}
+.editExpLabel{
+     color: #000000;
+    font-weight: 700;
+    margin: 0px;
+    padding: 0px;
+    font-family: "Fira Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+/* ======
+LAYOUT
+========*/
+#editExpenseInput{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 85%;
+    margin: 0px;
+    padding: 10px;
+    overflow-y: scroll;
+    background-color: #BFBFBF;
+    gap: 10px;
+}
+.editExp-group{
+    display: flex;
+    align-items: baseline;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+    gap: 10px;
+}
+.editExpTextInput{
+    width: 250px;
+    border: solid 2px;
+    border-radius: 5px;
+    overflow-y: scroll;
+    margin: 0px;
+    padding: 5px;
+}
+/* GROUP 1 */
+#editExpGroup1{
+    width: 100%;
+    margin: 0px;
+    padding: 5px;
+    border: solid #323A42 2px;
+    background: #D6D6D6;
+    border-radius: 8px;
+}
+#editExpStack1{
+    width: 100%;
+    display: flex;
+    margin: 0px;
+    padding: 0px;
+}
+/* GROUP 2 */
+#editExpGroup2{
+    width: 100%;
+    margin: 0px;
+    padding: 5px;
+    border: solid #323A42 2px;
+    background: #D6D6D6;
+    border-radius: 8px;
+}
+/* GROUP 3 */
+#editExpGroup3{
+     width: 100%;
+    margin: 0px;
+    padding: 5px;
+    border: solid #323A42 2px;
+    background: #D6D6D6;
+    border-radius: 8px;
+}
+#editExpTextInputBlock{
+    display: flex;
+    align-items: baseline;
+}
+#editExpDateBlock{
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+/* GROUP 4 */
+#editExpGroup4{
+    display: flex;
+    justify-content: center;
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+}
+#editExpBtnStack{
+    display: flex;
+    align-items: baseline;
+    width: 85%;
+    margin: 0px;
+    padding: 0px;
+}
+/* BUTTONS: https://react-bootstrap.netlify.app/docs/components/buttons */
+#editExpBtn{
+       display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0px;
+    padding: 0px;
+    width: 180px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    color: #000000;
+    border: #323A42 solid 2px;
+}
+#editExpBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
+}
