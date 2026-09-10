@@ -11,8 +11,9 @@ export default function EditEntry() {
         </span>
         </div>
         <div id='editEntryInfoBlock'>
-            <p className='infoMsg'>
-                <small>Only fill in what you want to change. Anything left blank stays as it is.</small>
+            <p className='editInfoMsg'>
+            <i><small>Only fill in what you want to change. Anything left blank stays as it is.</small></i>
+                
             </p>
         </div>
     </form>
