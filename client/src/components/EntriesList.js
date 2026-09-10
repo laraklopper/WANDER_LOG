@@ -28,12 +28,12 @@ export default function EntriesList({currentUser}) {
         {/* ENTRIES DETAILS PANAL */}
         <div id='entryDetailsPanal'>
             <div id='entryHeaderBlock'>
-            <Stack direction="horizontal" gap={3}>
+            <Stack direction="horizontal" gap={3} id='entryHeaderStack'>
       <div className="p-2">
         <h5>ENTRY TITLE</h5>
       </div>
       <div className="p-2 ms-auto">
-        <Button>
+        <Button variant='warning'>
             EDIT ENTRY
         </Button>
       </div>
