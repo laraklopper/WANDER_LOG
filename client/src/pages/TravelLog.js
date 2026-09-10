@@ -31,6 +31,42 @@ const EMPTY_TRIP_EDIT = {
   status: '',
 };
 
+/* Empty edit entry shape, used for the initial state and by the form's clear
+button. Every field is blank because this form changes only what it is filled in
+with: an untouched field is the entry being left as it is stored. The trip is
+held as tripId rather than a title, because that is what the API takes: it loads
+the trip and reads the stored title off it. The owner is left out on purpose,
+userId and username stay as they were written from the token and the account */
+const EMPTY_ENTRY_EDIT = {
+  tripId: '',
+  title: '',
+  body: '',
+};
+
+/* Builds the PATCH body for an entry edit out of the form and the entry it was
+opened on, so only what was actually filled in is sent and everything else is
+left as it is stored.
+
+The trip is the one field that can be filled in without being a change: the
+select's first option keeps the trip the entry is already filed against, and an
+id that names that same trip is dropped rather than sent as a move the API would
+have nothing to do about. */
+const entryChanges = (form = {}, entry = null) => {
+  const changes = {};
+
+  const title = String(form.title || '').trim();
+  const tripId = String(form.tripId || '').trim();
+
+  if (title) changes.title = title;
+  /* Sent as it was written rather than trimmed, the schema keeps the body as it
+  stands, but a box holding nothing but whitespace is not a change */
+  if (String(form.body || '').trim()) changes.body = form.body;
+  // Only sent when it names a trip other than the one the entry is already on
+  if (tripId && tripId !== String(entry?.tripId || '')) changes.tripId = tripId;
+
+  return changes;
+}
+
 const tripChanges = (form = {}, trip = null) => {
   const changes = {};
 
@@ -85,7 +121,14 @@ export default function TravelLog(//Export the default TravelLog.js function com
   const [editTripData, setEditTripData] = useState(EMPTY_TRIP_EDIT)// The changes typed into the edit form, empty until a field is filled in
   const [submittingTrip, setSubmittingTrip] = useState(false)// Blocks a second submit while the first request is in flight
   const [tripFieldErrors, setTripFieldErrors] = useState({})
- 
+  // ============EDIT ENTRY STATE=============
+  /* The entry the edit form is open on, held whole rather than by id: it is
+  handed over by the entries list the form is opened from, and every field on the
+  form reports what that entry currently holds */
+  const [editingEntry, setEditingEntry] = useState(null)
+  const [editEntryData, setEditEntryData] = useState(EMPTY_ENTRY_EDIT)// The changes typed into the edit form, empty until a field is filled in
+  const [submittingEntry, setSubmittingEntry] = useState(false)// Blocks a second submit while the first request is in flight
+  const [entryFieldErrors, setEntryFieldErrors] = useState({})
 
 
   const editingTrip = useMemo(
@@ -114,11 +157,23 @@ export default function TravelLog(//Export the default TravelLog.js function com
     setTripFieldErrors({})
   },[showEditTrip])
 
-  const toggleEditEntry = useCallback(() => {
-    setShowEditEntry(prev => !prev)
+  /* Toggle button to display the edit entry form. Opened on the entry the
+  entries list hands over, so the form always has one to report what each of its
+  fields currently holds, and closed on nothing: the changes and the errors of
+  the entry it was open on go with it */
+  const toggleEditEntry = useCallback((entry = null) => {
+    const opening = !showEditEntry;
+
+    setShowEditEntry(opening)
+    /* Guarded on the id, because the entries list still opens the form from a
+    button that passes its click event rather than an entry. Without one the
+    form reports that there is nothing open to edit */
+    setEditingEntry(opening && entry?._id ? entry : null)
+    setEditEntryData(EMPTY_ENTRY_EDIT)
+    setEntryFieldErrors({})
     setShowEditTrip(false)
     setShowTrips(false)
-  },[])
+  },[showEditEntry])
   //======================CALLBACKS/REQUEST FUNCTIONS========================
   /* Loads the logged in user's trips from GET /trip/fetchTrips.*/
   const fetchUserTrips = useCallback(async () => {
@@ -300,6 +355,96 @@ export default function TravelLog(//Export the default TravelLog.js function com
       setSubmittingTrip(false)
     }
   },[submittingTrip, editingTripId, editingTrip, editTripData, setError, fetchUserTrips])
+
+  /* Sends the filled in fields of the edit entry form to
+  PATCH /entry/editEntry/:id.
+  The route is behind checkJwtToken, so the stored token is attached to the
+  request. Only what was changed is sent, everything else is left as the entry is
+  stored, and only the trip's id is sent when the entry is being moved: the API
+  loads that trip, checks it belongs to the account on the token, and reads the
+  title off the document. The entry's owner is not sent at all, userId and
+  username stay as they were written from the token and the account */
+  const editEntry = useCallback(async () => {
+    if (submittingEntry) return;
+
+    // Conditional rendering to check an entry is open for editing
+    if (!editingEntry?._id) {
+      setError?.('No entry is open for editing.')
+      console.warn('[WARN: TravelLog.js] No entry id, cannot edit an entry');
+      return;
+    }
+
+    const changes = entryChanges(editEntryData, editingEntry);
+
+    /* Checked here as well as by the form, so a call that did not come through
+    its submit handler is not sent as an empty PATCH the API would refuse */
+    if (!Object.keys(changes).length) {
+      setError?.('Nothing has been changed yet.')
+      console.warn('[WARN: TravelLog.js] No changes submitted, cannot edit an entry');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    // Conditional rendering to check a session is still stored
+    if (!token) {
+      setError?.('Your session has expired. Please log in again.')
+      console.warn('[WARN: TravelLog.js] No token stored, cannot edit an entry');
+      return;
+    }
+
+    try {
+      setSubmittingEntry(true)
+      setError?.(null)
+      setEntryFieldErrors({})
+
+      const response = await fetch(`http://localhost:3001/entry/editEntry/${editingEntry._id}`, {
+        method: 'PATCH',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(changes)
+      })
+
+      /* Safely parse the JSON response. Guarded because the body is empty or is
+      not JSON at all on a 429 from the rate limiter, and response.json() would
+      throw before the status could be reported */
+      const data = await response.json().catch(() => ({}))
+
+      if (response.ok) {
+        setError?.(null)
+        setEntryFieldErrors({})
+        // Closed on the entry it was opened on, with the changes cleared out of it
+        setShowEditEntry(false)
+        setEditingEntry(null)
+        setEditEntryData(EMPTY_ENTRY_EDIT)
+        /* Reloaded because a trip carries the number of entries filed against
+        it, and an entry moved to another trip is counted on both */
+        fetchUserTrips()
+        alert(data.message || 'Entry updated successfully.')
+        console.log('[SUCCESS: TravelLog.js] Entry updated:', data.entry?._id)
+      } else {
+        /* Falls back through the shapes the API can return: a plain message, an
+        error string, then the status text */
+        const message =
+          data?.message ||
+          data?.error ||
+          response?.statusText ||
+          'Could not update the entry.';
+        // Present on a 400 from Mongoose validation, absent on a 401, 404 or a 500
+        if (data.errors) setEntryFieldErrors(data.errors);
+        setError?.(message);
+        console.error(`[ERROR: TravelLog.js] Edit entry failed with status ${response.status}: ${message}`);
+      }
+    } catch (error) {
+      // Only a network level failure reaches here, a 4xx or 5xx is handled above
+      setError?.('Could not reach the server. Please check your connection and try again.');
+      console.error(`[ERROR: TravelLog.js] Edit entry request failed: ${error.message}`);
+    } finally {
+      setSubmittingEntry(false)
+    }
+  },[submittingEntry, editingEntry, editEntryData, setError, fetchUserTrips])
 
 //  Function to delete a trip
   const deleteTrip = useCallback(async (tripId) => {
@@ -485,6 +630,21 @@ export default function TravelLog(//Export the default TravelLog.js function com
               <Col xs={12} md={10} id='editEntryCol'>
               <div id='editEntryPanal'>
                 <EditEntry
+                  currentUser={currentUser}
+                  /* The entry the form was opened on. Null until the entries
+                  list hands one over, which the form reports rather than
+                  offering fields with nothing to write them to */
+                  entry={editingEntry}
+                  editEntryData={editEntryData}
+                  setEditEntryData={setEditEntryData}
+                  editEntry={editEntry}
+                  submitting={submittingEntry}
+                  fieldErrors={entryFieldErrors}
+                  emptyForm={EMPTY_ENTRY_EDIT}
+                  /* Fills the trip select, so an entry can be moved to another
+                  of the account's trips. Already loaded for the trips list */
+                  trips={userTrips}
+                  loadingTrips={loadingTrips}
                 />
                 </div>
               </Col>

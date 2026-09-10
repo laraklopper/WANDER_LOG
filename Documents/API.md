@@ -148,8 +148,8 @@ These apply to every table below, so they are not repeated in each one.
 |---|---|---|---|---|
 | `GET` | `/entry/fetchEntries` | JWT | Planned | Fetch all entries for the logged in user — the entries of **one** trip are served by [`GET /trip/fetchTrip/:id`](#15-trips) |
 | `GET` | `/entry/fetchEntry/:id` | JWT | Planned | Fetch one entry |
-| `POST` | [`/entry/addEntry`](../server/routes/entryRoutes.js#L119) | JWT | Implemented | Creates one journal entry against one of the user's trips |
-| `PATCH` | `/entry/editEntry/:id` | JWT | Planned | Edit / update an entry |
+| `POST` | [`/entry/addEntry`](../server/routes/entryRoutes.js#L159) | JWT | Implemented | Creates one journal entry against one of the user's trips |
+| `PATCH` | [`/entry/editEntry/:id`](../server/routes/entryRoutes.js#L249) | JWT | Implemented | Updates the fields the body carries on one of the user's entries |
 | `DELETE` | `/entry/delete/:id` | JWT | Planned | Delete an entry |
 
 **Notes**
@@ -157,6 +157,7 @@ These apply to every table below, so they are not repeated in each one.
 | Endpoint | Body | Other |
 |---|---|---|
 | `POST /entry/addEntry` | `tripId`, `title` (≤150), `body` (≤2000), `date` | The trip is matched on its id **and** the owner together, so an entry cannot be filed against another account's trip — a mismatch returns `404`. The stored trip title is read off the trip document rather than trusted from the body |
+| `PATCH /entry/editEntry/:id` | `:id` is the entry's own `_id`; any of `tripId`, `title` (≤150), `body` (≤2000), `date` | Only the fields the body carries are written, everything else is left as stored, and each one that is present is checked exactly as a create checks it — a blank title is refused rather than written over the stored one. `userId`, `username` and the stored `trip` title cannot be set through here: the owner stays as it was written from the token and the account, and the title is read off the trip document the entry is being moved to. A `tripId` naming the trip the entry is already on is dropped rather than sent as a move, so a body that carries nothing else returns `400`. The entry is matched on its id and the owner together, and so is the trip it is moved to, so another account's entry or trip behaves exactly like one that does not exist. **Moving an entry re-counts both trips** — `entryCount` is `$inc`-ed off the old trip and onto the new one, because [`entrySchema`'s](../server/models/entrySchema.js#L83) hooks only maintain it on a create and a delete. Written through `findOneAndUpdate` for the same reason: the post-save hook cannot tell an edit from a create, so saving the document would count the entry twice. `400` on a malformed id or an unusable field, `404` when the entry or the trip is not on the caller's account. Returns `{ success, message, entry }` |
 
 ### 1.7. EXPENSES
 
