@@ -148,7 +148,7 @@ different size and frame on each of the two pages that show it */
 }
 #addAvatarLinkBlock{
    display: flex;
-   justify-content: center;
+       justify-content: flex-end;
    width: 100%;
    margin: 0px;
 }

@@ -7,7 +7,11 @@ import Button from 'react-bootstrap/Button';
 import {  Copyright } from 'lucide-react';
 export default function Footer({logout}) {
   return (
-    <footer id='footer'>
+    <footer id='footer' role='banner' aria-describedby='footerDescrip'>
+    {/* ------Footer Screen Reader Description--------- */}
+    <div id='footerDescripBlock' className='visually-hidden'>
+      <p id='footerDescrip'>FOOTER IF USER IS LOGGED IN</p>
+    </div>
     <Row id='footer-row1'>
         <Col md={12} id='footer-col1'></Col>
     </Row>
@@ -32,7 +36,6 @@ export default function Footer({logout}) {
                     <p id='footerTextTitle' className='visually-hidden'>Copyright</p>
                     <span>
                     <Copyright size={16} aria-hidden='true'/><h6 id='footerText'> 2026 Travel App. All rights reserved.</h6>
-
                     </span>
                     
                 </div>   

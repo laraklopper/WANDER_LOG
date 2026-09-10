@@ -129,3 +129,9 @@ CLOCK
     color: #E8F0F6;
 }
 
+#footerDescripBlock{
+        display: flex;
+    justify-content: center;
+    margin: 0px;
+    padding: 0px;
+}
