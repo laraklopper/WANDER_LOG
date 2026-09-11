@@ -4,6 +4,7 @@ import '../css/componentCss/BudgetList.css'
 import '../css/componentCss/DetailsPanal.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
+import ExportForm from "../components/ExportForm";
 // IMPORT UTILITY FUNCTIONS AND SHARED DATA
 import { NOT_AVAILABLE, rowClass, toMoney, toPercent } from '../util/formatCalculations';
 import { EXPENSE_CATEGORIES } from '../data/financeData';
@@ -46,6 +47,7 @@ export default function BudgetList(
     list holds four fields and the panel reports on all of them */
     const [selectedBudget, setSelectedBudget] = useState(null)
     const [loadingDetails, setLoadingDetails] = useState(false)
+    const [exportBudgets, setExportBudgets] = useState(false)
     /* The budget whose DELETE is in flight, held as an id rather than as a plain
     boolean so the button reports itself busy for the budget it is actually
     removing and not for whichever one the panel has since moved to */
@@ -57,6 +59,10 @@ export default function BudgetList(
     const requestedIdRef = useRef(null)
 
     //================EVENT LISTENERS========================
+
+    const toggleExport = useCallback(() => {
+            setExportBudgets(prev => !prev)
+        },[])
     /* Opens the details panel on one budget, reading it back by its id first.
     Nothing is shown until it arrives, so a read that failed leaves the panel
     closed rather than opening it on a set of empty labels */
@@ -217,20 +223,19 @@ export default function BudgetList(
         </Button>
       
                 </div>
-                <div className="p-2 ms-auto">Second item</div>
+                <div className="p-2 ms-auto"/>
                 <div className="p-2" id=''>
-                    <Button>
+                    <Button
+                    variant='light'
+                    onClick={toggleExport}
+                    >
                         EXPORT BUDGETS
                     </Button>
                 </div>
             </Stack>
         </div>
         <div id='budgetTableblock'>
-            {/* aria-busy reports a refresh of a list that already has rows:
-            those rows are deliberately left on screen rather than replaced by
-            the loading row, so nothing else on the table says a request is
-            running */}
-            <table id='budgetListTable' style={{width: ''}} aria-busy={loadingBudgets}>
+            <table id='budgetListTable' aria-busy={loadingBudgets}>
                 <thead>
                     <tr>
                         <th colSpan={6} id='budgetTableHeadRow'>
@@ -314,11 +319,13 @@ export default function BudgetList(
                     )}
                 </tbody>
             </table>
-        </div>
-         <div id='refreshBudgetsDisplay'>
-       
-        
-        
+            {exportBudgets &&(
+                <div id='exportListPanal'>
+                    <div id='exportBlock'>
+                        <ExportForm/>
+                    </div>
+                </div>
+            )}
         </div>
         {/* DETAILS PANAL: panal to display the data for one trip budget.*/}
         {loadingDetails && (
@@ -332,9 +339,8 @@ export default function BudgetList(
  <Stack direction="horizontal" gap={3} id='detailsHeadStack'>
       <div className="p-2">
       <span>
-<h6 style={{textTransform: 'uppercase'}}>{`BUDGET: ${selectedBudget.tripTitle || NOT_AVAILABLE}`}</h6>
+        <h6 style={{textTransform: 'uppercase'}}>{`BUDGET: ${selectedBudget.tripTitle || NOT_AVAILABLE}`}</h6>
       </span>
-
       </div>
       <div className="p-2 ms-auto">
       {/* TOGGLE EDIT BUDGET FORM BUTTON */}
@@ -343,9 +349,7 @@ export default function BudgetList(
             type='button'
             onClick={handleEdit}
             variant='warning'
-            /* Blocked while this budget's delete is running, so an edit cannot
-            be opened against a budget that is on its way out */
-            disabled={isDeleting}
+            disabled={isDeleting}//Blocked while this budget's delete is running, so an edit cannot
             // ARIA ATTRIBUTES:
             aria-label={`Edit the budget for ${selectedBudget.tripTitle || 'this trip'}`}
             aria-controls='add-budget-panal'

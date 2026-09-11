@@ -195,9 +195,7 @@ export default function ExpensesList(
       <div id='expenseFilterBlock'>
         <Stack direction="horizontal" gap={3}>
       <div className="p-2">
- {/* Reloads the list from the API. Ignored while a request is already
-        running, so a second press cannot start a fetch that would race the
-        first and answer out of order */}
+      {/* Reloads the list from the API. Ignored while a request is alreadyrunning*/}
         <Button
         variant='light'
         id='reloadBtn'
