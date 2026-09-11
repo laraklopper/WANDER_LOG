@@ -1,3 +1,7 @@
+/* DetailsPanal */
+/* =============
+LAYOUT
+==============*/
 #detailsHeadStack{
     display: flex;
     flex-direction: row;
@@ -15,21 +19,43 @@
     padding: 0px 0px 5px 0px;
 
 }
+/* TEXT */
+/* --------------
+TEXT LAYOUT
+-----------*/
 .details-group{
         display: flex;
         gap: 5px;
         margin: 0px;
         width: 100%;
 }
-/* A label and its value sit on one line, so both drop their own bottom margin:
-Bootstrap's Reboot gives every <p> one, which would otherwise split the pair */
-/* The entry panel names its pairs in the singular — .detail-label and
-.detail-value — so both spellings are carried here and the two panels report a
-label and its value the same way */
+/* HEADINGS */
+.panalUsername{
+    margin: 0px;
+    padding: 0px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 2px;
+    text-decoration: underline;
+    
+}
+/* DETAILS */
+/* DESTINATION and DATE hold more than one label, so their rows are stacked
+under the group's own label rather than run on beside it */
+.nested-details-group{
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: 100%;
+}
+.nested-details-span{
+    display: flex;
+    gap: 5px;
+}
+/* DETAILS TEXT */
 .details-label,
-.details-value,
 .detail-label,
-.detail-value,
 .nested-details-label{
     margin: 0px;
     padding: 0px;
@@ -47,24 +73,18 @@ label and its value the same way */
     letter-spacing: 1px;
     white-space: nowrap;
 }
-/* The value a label is reporting. Left in the casing it was stored in, so a
-trip's own title reads as it was typed */
+/* The value a label is reporting. */
 .details-value,
 .detail-value{
+       margin: 0px;
+    padding: 0px;
     font-weight: 400;
+    font-size: 15px;
+    letter-spacing: 2px;
+    margin: 0px;
+    padding: 0px;
 }
-/* DESTINATION and DATE hold more than one label, so their rows are stacked
-under the group's own label rather than run on beside it */
-.nested-details-group{
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    width: 100%;
-}
-.nested-details-span{
-    display: flex;
-    gap: 5px;
-}
+/* BUTTON */
 #deleteItemBtn {
     display: flex;
     align-items: center;
@@ -87,15 +107,10 @@ under the group's own label rather than run on beside it */
     margin: 0px;
     padding: 0px;
 }
-.panalUsername{
+#listBtnDiv{
+    width: 100%;
     margin: 0px;
     padding: 0px;
-    font-family: "Fira Mono", monospace;
-    font-weight: 600;
-    font-size: 15px;
-    letter-spacing: 2px;
-    text-decoration: underline;
-    
 }
 #listButtonStack{
         border-bottom: solid;

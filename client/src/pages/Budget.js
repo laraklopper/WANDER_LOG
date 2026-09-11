@@ -36,19 +36,15 @@ export default function Budget(//Export default Budget.js component
     error,
     loggedIn
   }) {
-  /* The budget form is on the expenses page, and a budget can only ever be
-  edited rather than created a second time, so the list's EDIT hands the budget
-  over to that page instead of opening a form here */
-  const navigate = useNavigate()
+ 
+
+ 
   // ==========STATE VARIABLES===============
   // VAT CALCULATOR VARIABLES
   const [vatCalculations, setVatCalculations] = useState([])
   const [vatCalculationsTotal, setVatCalculationsTotal] = useState(0)
   const [vatCalculationsError, setVatCalculationsError] = useState('')
-  /* Whether the saved calculations request is in flight. Kept so the list can
-  tell a user who has saved nothing apart from a list that has not arrived yet:
-  the two look identical as an empty array, and an empty table with no message
-  reads as a failure rather than as an empty history. */
+  /* Whether the saved calculations request is in flight*/
   const [loadingVatCalculations, setLoadingVatCalculations] = useState(false)
   // CURRENCY CONVERTER VARIABLES
   const [currencyOptions, setCurrencyOptions] = useState(FALLBACK_CURRENCIES)
@@ -62,26 +58,14 @@ export default function Budget(//Export default Budget.js component
   list that has not arrived, and ConversionsList.js has to say which. */
   const [loadingConversions, setLoadingConversions] = useState(false)
   // TRIP BUDGET LIST VARIABLES
-  /* The logged in user's trip budgets, one per trip. Each row carries only the
-  four fields GET /expense/fetchBudgets returns, so the list's own VIEW reads the
-  whole budget back by its id through fetchBudget below */
-  const [budgets, setBudgets] = useState([])
-  /* Whether the budgets request is in flight, for the same reason the two
-  calculation lists keep one: an empty array is both an account that has set no
-  budgets and a list that has not arrived, and BudgetList.js has to say which */
-  const [loadingBudgets, setLoadingBudgets] = useState(false)
+  const [budgets, setBudgets] = useState([])//the logged in user's trip budgets
+  const [loadingBudgets, setLoadingBudgets] = useState(false)//State to indicat whether the budgets request is in flight
   /* Kept apart from the page's own `error`, which is passed to the currency
   converter and the conversions list: a budget that failed to load has to be
   reported above the list it failed to fill, not in a panel that may be closed */
   const [budgetsError, setBudgetsError] = useState('')
-  /* Every expense on the account, for the list's EXPENSES column. An expense is
-  embedded in the budget of its trip and carries the budgetId it came out of, so
-  the count per budget is read from this list rather than from the budget rows,
-  which leave the expenses out */
-  const [expenses, setExpenses] = useState([])
-  /* The trips, for the list's TRIP STATUS column: a budget row does not carry
-  the status of the trip it was set for, that is stored on the trip itself */
-  const [trips, setTrips] = useState([])
+  const [expenses, setExpenses] = useState([])//Every expense on the account, for the list's EXPENSES column
+  const [trips, setTrips] = useState([])//The trips, for the list's TRIP STATUS column
   // Toggle Buttons State
   const [showExpenses, setShowExpenses] = useState(false)
   const [showBudgetList, setShowBudgetList] = useState(false)
@@ -91,11 +75,9 @@ export default function Budget(//Export default Budget.js component
   const [showVatCalculations, setShowVatCalculations] = useState(false)
   const [showConversions, setShowConversions] = useState(false)
 
+   const navigate = useNavigate()
   /* Loads the currencies the converter offers from the provider, through the
-  server. The dropdowns already hold FALLBACK_CURRENCIES, so a failure here
-  leaves them populated from the curated local list rather than empty — which is
-  why nothing is reported to the UI and the state is only ever replaced on a
-  usable response. */
+  server. */
   useEffect(() => {
       /* Guards against a response arriving after the page has unmounted, which
       would set state on a component that is no longer mounted */
@@ -127,11 +109,7 @@ export default function Budget(//Export default Budget.js component
             // Conditional rendering to drop a response that arrived after unmount
             if (ignore) return;
 
-            /* `live` is false when the server served its own offline snapshot,
-            which carries codes without names or symbols. The local fallback
-            already covers those codes WITH their names, so a stand-in list is
-            left alone rather than replacing 'ZAR - South African Rand' with a
-            bare 'ZAR' */
+           //Conditional Rendering
             if (data.live && data.currencies?.length) {
               setCurrencyOptions(data.currencies);
               console.log('[SUCCESS: Budget.js, loadCurrencies] Loaded', data.currencies.length, 'currencies');
@@ -147,13 +125,7 @@ export default function Budget(//Export default Budget.js component
       return () => { ignore = true }
     },[])
 
-    /* Converts the amount on the form between the two selected currencies.
-    Nothing is written to the database: the quote is only kept once the user
-    asks for it through saveConversions below.
-
-    The three inputs go up as query params, each encoded, because /api/convert
-    is a GET. The rate is worked out server side against a live provider quote,
-    so the figure on screen is never one the browser calculated. */
+    /* Converts the amount on the form between the two selected currencies. */
     const convert = useCallback(async () => {
       setError('')
       setResult(null)
@@ -164,10 +136,8 @@ export default function Budget(//Export default Budget.js component
           return;
       }
 
-      const token = localStorage.getItem('token')
-      /* Nothing to convert without a session, and the endpoint would answer
-      401. Returned before the loading flag is raised, so the button never
-      reports a request that was never sent */
+      const token = localStorage.getItem('token')//Retrieve the token from localstorage
+      
       if (!token) {
         setError('Please log in again to convert a currency.');
         return;
@@ -212,15 +182,10 @@ export default function Budget(//Export default Budget.js component
       }
     },[setError, form.to, form.from, form.amount])
 
-       /* Loads the logged in user's saved conversions. The user is taken from
-       the token on the server, so no id is sent: the endpoint can only ever
-       return the requester's own records. */
-       const fetchConversions = useCallback(async () => {
+    //Function to load the logged in user's saved conversions 
+    const fetchConversions = useCallback(async () => {
       try {
        const token = localStorage.getItem('token')
-       /* Nothing to fetch without a session, and the endpoint would answer 401.
-       Returned before the loading flag is raised, so a signed out user never
-       sees the list report a request that was never sent. */
        if (!token) return;
 
        setLoadingConversions(true)// The list shows a loading row until this clears
@@ -244,9 +209,7 @@ export default function Budget(//Export default Budget.js component
 
        const fetchedConversions = Array.isArray(data.conversions) ? data.conversions : [];
        setConversions(fetchedConversions)
-       /* The response reports the total separately from the array, because only
-       the newest 100 records are returned. It is kept so the list can say when
-       it is showing a truncated view. */
+       
        setConversionsTotal(typeof data.total === 'number' ? data.total : fetchedConversions.length)
        setError('');//Clear any previous error messages
        console.log(`[SUCCESS: Budget.js, fetchConversions] Fetched ${fetchedConversions.length} of ${data.total ?? fetchedConversions.length} conversion(s)`);
@@ -254,15 +217,12 @@ export default function Budget(//Export default Budget.js component
         console.error('[ERROR: Budget.js, fetchConversions]', error.message);//Log an error message in the console for debugging purposes
         setError(`Error fetching conversion data, ${error.message}`)
       } finally {
-        /* Cleared in a finally, so a failed or rejected request leaves the list
-        showing its error rather than a loading row that never ends */
         setLoadingConversions(false)
       }
     },[setError])
 
-     /* Removes one of the user's saved conversions. The list is refetched
-     rather than filtered in place, so what is on screen is what the database
-     holds. */
+     
+    //Function to delete a saved conversion form the list
      const deleteConversion = useCallback(async (conversionId) => {
       try {
         const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
@@ -288,9 +248,6 @@ export default function Budget(//Export default Budget.js component
 
         setError('');//Clear any previous error messages
         console.log('[SUCCESS: Budget.js, deleteConversion] Deleted conversion', conversionId);
-        /* Awaited, so the caller's delete stays busy until the refreshed list
-        has arrived rather than only until the DELETE answered. The panel is
-        closed by the record leaving the list, which happens here. */
         await fetchConversions();// Refresh the list so the removal is visible straight away
         return true;
       } catch (error) {
@@ -299,14 +256,8 @@ export default function Budget(//Export default Budget.js component
         return false;
       }
      },[fetchConversions, setError])
-     /* Saves the conversion currently on screen to the user's history. Only the
-     three inputs are sent: the server refetches the rate, so a saved record
-     always holds a rate the provider actually quoted rather than one the
-     browser could have edited on its way up.
-
-     Throws rather than setting an error, because the save button in
-     CurrencyConverter.js reports the outcome against itself — the conversion on
-     screen is unaffected by a failed save. */
+    
+     //Function to save the conversion
      const saveConversions = useCallback(async (conversion) => {
       const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
       // Conditional rendering to check there is a session to save against
@@ -344,25 +295,17 @@ export default function Budget(//Export default Budget.js component
       }
 
       console.log('[SUCCESS: Budget.js, saveConversions] Saved conversion', data.saved?._id);
-      /* Refresh the conversions list so a save is visible straight away. The
-      list fetches when its panel is opened, so this only matters while it is
-      already open — but without it the panel would sit there missing the
-      conversion just saved. */
+      /* Refresh the conversions list so a save is visible straight away.*/
       fetchConversions();
 
       return data;
         },[fetchConversions])
 
-        /* Loads the logged in user's saved VAT calculations for the VAT
-        calculations list. The user is taken from the token on the server, so no
-        id is sent: the endpoint can only ever return the requester's own
-        records. */
+        /* Loads the logged in user's saved VAT calculations for the VAT calculations list. */
         const fetchVatCalculations = useCallback(async () => {
           try {
             const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
-            /* Nothing to fetch without a session, and the endpoint would answer
-            401. Returned before the loading flag is raised, so a signed out
-            user never sees the list report a request that was never sent. */
+          
             if (!token) return;
 
             setLoadingVatCalculations(true)// The list shows a loading row until this clears
@@ -575,18 +518,7 @@ export default function Budget(//Export default Budget.js component
           }
         },[])
 
-        /* Loads one budget from GET /budget/fetchBudget/:id, whole and with the
-        virtuals the schema is set to include. The route matches the id against
-        the account on the token, so another user's budget is reported as missing
-        rather than returned.
-
-        This is what fills the list's details panel: the rows hold four fields
-        and the panel reports the totals, the ten category limits and the two
-        alerts, none of which /expense/fetchBudgets returns.
-
-        Returns the budget so the list can open its panel on it, or null when it
-        could not be read — the panel is left closed rather than opened on a set
-        of empty labels. */
+        /* Loads one budget from GET /budget/fetchBudget/:id*/
         const fetchBudget = useCallback(async (budgetId) => {
           // Conditional rendering to check a budget was identified
           if (!budgetId) {
@@ -634,12 +566,7 @@ export default function Budget(//Export default Budget.js component
           }
         },[])
 
-        /* Opens the budget form on the expenses page as an edit of one budget.
-        The form is not on this page — a budget is set from there, against a trip
-        that already exists — so the budget is handed over on the location the
-        same way the journal's ADD TRIP BUDGET link hands over a new one, and
-        Expenses.js reads editBudgetId off it and opens the form against what is
-        currently stored. */
+        /* Opens the budget form on the expenses page */
         const startBudgetEdit = useCallback((budgetId) => {
           // Conditional rendering to check a budget was identified
           if (!budgetId) {
@@ -651,20 +578,7 @@ export default function Budget(//Export default Budget.js component
           navigate('/exp', { state: { openBudgetForm: true, editBudgetId: budgetId } })
         },[navigate])
 
-        /* Sends one budget's id to DELETE /budget/deleteBudget/:id. The route
-        matches that id against the account on the token, so another user's
-        budget is reported as missing rather than removed.
-
-        An expense is embedded in the budget of its trip, so the expenses filed
-        against that trip go with it — which is why the expenses and the trips
-        are reloaded alongside the budgets rather than the budgets alone: the
-        EXPENSES column loses the rows that were counted in it, and each trip's
-        hasBudget is answered off the caller's budgets, so the trip that just
-        lost one is offered a new budget again.
-
-        Returns whether the budget actually went, so the list can close its
-        details panel on success and leave it open on the budget it failed to
-        remove. */
+        //Function to delete a budget item from the list
         const deleteBudget = useCallback(async (budgetId) => {
           // Conditional rendering to check a budget was identified
           if (!budgetId) {
@@ -724,27 +638,17 @@ export default function Budget(//Export default Budget.js component
           }
         },[fetchBudgets, fetchExpenses, fetchTrips])
 
-  /* Loads the saved calculations when the panel is opened rather than on mount,
-  so a user who never opens it never pays for the request, and reopening it
-  shows anything saved since it was last closed. */
+  /* Loads the saved calculations when the panel is opened */
   useEffect(() => {
     if (showVatCalculations) fetchVatCalculations()
   },[showVatCalculations, fetchVatCalculations])
 
-  /* Same for the saved conversions, so opening that panel loads the history
-  rather than showing an empty list until something new is saved. */
+  /* Loads the saved conbersions when the panel is opened */
   useEffect(() => {
     if (showConversions) fetchConversions()
   },[showConversions, fetchConversions])
 
-  /* Same for the trip budgets, so opening that panel loads them rather than
-  showing an empty table, and reopening it shows anything set or spent since it
-  was last closed — the totals in the panel move with every expense.
-
-  All three are loaded together: the table's TRIP STATUS is read off the trips
-  and its EXPENSES count off the expenses, neither of which a budget row
-  carries. They are requested side by side rather than in sequence, so a trip
-  list that is slow does not hold up the budgets the table is built from. */
+  //Load the saved budgets
   useEffect(() => {
     if (!showBudgetList) return;
 
@@ -913,12 +817,14 @@ setShowBudgetList(false)
           <div id='expenses-list-panal'>
             <Row id='expenses-listRow'>
               <Col md={12} id='expListCol'>
+              
                 <ExpensesList/>
+                        
               </Col>
             </Row>
          </div>
         </section>
-  
+
       )}
       {showBudgetList && (
         <section className='budgetListSection'>
@@ -1035,12 +941,8 @@ setShowBudgetList(false)
       </Row>
         </div>
         </section>
-       
       )}
       </div>
-      
-         
-      
         {/* ====================
         SECTION 3
         ========== */}
