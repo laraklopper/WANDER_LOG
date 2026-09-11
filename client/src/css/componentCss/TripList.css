@@ -14,6 +14,11 @@
     margin: 0px;
     padding: 0px;
 }
+#exportTripsBlock{
+        width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
 #trip-filter-block{
     width: 100%;
     margin: 0px;
@@ -23,6 +28,8 @@
 }
 #tripListBlock{
     display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
     width: 100%;
     margin: 0px;

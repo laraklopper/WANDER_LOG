@@ -228,6 +228,9 @@ export default function BudgetList(
                     <Button
                     variant='light'
                     onClick={toggleExport}
+                    id='toggleExportBtn'
+                    aria-pressed={exportBudgets}
+                    aria-expanded={exportBudgets}
                     >
                         EXPORT BUDGETS
                     </Button>

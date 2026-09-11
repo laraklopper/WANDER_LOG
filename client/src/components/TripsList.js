@@ -3,6 +3,7 @@ import '../css/componentCss/TripList.css'
 import '../css/componentCss/DetailsPanal.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
+import ExportForm from '../components/ExportForm'
 import { ArrowDownAZ } from 'lucide-react';
 import {Link} from 'react-router-dom'
 // IMPORT UTILITY FUNCTIONS
@@ -28,11 +29,15 @@ export default function TripsList(
     // ========STATE VARIABLES============
     const [showFilter, setShowFilter] = useState(false)
     const [selectedId, setSelectedId] = useState(null)//State used to indicate which trip trip the details panel is showing
-
+    const [exportList, setExportList] = useState(false)
 
     // Function to toggle the filter form
     const toggleFilter = useCallback(() => {
         setShowFilter(prev => !prev)
+    },[])
+    // Function to toggle Export Form
+    const toggleExportForm = useCallback(() => {
+        setExportList(prev => !prev)
     },[])
    
     const username = currentUser?.username || '';//Current loggedin user username
@@ -136,9 +141,8 @@ export default function TripsList(
     <div id='tripListDisplay'>
         <div id='filterTripsDisplay'>
         <Stack direction="horizontal" gap={3}>
-      <div className="p-2"/>
-      <div className="p-2 ms-auto">
-        {/* Button to reload the list from the API. */}
+      <div className="p-2">
+         {/* Button to reload the list from the API. */}
         <Button
         id='refreshTripsBtn'
         variant='light'
@@ -151,6 +155,17 @@ export default function TripsList(
         >
           {loadingTrips ? 'LOADING...' : 'REFRESH'}
         </Button>
+      </div>
+      <div className="p-2 ms-auto">
+        <Button
+        type='button'
+        onClick={toggleExportForm}
+        id='toggleExportBtn'
+        variant='light'
+        >
+            {exportList ? 'Hide Form': 'Export Trips'}
+        </Button>
+       
       </div>
       <div className="p-2 ">
       {/* Button to toggle filter form */}
@@ -248,6 +263,11 @@ export default function TripsList(
                     )}
                 </tbody>
             </table>
+            {exportList && (
+                <div id='exportTripsBlock'>
+                    <ExportForm/>
+                </div>
+            )}
         </div>
         {/* DETAILS PANAL: panal to display the data for one trip.*/}
         {selectedTrip && (

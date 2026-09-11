@@ -8,8 +8,10 @@ import '../css/componentCss/EntriesList.css'
 import Stack from 'react-bootstrap/Stack';
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
+import FilterEntries from './FilterEntries';
 // IMPORT UTILITY FUNCTIONS
 import { NOT_AVAILABLE, rowClass, toLongDate, toLongDateTime } from '../util/formatCalculations';
+import ExportForm from './ExportForm';
 
 export default function EntriesList(
     {//PROPS PASSED FROM PARENT COMPONENT (TravelLog.js)
@@ -33,7 +35,8 @@ export default function EntriesList(
 
     // ========STATE VARIABLES============
     const [selectedId, setSelectedId] = useState(null)//State used to indicate which entry the details panel is showing
-
+    const [showFilter, setShowFilter] = useState(false)
+    const [exportList, setExportList] = useState(false)
     /* The entry whose DELETE is in flight, held as an id rather than as a plain
     boolean so the button reports itself busy for the entry it is actually
     removing and not for whichever one the panel has since moved to */
@@ -77,6 +80,12 @@ export default function EntriesList(
         closeEditEntry?.()
     },[closeEditEntry])
 
+    const toggleFilter = useCallback(() => {
+        setShowFilter(prev => !prev)
+    },[])
+    const toggleExportForm = useCallback(() => {
+        setExportList(prev => !prev)
+    },[])
     /* The panel also closes on its own, when a refetch no longer holds the
     entry it was showing — one deleted from another session, for instance. The
     selected id is dropped and the form closed here too, so a panel that closed
@@ -134,8 +143,8 @@ export default function EntriesList(
     <div id='entriesList'>
         <div id='entriesListToolbar'>
         <Stack direction="horizontal" gap={3} id='entriesToolbarStack'>
-      <div className="p-2"/>
-      <div className="p-2 ms-auto">
+      
+      <div className="p-2">
         {/* Button to reload the list from the API */}
         <Button
         id='refreshEntriesBtn'
@@ -150,8 +159,36 @@ export default function EntriesList(
             {loadingEntries ? 'LOADING...' : 'REFRESH'}
         </Button>
       </div>
+      <div className="p-2 ms-auto">
+        <Button
+        variant='light'
+        id='toggleExportBtn'
+        onClick={toggleExportForm}
+        aria-pressed={exportList}
+        >
+            EXPORT ENTRIES
+        </Button>
+      </div>
+      <div className="p-2">
+        <Button
+        variant='light'
+        id='toggleFilterBtn'
+        onClick={toggleFilter}
+        >
+            FILTER ENTRIES
+        </Button>
+      </div>
       {/* FILTER ENTRIES: left off until FilterEntries.js is built */}
     </Stack>
+    <div>
+        {showFilter&& (
+            <div>
+            <div>
+                <FilterEntries/>
+            </div>
+            </div>
+        )}
+    </div>
         </div>
         <div id='entriesTableBlock'>
         {/* ENTRIES LIST TABLE: table displaying userEntries */}
@@ -221,10 +258,13 @@ export default function EntriesList(
                     )}
                 </tbody>
             </table>
+            {exportList && (
+                <div>
+                    <ExportForm/>
+                </div>
+            )}
         </div>
-        {/* ENTRIES DETAILS PANAL: only on screen once a row's VIEW has been
-        pressed, so it is bordered off from the table rather than reading as
-        more of the list */}
+        {/* ENTRIES DETAILS PANAL: only on screen once a row's VIEW has been pressed, */}
         {selectedEntry && (
         <div id='entryDetailsPanal' aria-live='polite'>
             <div id='entryHeaderBlock'>
