@@ -37,6 +37,18 @@ LAYOUT
     margin: 0px;
     padding: 0px;
 }
+/* =============
+LISTS SECTION:
+=======*/
+.expListsSection{
+      display: flex;
+      flex-direction: column;
+   justify-content: center;
+   align-items: center;
+  background-color: #7BA428;
+  width: 100%; 
+  padding: 5px;
+}
 #expenses-list-row{
     width: 100%;
     margin: 0px;
@@ -48,6 +60,15 @@ LAYOUT
     padding: 0px;
     width: 100%;
     
+}
+#expensesListPanal,
+#expBudgetListPanal{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    margin: 0px;
+    padding: 0px;
+    background-color: silver;
 }
 #expensesListBlock{
     display: flex;
@@ -106,6 +127,7 @@ LAYOUT
   margin: 10px 0px 10px 0px;
   padding: 0px;
 }
+
 #expensesSection2{
      display: flex;
    justify-content: center;

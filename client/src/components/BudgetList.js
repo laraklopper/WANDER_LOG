@@ -109,19 +109,7 @@ export default function BudgetList(
         startBudgetEdit?.(selectedBudget._id)
     },[selectedBudget, startBudgetEdit])
 
-    /* Removes the budget the panel is showing.
-
-    Confirmed first, and the confirmation names the expenses that go with it: an
-    expense is embedded in the budget of its trip rather than stored on its own,
-    so this is the one delete on the page that takes other records with it and a
-    user pressing it for the budget alone would not expect that.
-
-    `deleteBudget` reports whether the budget actually went. On success Expenses.js
-    has already reloaded the lists, so the panel is closed here rather than left
-    to the row leaving the list — a refetch that failed would otherwise leave a
-    deleted budget on screen. On a failure it set the page error instead, and the
-    panel is deliberately left open on the budget that could not be removed, so
-    the message is read against it and the button can simply be pressed again. */
+    /* Removes the budget the panel is showing. */
     const handleDelete = useCallback(async () => {
         const budgetId = selectedBudget?._id;
 
@@ -212,7 +200,31 @@ export default function BudgetList(
 
   return (
     <div id='budgetListDiv'>
-       
+        <div id='listBtnDiv'>
+              <Stack direction="horizontal" gap={3} id='listButtonSTack'>
+                <div className="p-2" id='refreshBudgetsDisplay'>
+                    <Button
+        id='refreshBudgetsBtn'
+        variant='light'
+        type='button'
+        onClick={fetchBudgets}
+        disabled={loadingBudgets}
+        // ARIA ATTRIBUTES:
+        aria-label='Reload your trip budgets'
+        aria-disabled={loadingBudgets}
+        >
+          {loadingBudgets ? 'LOADING...' : 'REFRESH'}
+        </Button>
+      
+                </div>
+                <div className="p-2 ms-auto">Second item</div>
+                <div className="p-2" id=''>
+                    <Button>
+                        EXPORT BUDGETS
+                    </Button>
+                </div>
+            </Stack>
+        </div>
         <div id='budgetTableblock'>
             {/* aria-busy reports a refresh of a list that already has rows:
             those rows are deliberately left on screen rather than replaced by
@@ -237,11 +249,7 @@ export default function BudgetList(
                 </thead>
                 <tbody>
                     {/* Conditional rendering to tell a user with no budgets apart
-                    from a list that has not loaded: both are an empty array, and
-                    an empty table with no message reads as a failure rather than
-                    as an account that has set nothing yet. The request in flight
-                    is reported first, so 'NO TRIP BUDGETS SET YET' is only ever
-                    shown once the answer is actually in */}
+                    from a list that has not loaded:*/}
                     {loadingBudgets && budgets.length === 0 ? (
                         <tr>
                             <td colSpan={6} className='budget-list-loading'>
@@ -309,27 +317,10 @@ export default function BudgetList(
         </div>
          <div id='refreshBudgetsDisplay'>
        
-        {/* Reloads the list from the API. Ignored while a request is already
-        running, so a second press cannot start a fetch that would race the
-        first and answer out of order */}
-        <Button
-        id='refreshBudgetsBtn'
-        variant='light'
-        type='button'
-        onClick={fetchBudgets}
-        disabled={loadingBudgets}
-        // ARIA ATTRIBUTES:
-        aria-label='Reload your trip budgets'
-        aria-disabled={loadingBudgets}
-        >
-          {loadingBudgets ? 'LOADING...' : 'REFRESH'}
-        </Button>
-      
+        
+        
         </div>
-        {/* DETAILS PANAL: panal to display the data for one trip budget.
-        Only rendered once a row's VIEW has been pressed and the budget behind it
-        has been read back, so the panel is never on screen with a set of empty
-        labels in it */}
+        {/* DETAILS PANAL: panal to display the data for one trip budget.*/}
         {loadingDetails && (
             <p className='infoText' id='budgetDetailsLoading' aria-live='polite'>
                 LOADING THE BUDGET...

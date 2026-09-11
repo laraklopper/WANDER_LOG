@@ -7,7 +7,8 @@
     padding: 0px;
     gap: 10px;
 }
-#toggleFilterBtn{
+#toggleFilterBtn,
+#toggleExportBtn{
    display: flex;
     align-items: center;
     justify-content: center;
@@ -22,7 +23,8 @@
     padding: 0px;
     border: solid 2px #323A42;
 }
-#toggleFilterBtn:hover{
+#toggleFilterBtn:hover,
+#toggleExportBtn:hover{
     color: #E8F0F6;
     background-color: #323A42;
 }
@@ -42,6 +44,7 @@ Marked by more than colour alone - the border thickens and the label is
 underlined - so the open filter is still visible to a user who cannot tell the
 two backgrounds apart. The button is sized in border-box, so the thicker border
 does not shift the row it shares with REFRESH */
+#toggleExportBtn[aria-expanded="true"],
 #toggleFilterBtn[aria-expanded="true"]{
     background-color: #323A42;
     color: #E8F0F6;

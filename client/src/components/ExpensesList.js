@@ -7,6 +7,9 @@ import '../css/componentCss/DetailsPanal.css'
 // IMPORT BOOTSTRAP COMPONENTS
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
+import FilterExpenses from '../components/FilterExpenses'
+import ExportForm from '../components/ExportForm'
+import { ArrowDownAZ } from 'lucide-react';
 // IMPORT UTILITY FUNCTIONS AND SHARED DATA
 import { NOT_AVAILABLE, rowClass, toLongDate, toMoney } from '../util/formatCalculations';
 import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from '../data/financeData';
@@ -37,25 +40,13 @@ export default function ExpensesList(
   {//PROPS PASSED FROM PARENT COMPONENT (Expenses.js)
     currentUser,
     /* Every expense on the account, loaded by the Expenses page from
-    GET /expense/fetchExpenses and already sorted newest spend first. An expense
-    is embedded in the budget of its trip, so each one arrives flattened and
-    carrying that context: the trip it was filed against, the budget's id, and
-    the base currency its convertedAmount is expressed in */
+    GET /expense/fetchExpenses and already sorted newest spend first. */
     expenses = [],
     loadingExpenses = false,
     fetchExpenses,
-    /* Opens the edit form against the expense as it is currently stored. Only
-    the id is handed over: the page reads it back by that id itself, rather than
-    the form being filled from the copy this list is holding */
-    startExpenseEdit,
-    /* Closes the edit form on the Expenses page. The form is opened from this
-    panel and names the expense it is editing from it, so it is closed whenever
-    the panel is */
-    closeEditExpense,
-    /* Removes one expense by its id and reports whether it actually went. The
-    budget it was spent against is left standing: only its totals move, which
-    the page reloads */
-    deleteExpense,
+    startExpenseEdit,//Opens the edit form against the expense as it is currently stored
+    closeEditExpense,//Closes the edit form on the Expenses page
+    deleteExpense,//Removes one expense by its id and reports whether it actually went.
     showEditExp = false,
     /* The id of the expense the edit form is open on, so the panel says which
     expense the form further down the page belongs to */
@@ -67,19 +58,21 @@ export default function ExpensesList(
   /* Blocks a second press of EDIT while the read that fills the form is still
   running, so two of them cannot answer out of order into the same form */
   const [openingEdit, setOpeningEdit] = useState(false)
-  /* The expense whose DELETE is in flight, held as an id rather than as a plain
-  boolean so the button reports itself busy for the expense it is actually
-  removing and not for whichever one the panel has since moved to */
-  const [deletingId, setDeletingId] = useState(null)
+  const [showFilter, setShowFilter] = useState(false)
+  const [showExportForm, setShowExportForm] = useState(false)//State to toggle exportForm
+  const [deletingId, setDeletingId] = useState(null)//The expense whose DELETE is in flight
+  
   const isDeleting = Boolean(deletingId)
 
   const username = currentUser?.username || '';//Current loggedin user username
 
-  /* Resolved out of the list on every render, so the panel follows the state
-  Expenses.js owns: an edit shows as soon as the refetched list arrives, and an
-  expense that is no longer in the list closes the panel rather than leaving a
-  stale copy of it on screen. Unlike BudgetList.js this needs no read of its
-  own — GET /expense/fetchExpenses returns every field the panel reports on */
+  const toggleFilter = useCallback(() => {
+    setShowFilter(prev => !prev)
+  },[])
+  const toggleExportForm = useCallback(() => {
+    setShowExportForm(prev => !prev)
+  },[])
+
   const selectedExpense = useMemo(
     () => expenses.find((expense) => expense._id === selectedId) || null,
     [expenses, selectedId]
@@ -148,19 +141,7 @@ export default function ExpensesList(
     }
   },[selectedExpense, openingEdit, formOpenOnExpense, closeEditExpense, startExpenseEdit])
 
-  /* Removes the expense the panel is showing.
-
-  Confirmed first, and the confirmation names the expense along with its figure
-  and the trip it was filed against, because the panel shows one expense of
-  several and the list is sorted by date rather than grouped by trip.
-
-  `deleteExpense` reports whether the expense actually went. On success
-  Expenses.js has already reloaded both lists, so the panel is closed here rather
-  than left to the row leaving the list — a refetch that failed would otherwise
-  leave a deleted expense on screen. On a failure it set the page error instead,
-  and the panel is deliberately left open on the expense that could not be
-  removed, so the message is read against it and the button can simply be pressed
-  again. */
+  /* Removes the expense the panel is showing.*/
   const handleDelete = useCallback(async () => {
     const expenseId = selectedExpense?._id;
 
@@ -199,14 +180,7 @@ export default function ExpensesList(
     }
   },[selectedExpense, deletingId, deleteExpense])
 
-  //================SIDE EFFECTS========================
-  /* The panel also closes on its own, when a refetch no longer holds the
-  expense it was showing — one whose budget was deleted from the budget list, for
-  instance, which takes the expenses embedded in it with it. The selected id is
-  dropped and the form closed here too, so a panel that closed without CLOSE
-  being pressed leaves no form open behind it.
-  Skipped while a request is running, so a list that is mid-reload does not
-  close a panel the user is reading */
+  //================SIDE EFFECTS=======================
   useEffect(() => {
     if (!selectedId || loadingExpenses || selectedExpense) return;
 
@@ -220,9 +194,8 @@ export default function ExpensesList(
     <div id='expensesList'>
       <div id='expenseFilterBlock'>
         <Stack direction="horizontal" gap={3}>
-      <div className="p-2"/>
-      <div className="p-2 ms-auto">
-        {/* Reloads the list from the API. Ignored while a request is already
+      <div className="p-2">
+ {/* Reloads the list from the API. Ignored while a request is already
         running, so a second press cannot start a fetch that would race the
         first and answer out of order */}
         <Button
@@ -238,13 +211,48 @@ export default function ExpensesList(
           {loadingExpenses ? 'LOADING...' : 'RELOAD'}
         </Button>
       </div>
-      {/* FILTER EXPENSES: left off until FilterExpenses.js is built */}
+      <div className="p-2 ms-auto">
+        <Button 
+        variant='light'
+        id='toggleExportBtn'
+        onClick={toggleExportForm}
+        aria-expanded={showExportForm}
+        >
+          {showExportForm ? 'Hide Form' : 'Export Expenses'}
+        </Button>
+      </div>
+      <div className="p-2">
+        <Button
+        onClick={toggleFilter}
+        variant='light'
+        type='button'
+        id='toggleFilterBtn'
+        // ARIA ATTRIBUTES:
+        aria-label={showFilter ? 'Hide the expense filter' : 'Filter Expenses'}
+        aria-pressed={showFilter}
+        aria-expanded={showFilter}
+        >
+          {showFilter ? (
+                      <>Hide Filter</>
+                  ):(
+                      <>
+                          Filter Expenses<ArrowDownAZ fontWeight={700} aria-hidden='true' focusable='false'/>
+                      </>
+                  )}
+        </Button>
+      </div>
     </Stack>
+    {/* TOGGLE EXPENSE FILTER*/}
+    {showFilter && (
+      <div id='filterExpensePanal'>
+        <div id='filterBlock'>
+          <FilterExpenses/>
+      </div>
+      </div>
+    )}
+
       </div>
       <div id='expensesTableBlock'>
-        {/* aria-busy reports a refresh of a list that already has rows: those
-        rows are deliberately left on screen rather than replaced by the loading
-        row, so nothing else on the table says a request is running */}
         <table id='expensesTable' aria-busy={loadingExpenses}>
           <thead>
             <tr>
@@ -325,6 +333,14 @@ export default function ExpensesList(
             )}
           </tbody>
         </table>
+        {/* EXPORT FORM*/}
+        {showExportForm && (
+          <div id='exportListBlock'>
+          <ExportForm/>
+
+        </div>
+        ) }
+        
       </div>
       {/* EXPENSE DETAILS PANAL: only on screen once a row's VIEW has been
       pressed, so it is bordered off from the table rather than reading as more

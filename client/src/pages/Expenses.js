@@ -993,16 +993,7 @@ export default function Expenses(//Export default Expenses.js component
 
     /* Loads one budget from GET /budget/fetchBudget/:id.
     The route matches the id against the account on the token, so another user's
-    budget is reported as missing rather than returned.
-
-    Used to open the edit form against what is currently stored rather than
-    against the copy /expense/fetchBudgets is holding, which carries only the
-    four fields that list's trip select reads: an edit submits every field the
-    form owns, so opening it from that copy would write ten blank category
-    limits over the stored ones.
-
-    Returns the budget so the caller can put it straight into the form, or null
-    when it could not be read */
+    budget is reported as missing rather than returned.*/
     const fetchBudget = useCallback(async (budgetId) => {
       // Conditional rendering to check a budget was identified
       if (!budgetId) {
@@ -1275,9 +1266,12 @@ export default function Expenses(//Export default Expenses.js component
         </Col>
         <Col id='toggleListCol2'/>
       </Row>
-      <div id='pageListsDisplay'>
+       </div>
+            </section>
+     
  {showExpList && (
-        <div id='expenses-list-panal'>
+  <section className='expListsSection'>
+  <div id='expensesListPanal'>
           <Row id='expenses-list-row'>
             <Col id='expensesListCol'>
                 <div id='expensesListBlock'>
@@ -1305,9 +1299,11 @@ export default function Expenses(//Export default Expenses.js component
             </Col>
           </Row>
         </div>
+  </section>   
       )}
       {showBudgetList && (
-        <div id='budget-list-panal'>
+        <section className='expListsSection'>
+ <div id='expBudgetListPanal'>
           <Row id='budget-list-row'>
             <Col id='budgetListCol'>
             {/* The trip budgets, read from the same GET /expense/fetchBudgets
@@ -1341,10 +1337,11 @@ export default function Expenses(//Export default Expenses.js component
             </Col>
           </Row>
         </div>
+        </section>
+       
       )}
-      </div>
-                </div>
-            </section>
+      
+               
             {showEditExp && (
               <section className='editFormSection'>
                 <div id='editExpenseBlock' style={{width: '100%'}}>
