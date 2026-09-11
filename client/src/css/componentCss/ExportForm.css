@@ -1,0 +1,43 @@
+#exportForm{
+    display: flex;
+    flex-direction: column;
+    background-color: #6C757E;
+    align-items: center;
+    margin: 0px;
+    padding: 10px 0px;
+    gap: 10px;
+    width: 100%;
+}
+#exportFormSelectBlock{
+    display: flex;
+    align-items: baseline;
+    margin: 0px;
+    padding: 0px;
+    gap: 10px;
+}
+.exportLabel{
+    color: #000000;
+    font-weight: 700;
+    margin: 0px;
+    padding: 0px;
+    font-family: "Fira Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+#exportDataBtn{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #000;
+    letter-spacing: 2px;
+    font-weight: 700;
+    font-family: "Fira Mono", monospace;
+    text-transform: uppercase;
+    width: 180px;
+    height: 40px;
+    border: solid 2px #323A42;
+}
+#exportDataBtn:hover{
+    background-color: #323A42;
+    color: #E8F0F6;
+}

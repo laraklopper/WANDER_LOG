@@ -22,10 +22,16 @@ same side the trip list carries its own */
 #entriesListToolbar{
     width: 100%;
     margin: 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+
     padding: 0px;
 }
 #entriesToolbarStack{
     width: 100%;
+    border-bottom: solid;
     margin: 0px;
     padding: 0px;
 }

@@ -47,3 +47,8 @@
     padding: 0px;
     border: solid 2px #323A42;
 }
+#applyFiltersBtn:hover,
+#clearFiltersBtn:hover{
+    background-color: #323A42;
+    color: #E8F0F6;
+}

@@ -146,7 +146,7 @@ towards the closed look, which would read as though the list had closed */
 #entriesListPanal{
         width: 100%;
         margin: 0px;
-        padding: 0px;
+        padding: 5px;
 }
 #editEntryFormBlock{
     display: flex;
@@ -173,4 +173,10 @@ towards the closed look, which would read as though the list had closed */
 #editEntryCol2{
     margin: 0px;
     padding: 0px;
+}
+#entriesFilterPanal{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
 }

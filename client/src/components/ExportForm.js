@@ -17,15 +17,17 @@ import Button from 'react-bootstrap/Button'
 
 export default function ExportForm() {
   return (
-    <form>
+    <form id='exportForm'>
     <p className='visually-hidden' id='formTitle'>
             {/* EXPORT TITLE: e.g Export Trips */}
             {/* {`EXPORT ${}`} */}
         </p>
        <Stack direction="horizontal" gap={3}>
-      <div className="p-2">
+      <div className="p-2" id='exportFormSelectBlock'>
         <label className='exportLabel'>CHOOSE EXPORT FORM</label>
-        <select>
+        <select
+        className='input'
+        >
             {/* SET SELECT AS PLACEHOLDER */}
             <option value=''>SELECT</option>
             <option value='csv'>CSV (.csv)</option>
@@ -44,13 +46,24 @@ export default function ExportForm() {
     <Stack direction="horizontal" gap={3}>
       <div className="p-2"></div>
       <div className="p-2 ms-auto">
-        <Button>
+        <Button
+        variant='light'
+        id='exportDataBtn'
+        type='submit'
+        // ARIA ATTRIBUTES:
+        >
             EXPORT
         </Button>
       </div>
       <div className="vr" />
       <div className="p-2">
-        <Button>
+        <Button
+        variant='danger'
+        id='clearFormBtn'
+        type='button'
+        // onClick={}
+        // ARIA ATTRIBUTES:
+        >
             CLEAR FORM
         </Button>
       </div>
