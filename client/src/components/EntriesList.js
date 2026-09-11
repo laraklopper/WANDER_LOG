@@ -12,6 +12,13 @@ import FilterEntries from './FilterEntries';
 import { ArrowDownAZ } from 'lucide-react';
 // IMPORT UTILITY FUNCTIONS
 import { NOT_AVAILABLE, rowClass, toLongDate, toLongDateTime } from '../util/formatCalculations';
+import {
+    BLANK_ENTRY_FILTERS,
+    countFilters,
+    filterEntries,
+    filterSummary,
+    tripFilterOptions,
+} from '../util/filterFunctions';
 import ExportForm from './ExportForm';
 
 export default function EntriesList(
@@ -38,6 +45,10 @@ export default function EntriesList(
     const [selectedId, setSelectedId] = useState(null)//State used to indicate which entry the details panel is showing
     const [showFilter, setShowFilter] = useState(false)
     const [exportList, setExportList] = useState(false)
+    /* The filters the list is currently narrowed by, set by the filter form's
+    APPLY. Held here rather than in the form because it is the list they narrow:
+    the form only collects them, and closing it leaves them applied */
+    const [filters, setFilters] = useState(BLANK_ENTRY_FILTERS)
     /* The entry whose DELETE is in flight, held as an id rather than as a plain
     boolean so the button reports itself busy for the entry it is actually
     removing and not for whichever one the panel has since moved to */
@@ -46,13 +57,45 @@ export default function EntriesList(
 
     const username = currentUser?.username || '';//Current loggedin user username
 
-    /* Resolved out of the list on every render, so the panel follows the state
-    TravelLog.js owns: an edit shows as soon as the refetched list arrives, and
-    an entry that is no longer in the list closes the panel rather than leaving
-    a stale copy of it on screen */
+    // ========FILTERING============
+    /* The rows the table actually shows. Recomputed only when the entries or
+    the filters change, rather than on every render, because the panel and the
+    buttons below set state of their own */
+    const filteredEntries = useMemo(
+        () => filterEntries(userEntries, filters), [userEntries, filters]
+    )
+
+    /* The trips the entries name, for the filter form's select. Built from the
+    entries rather than from the account's trips — which this list is not handed
+    — so the select cannot offer a trip nothing has been written about */
+    const tripOptions = useMemo(
+        () => tripFilterOptions(userEntries, 'trip'), [userEntries]
+    )
+
+    // Whether the list is being narrowed at all, so it can say what is hidden
+    const filtersActive = countFilters(filters) > 0;
+
+    // Applies the filters the form collected
+    const applyFilters = useCallback((next) => {
+        setFilters(next)
+    },[])
+
+    // Returns the list to every entry on the account
+    const clearFilters = useCallback(() => {
+        setFilters(BLANK_ENTRY_FILTERS)
+    },[])
+
+    /* Resolved out of the filtered list on every render, so the panel follows
+    the state TravelLog.js owns: an edit shows as soon as the refetched list
+    arrives, and an entry that is no longer in the list closes the panel rather
+    than leaving a stale copy of it on screen.
+
+    Read off the filtered list rather than the whole one, so a filter that hides
+    the selected row closes the panel with it — a panel left open on an entry
+    that is no longer in the table is reporting something the user cannot see */
     const selectedEntry = useMemo(
-        () => userEntries.find((entry) => entry._id === selectedId) || null,
-        [userEntries, selectedId]
+        () => filteredEntries.find((entry) => entry._id === selectedId) || null,
+        [filteredEntries, selectedId]
     )
 
     /* Whether the edit form is open on the entry the panel is showing, rather
@@ -87,10 +130,10 @@ export default function EntriesList(
     const toggleExportForm = useCallback(() => {
         setExportList(prev => !prev)
     },[])
-    /* The panel also closes on its own, when a refetch no longer holds the
-    entry it was showing — one deleted from another session, for instance. The
-    selected id is dropped and the form closed here too, so a panel that closed
-    without CLOSE being pressed leaves no form open behind it */
+    /* The panel also closes on its own, when the list no longer holds the entry
+    it was showing — one deleted from another session, or one a newly applied
+    filter hides. The selected id is dropped and the form closed here too, so a
+    panel that closed without CLOSE being pressed leaves no form open behind it */
     useEffect(() => {
         if (!selectedId || selectedEntry) return;
 
@@ -188,19 +231,36 @@ export default function EntriesList(
                   )}
         </Button>
       </div>
-      {/* FILTER ENTRIES: left off until FilterEntries.js is built */}
     </Stack>
-  
+
         {showFilter&& (
             <div id='entriesFilterPanal'>
                 <div id='filterBlock'>
-                    <FilterEntries/>
+                    <FilterEntries
+                    /* The filter as it is being applied, so the form opens on
+                    it rather than on a blank select */
+                    filters={filters}
+                    /* Only the trips the entries name, so the select cannot
+                    offer one that would empty the list */
+                    tripOptions={tripOptions}
+                    applyFilters={applyFilters}
+                    clearFilters={clearFilters}
+                    disabled={loadingEntries}
+                    />
                 </div>
             </div>
         )}
         </div>
         <div id='entriesTableBlock'>
-        {/* ENTRIES LIST TABLE: table displaying userEntries */}
+        {/* WHAT THE FILTER IS HIDING: only on screen while the list is being
+        narrowed, so a user looking at four rows out of thirty knows the rest
+        are hidden rather than gone */}
+        {filtersActive && (
+            <p className='infoText' id='entriesFilterSummary' aria-live='polite'>
+                {filterSummary(filteredEntries.length, userEntries.length)}
+            </p>
+        )}
+        {/* ENTRIES LIST TABLE: table displaying userEntries, narrowed by the filter */}
             <table id='entriesListTable' aria-busy={loadingEntries}>
                 <thead>
                     <tr>
@@ -231,8 +291,18 @@ export default function EntriesList(
                                 NO ENTRIES WRITTEN YET
                             </td>
                         </tr>
+                    /* An account with entries, none of which are on the chosen
+                    trip. Told apart from an account with no entries at all,
+                    because the two are the user's to fix in different ways: one
+                    by clearing the filter, the other by writing an entry */
+                    ) : filteredEntries.length === 0 ? (
+                        <tr>
+                            <td colSpan={4} className='entries-list-empty'>
+                                NO ENTRIES MATCH THIS FILTER
+                            </td>
+                        </tr>
                     ) : (
-                        userEntries.map((entry, index) => (
+                        filteredEntries.map((entry, index) => (
                             <tr
                                 key={entry._id}
                                 className={`${rowClass(index)}${

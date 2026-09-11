@@ -8,6 +8,12 @@ import { ArrowDownAZ } from 'lucide-react';
 import {Link} from 'react-router-dom'
 // IMPORT UTILITY FUNCTIONS
 import { NOT_AVAILABLE, rowClass, toLongDate } from '../util/formatCalculations';
+import {
+    BLANK_TRIP_FILTERS,
+    countFilters,
+    filterSummary,
+    filterTrips,
+} from '../util/filterFunctions';
 import FilterTrips from './FilterTrips';
 
 export default function TripsList(
@@ -30,10 +36,35 @@ export default function TripsList(
     const [showFilter, setShowFilter] = useState(false)
     const [selectedId, setSelectedId] = useState(null)//State used to indicate which trip trip the details panel is showing
     const [exportList, setExportList] = useState(false)
+    /* The filters the list is currently narrowed by, set by the filter form's
+    APPLY. Held here rather than in the form because it is the list they narrow:
+    the form only collects them, and closing it leaves them applied */
+    const [filters, setFilters] = useState(BLANK_TRIP_FILTERS)
 
     // Function to toggle the filter form
     const toggleFilter = useCallback(() => {
         setShowFilter(prev => !prev)
+    },[])
+
+    // ========FILTERING============
+    /* The rows the table actually shows. Recomputed only when the trips or the
+    filters change, rather than on every render, because the panel and the
+    buttons below set state of their own */
+    const filteredTrips = useMemo(
+        () => filterTrips(userTrips, filters), [userTrips, filters]
+    )
+
+    // Whether the list is being narrowed at all, so it can say what is hidden
+    const filtersActive = countFilters(filters) > 0;
+
+    // Applies the filters the form collected
+    const applyFilters = useCallback((next) => {
+        setFilters(next)
+    },[])
+
+    // Returns the list to every trip on the account
+    const clearFilters = useCallback(() => {
+        setFilters(BLANK_TRIP_FILTERS)
     },[])
     // Function to toggle Export Form
     const toggleExportForm = useCallback(() => {
@@ -42,12 +73,16 @@ export default function TripsList(
    
     const username = currentUser?.username || '';//Current loggedin user username
 
-    /* Resolved out of the list on every render, so the panel follows the state
-    TravelLog.js owns: when a refetch drops the selected trip the panel closes
-    itself rather than displaying a stale copy */
+    /* Resolved out of the filtered list on every render, so the panel follows
+    the state TravelLog.js owns: when a refetch drops the selected trip the panel
+    closes itself rather than displaying a stale copy.
+
+    Read off the filtered list rather than the whole one, so a filter that hides
+    the selected row closes the panel with it — a panel left open on a trip that
+    is no longer in the table is reporting something the user cannot see */
     const selectedTrip = useMemo(
-        () => userTrips.find((trip) => trip._id === selectedId) || null,
-        [userTrips, selectedId]
+        () => filteredTrips.find((trip) => trip._id === selectedId) || null,
+        [filteredTrips, selectedId]
     )
 
     /* The trip whose DELETE is in flight, held as an id rather than as a plain
@@ -71,10 +106,10 @@ export default function TripsList(
         closeEditTrip?.()
     },[closeEditTrip])
 
-    /* The panel also closes on its own, when a refetch no longer holds the trip
-    it was showing — one deleted from another session, for instance. The
-    selected id is dropped and the form closed here too, so a panel that closed
-    without CLOSE being pressed leaves no form open behind it */
+    /* The panel also closes on its own, when the list no longer holds the trip
+    it was showing — one deleted from another session, or one a newly applied
+    filter hides. The selected id is dropped and the form closed here too, so a
+    panel that closed without CLOSE being pressed leaves no form open behind it */
     useEffect(() => {
         if (!selectedId || selectedTrip) return;
 
@@ -194,13 +229,28 @@ export default function TripsList(
     {showFilter && (
         <div id='filter-trip-panal'>
             <div id='trip-filter-block'>
-                <FilterTrips/>
+                <FilterTrips
+                /* The filters as they are being applied, so the form opens on
+                them rather than on a blank set of selects */
+                filters={filters}
+                applyFilters={applyFilters}
+                clearFilters={clearFilters}
+                disabled={loadingTrips}
+                />
             </div>
         </div>
     )}
         </div>
         <div id='tripListBlock'>
-        {/* TRIPS LIST TABLE: table displaying userTrips */}
+        {/* WHAT THE FILTERS ARE HIDING: only on screen while the list is being
+        narrowed, so a user looking at four rows out of thirty knows the rest
+        are hidden rather than gone */}
+        {filtersActive && (
+            <p className='infoText' id='tripsFilterSummary' aria-live='polite'>
+                {filterSummary(filteredTrips.length, userTrips.length)}
+            </p>
+        )}
+        {/* TRIPS LIST TABLE: table displaying userTrips, narrowed by the filters */}
             <table id='tripsListTable' aria-busy={loadingTrips}>
                 <thead>
                     <tr>
@@ -229,8 +279,18 @@ export default function TripsList(
                                 NO TRIPS LOGGED YET
                             </td>
                         </tr>
+                    /* An account with trips, none of which satisfy the filters.
+                    Told apart from an account with no trips at all, because the
+                    two are the user's to fix in different ways: one by clearing
+                    a filter, the other by logging a trip */
+                    ) : filteredTrips.length === 0 ? (
+                        <tr>
+                            <td colSpan={7} className='trips-list-empty'>
+                                NO TRIPS MATCH THESE FILTERS
+                            </td>
+                        </tr>
                     ) : (
-                        userTrips.map((trip, index) => (
+                        filteredTrips.map((trip, index) => (
                             <tr
                                 key={trip._id}
                                 className={`${rowClass(index)}${

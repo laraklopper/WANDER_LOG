@@ -12,6 +12,14 @@ import ExportForm from '../components/ExportForm'
 import { ArrowDownAZ } from 'lucide-react';
 // IMPORT UTILITY FUNCTIONS AND SHARED DATA
 import { NOT_AVAILABLE, rowClass, toLongDate, toMoney } from '../util/formatCalculations';
+import {
+  BLANK_EXPENSE_FILTERS,
+  countFilters,
+  filterExpenses,
+  filterSummary,
+  tripFilterOptions,
+  valueFilterOptions,
+} from '../util/filterFunctions';
 import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from '../data/financeData';
 
 /* The two enums an expense is stored with, keyed by the value the schema keeps
@@ -61,7 +69,11 @@ export default function ExpensesList(
   const [showFilter, setShowFilter] = useState(false)
   const [showExportForm, setShowExportForm] = useState(false)//State to toggle exportForm
   const [deletingId, setDeletingId] = useState(null)//The expense whose DELETE is in flight
-  
+  /* The filters the list is currently narrowed by, set by the filter form's
+  APPLY. Held here rather than in the form because it is the list they narrow:
+  the form only collects them, and closing it leaves them applied */
+  const [filters, setFilters] = useState(BLANK_EXPENSE_FILTERS)
+
   const isDeleting = Boolean(deletingId)
 
   const username = currentUser?.username || '';//Current loggedin user username
@@ -73,9 +85,45 @@ export default function ExpensesList(
     setShowExportForm(prev => !prev)
   },[])
 
+  // ========FILTERING============
+  /* The rows the table actually shows. Recomputed only when the expenses or
+  the filters change, rather than on every render, because the panel and the
+  buttons below set state of their own */
+  const filteredExpenses = useMemo(
+    () => filterExpenses(expenses, filters), [expenses, filters]
+  )
+
+  /* The trips the expenses were spent on and the currencies they were paid in,
+  for the filter form's two data driven selects. Built from the expenses rather
+  than from the account's trips and the converter's 165 codes, so neither select
+  can offer a value that would only ever empty the list */
+  const tripOptions = useMemo(
+    () => tripFilterOptions(expenses, 'tripTitle'), [expenses]
+  )
+  const currencyOptions = useMemo(
+    () => valueFilterOptions(expenses, 'currency'), [expenses]
+  )
+
+  // Whether the list is being narrowed at all, so it can say what is hidden
+  const filtersActive = countFilters(filters) > 0;
+
+  // Applies the filters the form collected
+  const applyFilters = useCallback((next) => {
+    setFilters(next)
+  },[])
+
+  // Returns the list to every expense on the account
+  const clearFilters = useCallback(() => {
+    setFilters(BLANK_EXPENSE_FILTERS)
+  },[])
+
+  /* Read off the filtered list rather than the whole one, so a filter that
+  hides the selected row closes the panel with it — a panel left open on an
+  expense that is no longer in the table is reporting something the user cannot
+  see. The effect further down is what actually closes it */
   const selectedExpense = useMemo(
-    () => expenses.find((expense) => expense._id === selectedId) || null,
-    [expenses, selectedId]
+    () => filteredExpenses.find((expense) => expense._id === selectedId) || null,
+    [filteredExpenses, selectedId]
   )
 
   /* Whether the edit form is open on the expense the panel is showing, rather
@@ -244,13 +292,32 @@ export default function ExpensesList(
     {showFilter && (
       <div id='filterExpensePanal'>
         <div id='filterBlock'>
-          <FilterExpenses/>
+          <FilterExpenses
+          /* The filters as they are being applied, so the form opens on them
+          rather than on a blank set of selects */
+          filters={filters}
+          /* Only the trips and currencies the expenses themselves name, so
+          neither select can offer a value that would empty the list */
+          tripOptions={tripOptions}
+          currencyOptions={currencyOptions}
+          applyFilters={applyFilters}
+          clearFilters={clearFilters}
+          disabled={loadingExpenses}
+          />
       </div>
       </div>
     )}
 
       </div>
       <div id='expensesTableBlock'>
+        {/* WHAT THE FILTERS ARE HIDING: only on screen while the list is being
+        narrowed, so a user looking at four rows out of thirty knows the rest
+        are hidden rather than gone */}
+        {filtersActive && (
+          <p className='infoText' id='expensesFilterSummary' aria-live='polite'>
+            {filterSummary(filteredExpenses.length, expenses.length)}
+          </p>
+        )}
         <table id='expensesTable' aria-busy={loadingExpenses}>
           <thead>
             <tr>
@@ -283,8 +350,18 @@ export default function ExpensesList(
                   NO EXPENSES LOGGED YET
                 </td>
               </tr>
+            /* An account with expenses, none of which satisfy the filters. Told
+            apart from an account with no expenses at all, because the two are
+            the user's to fix in different ways: one by clearing a filter, the
+            other by logging an expense */
+            ) : filteredExpenses.length === 0 ? (
+              <tr>
+                <td colSpan={7} className='expenses-list-empty'>
+                  NO EXPENSES MATCH THESE FILTERS
+                </td>
+              </tr>
             ) : (
-              expenses.map((expense, index) => (
+              filteredExpenses.map((expense, index) => (
                 <tr
                   key={expense._id}
                   className={`${rowClass(index)}${
