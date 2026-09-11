@@ -30,6 +30,7 @@
 }
 /* While the mouse button is held down. Press feedback only - whether the filter
 is open is marked by the aria-expanded rules below */
+#toggleExportBtn:active,
 #toggleFilterBtn:active{
     background-color: #1F2529;
     color: #E8F0F6;

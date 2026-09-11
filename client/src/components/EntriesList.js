@@ -9,6 +9,7 @@ import Stack from 'react-bootstrap/Stack';
 import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 import FilterEntries from './FilterEntries';
+import { ArrowDownAZ } from 'lucide-react';
 // IMPORT UTILITY FUNCTIONS
 import { NOT_AVAILABLE, rowClass, toLongDate, toLongDateTime } from '../util/formatCalculations';
 import ExportForm from './ExportForm';
@@ -165,6 +166,7 @@ export default function EntriesList(
         id='toggleExportBtn'
         onClick={toggleExportForm}
         aria-pressed={exportList}
+        aria-expanded={exportList}
         >
             EXPORT ENTRIES
         </Button>
@@ -174,21 +176,28 @@ export default function EntriesList(
         variant='light'
         id='toggleFilterBtn'
         onClick={toggleFilter}
+        aria-expanded={showFilter}
+        aria-label={showFilter ? 'Hide Form' : 'Filter Entries'}
         >
-            FILTER ENTRIES
+           {showFilter ? (
+                      <>Hide Filter</>
+                  ):(
+                      <>
+                          Filter Entries<ArrowDownAZ fontWeight={700} aria-hidden='true' focusable='false'/>
+                      </>
+                  )}
         </Button>
       </div>
       {/* FILTER ENTRIES: left off until FilterEntries.js is built */}
     </Stack>
-    <div>
+  
         {showFilter&& (
-            <div>
-            <div>
-                <FilterEntries/>
-            </div>
+            <div id='entriesFilterPanal'>
+                <div id='filterBlock'>
+                    <FilterEntries/>
+                </div>
             </div>
         )}
-    </div>
         </div>
         <div id='entriesTableBlock'>
         {/* ENTRIES LIST TABLE: table displaying userEntries */}
