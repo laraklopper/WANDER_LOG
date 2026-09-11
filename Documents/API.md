@@ -169,12 +169,12 @@ An expense is **not a model of its own**: it is embedded in the budget of the tr
 
 | Method | Endpoint | Auth | Status | Description |
 |---|---|---|---|---|
-| `GET` | [`/expense/fetchBudgets`](../server/routes/expenseRoutes.js#L272) | JWT | Implemented | Lists the user's budgets with their trip title and base currency, for the form's trip select |
-| `GET` | [`/expense/fetchExpenses`](../server/routes/expenseRoutes.js#L323) | JWT | Implemented | Lists every expense across all of the user's trips, newest spend first |
-| `GET` | [`/expense/fetchExpense/:id`](../server/routes/expenseRoutes.js#L368) | JWT | Implemented | Fetches one expense by its own subdocument id |
-| `POST` | [`/expense/addExpense`](../server/routes/expenseRoutes.js#L445) | JWT | Implemented | Adds one expense to the budget of the selected trip |
-| `PATCH` | `/expense/updateExpense/:id` | JWT | Planned | Edit an expense |
-| `DELETE` | `/expense/delete/:id` | JWT | Planned | Delete / remove an expense |
+| `GET` | [`/expense/fetchBudgets`](../server/routes/expenseRoutes.js#L343) | JWT | Implemented | Lists the user's budgets with their trip title and base currency, for the form's trip select |
+| `GET` | [`/expense/fetchExpenses`](../server/routes/expenseRoutes.js#L394) | JWT | Implemented | Lists every expense across all of the user's trips, newest spend first |
+| `GET` | [`/expense/fetchExpense/:id`](../server/routes/expenseRoutes.js#L439) | JWT | Implemented | Fetches one expense by its own subdocument id |
+| `POST` | [`/expense/addExpense`](../server/routes/expenseRoutes.js#L516) | JWT | Implemented | Adds one expense to the budget of the selected trip |
+| `PATCH` | [`/expense/updateExpense/:id`](../server/routes/expenseRoutes.js#L645) | JWT | Implemented | Edits one expense, moving it to another trip's budget when the trip is changed |
+| `DELETE` | [`/expense/delete/:id`](../server/routes/expenseRoutes.js#L863) | JWT | Implemented | Removes one expense from the budget it was spent against |
 
 **Notes**
 
@@ -184,6 +184,8 @@ An expense is **not a model of its own**: it is embedded in the budget of the tr
 | `GET /expense/fetchExpenses` | — | Each expense is flattened and carries `budgetId`, `baseCurrency`, `tripId` and `tripTitle`. An expense whose trip is gone is still listed, labelled `Trip no longer available` |
 | `GET /expense/fetchExpense/:id` | `:id` is the embedded subdocument's `_id` | The parent budget is found by the expense it holds, matched on the owner at the same time. `400` on a malformed id, `404` when it is not on the caller's account |
 | `POST /expense/addExpense` | `tripId`, `title` (≤100), `amount` (>0), `currency`, `category`, `date`, `notes` (≤300), `paymentMethod` (default `cash`), `isPaid` (default `true`) | The trip must already have a budget — `404` if not, rather than silently creating one, because a budget needs a total this form does not ask for. `convertedAmount` is worked out from a **live** Frankfurter rate rather than read from the body, and stored as `null` when the expense is already in the base currency or no rate could be read. `date` cannot be in the future. `category` and `paymentMethod` are matched case-insensitively and with either separator, so the form's `CREDIT CARD` stores as `credit_card`. A `ValidationError` on an embedded expense is keyed by its position — `expenses.3.amount` — so the index is stripped back to the field name the form knows. Returns the new expense plus the budget's recomputed `totalSpent`, `remaining` and `percentUsed` |
+| `PATCH /expense/updateExpense/:id` | `:id` is the embedded subdocument's `_id`. Any of the `addExpense` fields, only the ones being changed | Partial: a field the body does not carry is left as it is stored, one that is present is checked the same way a create checks it, and a field carrying the value already stored is not counted as a change. `400` with `There is nothing to update` when nothing is left to write. Changing `tripId` is a **move**, not a field being written: the expense is taken off one budget and pushed onto the other with its own `_id` kept, so anything open on that id still is afterwards — the destination is saved first, so a failure between the two leaves the expense listed twice rather than not at all, and a trip with no budget is `404`. `convertedAmount` is reworked from a live rate only when the figure it came from moves: the amount, its currency, or the base currency it is converted into. `username` cannot be written through here. Returns the updated expense, shaped as `fetchExpenses` returns one, plus the recomputed figures of the budget it now sits on |
+| `DELETE /expense/delete/:id` | `:id` is the embedded subdocument's `_id` | The parent budget is found by the expense it holds, matched on the owner at the same time, and the expense is pulled off it. `400` on a malformed id, `404` when it is not on the caller's account. Nothing else is filed against an expense, so there is nothing to clear up after it: the budget's `totalSpent`, `remaining` and `percentUsed` are virtuals worked out from the expenses it holds, so they are correct the moment it is gone, and are returned with the response. The budget itself is left standing — the reverse is [`DELETE /budget/deleteBudget/:id`](#18-budget), which removes a budget along with every expense embedded in it. Returns `expenseId`, `budgetId` and `tripId`, so the client can drop the row and close anything open on that expense |
 
 ### 1.8. BUDGET
 

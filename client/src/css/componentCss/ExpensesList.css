@@ -17,11 +17,98 @@
     margin: 0px;
     padding: 0px;
 }
-/* TABLE */
+/* TABLE: the same table as the travel log's two lists, in section 1.5. TABLES
+of STYLES.md, so every list in the app reads the same way */
 #expensesTable{
         width: 100%;
     margin: 0px;
     padding: 0px;
+    border-collapse: collapse;
+    border: solid 2px #323A42;
+    background-color: #D6D6D6;
+    text-align: center;
+}
+#expensesMainHead{
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    border: solid #000 1px;
+    margin: 0px;
+    padding: 5px;
+    font-family: "Fira Sans", sans-serif;
+    font-size: 20px;
+    text-decoration: underline;
+}
+#expensesHeadRow th{
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+    margin: 0px;
+    padding: 5px 0px;
+    font-family: "Fira Sans", sans-serif;
+    border: solid 1px #323A42;
+}
+#expensesTable td{
+    font-family: "Fira Mono", monospace;
+    text-align: center;
+    padding: 8px 0px;
+    border: solid 1px #323A42;
+}
+/* Row striping and the selected row are shared with the trip list, so
+.evenRow, .oddRow and .selectedRow are not repeated here */
+.viewExpense-div{
+    margin: 0px;
+    padding: 0px;
+}
+.viewExpenseBtn{
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #000;
+    padding: 2px 12px;
+    border: solid 2px #323A42;
+    width: 150px;
+}
+.viewExpenseBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
+}
+/* The two single cell rows the table shows in place of any expenses: a request
+in flight, and an account that has not logged one yet */
+.expenses-list-loading,
+.expenses-list-empty{
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    padding: 15px 6px;
+}
+/* RELOAD: dimmed as well as relabelled while its request is in flight, so the
+button reads as unavailable at a glance as well as through aria-disabled */
+#reloadBtn{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 150px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #000;
+    margin: 0px;
+    letter-spacing: 2px;
+    padding: 0px;
+    border: solid 2px #323A42;
+}
+#reloadBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
+}
+#reloadBtn:disabled{
+    color: #444;
+    background-color: #BFBFBF;
+    border: solid 2px #444;
 }
 /* PANAL */
 #expenseDetailsPanal{
@@ -42,5 +129,63 @@
     display: flex;
     align-items: baseline;
     margin: 0px;
+    padding: 10px 5px;
+    gap: 10px;
+}
+#expDetailsFooter{
+    width: 100%;
+    margin: 0px;
+    padding: 5px 0px;
+    border-top: #323A42 solid 2px;
+}
+/* The panel's own heading, which carries the title of the expense on screen */
+#exp-details-heading{
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0px;
+}
+/* A label and its value sit on one line, the way the entry panel pairs them */
+.detail-span{
+    display: flex;
+    gap: 5px;
+    margin: 0px;
+    width: 100%;
+}
+/* TOGGLE EDIT EXPENSE FORM: underlined as well as relabelled while the form
+below is open on this expense, so the pair read as connected */
+#toggleEditExpBtn{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 180px;
+    height: 40px;
+    font-family: "Fira Mono", monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #000;
+    margin: 0px;
     padding: 0px;
+    border: solid 2px #323A42;
+}
+#toggleEditExpBtn:hover{
+    color: #E8F0F6;
+    background-color: #323A42;
+}
+#toggleEditExpBtn[aria-expanded="true"]{
+    background-color: #323A42;
+    color: #E8F0F6;
+    border: solid 2px #000;
+    text-decoration: underline;
+}
+/* Says which expense the form below the list belongs to. Set smaller than the
+panel's own labels: they report the expense, this reports the page */
+.expenseNote{
+    font-family: "Fira Mono", monospace;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #323A42;
 }

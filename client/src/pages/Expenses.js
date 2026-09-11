@@ -50,6 +50,77 @@ const EMPTY_EXPENSE = {
   isPaid: true,
 };
 
+/* Empty edit expense shape, used for the initial state and by the edit form's
+clear button. Every field opens blank, which is that form's way of saying 'leave
+it as it is stored', so only what was filled in is sent and everything else stays
+as the expense holds it.
+
+isPaid is the one exception: a checkbox cannot represent 'unchanged', so it has
+to open ticked or unticked according to the expense the form was opened on, which
+is what expenseEditForm below fills in. */
+const EMPTY_EXPENSE_EDIT = {
+  tripId: '',
+  title: '',
+  amount: '',
+  currency: '',
+  category: '',
+  date: '',
+  notes: '',
+  paymentMethod: '',
+  isPaid: true,
+};
+
+/* The edit form as it opens on one expense: every field blank, with the checkbox
+on what that expense currently holds. Also what its clear button resets to, so
+clearing leaves the form saying 'change nothing' rather than switching the
+expense to paid */
+const expenseEditForm = (expense) => ({
+  ...EMPTY_EXPENSE_EDIT,
+  isPaid: expense?.isPaid ?? true,
+});
+
+/* Builds the PATCH body for an expense edit out of the form and the expense it
+was opened on, so only what was actually filled in is sent and everything else is
+left as it is stored.
+
+The four selects and the checkbox are the fields that can be submitted without
+being a change: a select left on its 'keep' option carries no value at all, and
+one moved back to the value the expense already holds, like the checkbox, is not
+a change either. Those are compared against the expense before they are sent,
+which is the same judgement the API makes of them.
+
+convertedAmount is not sent at all: the API reworks it from a live rate whenever
+the amount, the currency or the budget the expense sits on moves. */
+const expenseChanges = (form = {}, expense = null) => {
+  const changes = {};
+
+  const title = String(form.title || '').trim();
+  const amount = String(form.amount ?? '').trim();
+  const notes = String(form.notes || '').trim();
+  const tripId = String(form.tripId || '').trim();
+  const currency = String(form.currency || '').trim();
+  const category = String(form.category || '').trim();
+  const paymentMethod = String(form.paymentMethod || '').trim();
+
+  if (title) changes.title = title;
+  /* Sent as it was typed. The route coerces it and refuses anything that is not
+  a number greater than 0, and the schema rounds it to currency precision */
+  if (amount) changes.amount = amount;
+  if (notes) changes.notes = notes;
+  if (form.date) changes.date = form.date;
+  // Only sent when it names a trip other than the one the expense is filed against
+  if (tripId && tripId !== String(expense?.tripId || '')) changes.tripId = tripId;
+  if (currency && currency !== expense?.currency) changes.currency = currency;
+  if (category && category !== expense?.category) changes.category = category;
+  if (paymentMethod && paymentMethod !== expense?.paymentMethod) changes.paymentMethod = paymentMethod;
+  /* A checkbox always has a value, so it is only a change when it disagrees with
+  what is stored. Sent as a boolean, so an unticked box arrives as false instead
+  of being dropped from the body and read as the schema's default */
+  if (Boolean(form.isPaid) !== Boolean(expense?.isPaid)) changes.isPaid = Boolean(form.isPaid);
+
+  return changes;
+}
+
 /* Empty budget shape, used for the initial state and by the budget form's clear
 button. The trip is held as tripId, which is what the API sets the budget against
 and what makes it unique: one budget per trip.
@@ -147,6 +218,18 @@ export default function Expenses(//Export default Expenses.js component
     gathered out of their budgets by the API. What the list is built from */
     const [expenses, setExpenses] = useState([])
     const [loadingExpenses, setLoadingExpenses] = useState(false)
+    // ============EDIT EXPENSE STATE=============
+    /* The expense the edit form is open on, held whole rather than by id: it is
+    read back from the API when the form is opened, and every field on the form
+    reports what that expense currently holds */
+    const [editingExpense, setEditingExpense] = useState(null)
+    const [editExpenseData, setEditExpenseData] = useState(EMPTY_EXPENSE_EDIT)// The changes typed into the edit form, empty until a field is filled in
+    // Blocks a second submit while the first request is in flight
+    const [submittingEditExpense, setSubmittingEditExpense] = useState(false)
+    /* Field keyed messages returned by the server when Mongoose validation
+    fails, keyed by the field name the form knows the input by. Kept apart from
+    the add form's, so a rejected edit does not mark up the form beside it */
+    const [editExpenseFieldErrors, setEditExpenseFieldErrors] = useState({})
     // ============BUDGET STATE=============
     /* The logged in user's trips, used to fill the budget form's trip select. A
     budget is set for a trip, and each trip carries a hasBudget flag the API
@@ -173,21 +256,37 @@ export default function Expenses(//Export default Expenses.js component
     const [currencyOptions] = useState(FALLBACK_CURRENCIES)
     
     //================EVENT HANDLERS=====================
+    /* Function to close the EditExpense form. The form is opened from the
+    expenses list's details panel and names the expense it is editing, so it is
+    closed with the changes cleared out of it rather than left open on an expense
+    that is no longer on screen */
+    const closeEditExpense = useCallback(() => {
+      setShowEditExp(false)
+      setEditingExpense(null)
+      setEditExpenseData(EMPTY_EXPENSE_EDIT)
+      setEditExpenseFieldErrors({})
+    },[])
+
     // TOGGLE FUNCTIONS
     // Function to toggle ExpensesList
     const toggleExpList = useCallback(() => {
       setShowExpList(prev => (!prev))
       setShowBudgetList(false)
       setShowAddBudget(false)
+      /* The edit form is opened from that list's details panel, so it goes with
+      it: hiding the list takes the panel that named the expense off screen */
+      closeEditExpense()
       // Allow AddExpenseForm display if Expenses List is open
-    },[])
+    },[closeEditExpense])
     // Function to toggle BudgetList
     const toggleBudgetList = useCallback(() => {
       setShowBudgetList(prev => (!prev))
       setShowExpList(false)
       setShowAddExp(false)
+      // Closed with the expenses list the form was opened from
+      closeEditExpense()
       // Allow BudgetFormDisplay if Budget List is open
-    },[])
+    },[closeEditExpense])
     // Function to toggle AddExpenseForm
     const toggleAddExpForm = useCallback(() => {
       setShowAddExp(prev => (!prev))
@@ -205,13 +304,6 @@ export default function Expenses(//Export default Expenses.js component
       setBudgetFieldErrors({})
       setBudgetFormError(null)
     },[])
-
-    const toggleEditExpenseForm = useCallback(()=> {
-      setShowEditExp(prev => !prev)
-      setShowAddExp(false)
-      setShowBudgetList(false)
-    },[])
-
 
     //======================CALLBACKS/REQUEST FUNCTIONS========================
     /* Loads the logged in user's budgets from GET /expense/fetchBudgets.
@@ -455,6 +547,214 @@ export default function Expenses(//Export default Expenses.js component
         setSubmittingExpense(false)
       }
     },[submittingExpense, newExpenseData, setError, fetchBudgets, fetchExpenses])
+
+    /* Opens the edit expense form against the expense as it is currently
+    stored, rather than against the copy the list is holding, which may have been
+    changed since it was loaded.
+
+    The expense is read back by its id first. Nothing on screen changes until it
+    arrives, so a read that failed leaves the form closed instead of opening an
+    edit of an expense that could not be loaded. */
+    const startExpenseEdit = useCallback(async (expenseId) => {
+      const expense = await fetchExpense(expenseId);
+
+      // Conditional rendering to check the expense was read back
+      if (!expense) {
+        console.warn('[WARN: Expenses.js] Could not load expense', expenseId, 'so the edit form was not opened');
+        return;
+      }
+
+      setEditingExpense(expense)
+      // Opened with every field blank and the checkbox on what is stored
+      setEditExpenseData(expenseEditForm(expense))
+      setEditExpenseFieldErrors({})
+      setShowEditExp(true)
+      /* Closed, so the page is not showing a form to add an expense and a form
+      to change one at the same time */
+      setShowAddExp(false)
+      setShowAddBudget(false)
+      console.log('[INFO: Expenses.js] Editing expense', expense._id)
+    },[fetchExpense])
+
+    /* Sends the filled in fields of the edit expense form to
+    PATCH /expense/updateExpense/:id.
+    The id is the one Mongo gave the embedded expense, and the route matches it
+    against the account on the token, so another user's expense is reported as
+    missing rather than written to.
+
+    A PATCH, so only what was actually changed is sent: expenseChanges builds the
+    body out of the form and the expense it was opened on, and a field left blank
+    is a field left as it is stored. The owner is not sent, the username stays as
+    the account it was logged by, and neither is convertedAmount, which the API
+    reworks from the rate on the day whenever the figure it came from moves.
+
+    Changing the trip moves the expense to that trip's budget, since an expense is
+    embedded in one rather than pointing at it, so a trip with no budget is
+    answered with a 404 saying as much. */
+    const editExpense = useCallback(async () => {
+      if (submittingEditExpense) return;
+
+      // Conditional rendering to check an expense is open for editing
+      if (!editingExpense?._id) {
+        setError?.('No expense is open for editing.')
+        console.warn('[WARN: Expenses.js] No expense id, cannot edit an expense');
+        return;
+      }
+
+      const changes = expenseChanges(editExpenseData, editingExpense);
+
+      /* Reported rather than sent, because the API would answer a PATCH with
+      nothing in it with a 400 of its own */
+      if (!Object.keys(changes).length) {
+        setError?.('Nothing has been changed yet.')
+        console.warn('[WARN: Expenses.js] No changes submitted, cannot edit an expense');
+        return;
+      }
+
+      const token = localStorage.getItem('token');
+      // Conditional rendering to check a session is still stored
+      if (!token) {
+        setError?.('Your session has expired. Please log in again.');
+        console.warn('[WARN: Expenses.js] No token stored, cannot edit an expense');
+        return;
+      }
+
+      try {
+        setSubmittingEditExpense(true)
+        setError?.(null)
+        setEditExpenseFieldErrors({})
+
+        const response = await fetch(`http://localhost:3001/expense/updateExpense/${editingExpense._id}`, {
+          method: 'PATCH',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify(changes)
+        })
+
+        /* Safely parse the JSON response. Guarded because the body is empty or
+        is not JSON at all on a 429 from the rate limiter, and response.json()
+        would throw before the status could be reported */
+        const data = await response.json().catch(() => ({}))
+
+        if (response.ok) {
+          setError?.(null)
+          closeEditExpense()// Closed on the expense it was opened on, with the changes cleared out of it
+          /* Reloaded because the budget's totals move with every expense, and
+          an expense that changed trip moves them on two budgets at once */
+          fetchBudgets()
+          /* Reloaded rather than replacing the returned expense in the list, so
+          it is re-sorted by date and an edited date lands where it belongs */
+          fetchExpenses()
+          alert(data.message || 'Expense updated successfully.')
+          console.log('[SUCCESS: Expenses.js] Expense updated:', data.expense?._id)
+        } else {
+          /* Falls back through the shapes the API can return: a plain message,
+          an error string, then the status text */
+          const message =
+            data?.message ||
+            data?.error ||
+            response?.statusText ||
+            'Could not update the expense.';
+          // Present on a 400 from Mongoose validation, absent on a 401, 404 or a 500
+          if (data.errors) setEditExpenseFieldErrors(data.errors);
+          setError?.(message);
+          console.error(`[ERROR: Expenses.js] Edit expense failed with status ${response.status}: ${message}`);
+        }
+      } catch (error) {
+        // Only a network level failure reaches here, a 4xx or 5xx is handled above
+        setError?.('Could not reach the server. Please check your connection and try again.');
+        console.error(`[ERROR: Expenses.js] Edit expense request failed: ${error.message}`);
+      } finally {
+        setSubmittingEditExpense(false)
+      }
+    },[submittingEditExpense, editingExpense, editExpenseData, setError, closeEditExpense, fetchBudgets, fetchExpenses])
+
+    /* Sends one expense's id to DELETE /expense/delete/:id.
+    The id is the one Mongo gave the embedded expense, and the route matches it
+    against the account on the token, so another user's expense is reported as
+    missing rather than removed.
+
+    An expense is embedded in the budget of its trip, so removing it moves that
+    budget's totals — which is why the budgets are reloaded alongside the
+    expenses, and why the budget list's own figures are right again afterwards.
+    The trips are left alone: a trip keeps its budget whether or not anything is
+    spent against it.
+
+    Returns whether the expense actually went, so the list can close its details
+    panel on success and leave it open on the expense it failed to remove. */
+    const deleteExpense = useCallback(async (expenseId) => {
+      // Conditional rendering to check an expense was identified
+      if (!expenseId) {
+        console.warn('[WARN: Expenses.js] No expense id given, cannot delete the expense');
+        return false;
+      }
+
+      const token = localStorage.getItem('token');
+      // Conditional rendering to check a session is still stored
+      if (!token) {
+        setError?.('Your session has expired. Please log in again.');
+        console.warn('[WARN: Expenses.js] No token stored, cannot delete the expense');
+        return false;
+      }
+
+      try {
+        setError?.(null)
+
+        const response = await fetch(`http://localhost:3001/expense/delete/${expenseId}`, {
+          method: 'DELETE',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        })
+
+        const data = await response.json().catch(() => ({}))
+
+        if (!response.ok) {
+          /* A 400 for a malformed id, a 404 for an expense that is not on this
+          account, and a 401 once the session has gone all arrive with their own
+          message, so it is reported as it was given */
+          const message = data?.message || response?.statusText || 'Could not delete the expense.';
+          setError?.(message)
+          console.error(`[ERROR: Expenses.js] Delete expense failed with status ${response.status}: ${message}`)
+          return false
+        }
+
+        /* Closed when the deleted expense is the one the form is open on, so an
+        edit cannot be submitted against an expense that is no longer there — the
+        PATCH would only answer 404. A form open on a different expense is left
+        as it is */
+        if (String(editingExpense?._id) === String(expenseId)) {
+          closeEditExpense()
+          console.log('[INFO: Expenses.js] Closed the edit form, expense', expenseId, 'was deleted');
+        }
+
+        /* Awaited so the caller's delete stays busy until the refreshed lists
+        have arrived rather than only until the DELETE answered, and the row is
+        gone from the list by the time the button reports itself done */
+        await Promise.all([
+          /* The expense itself is gone, and this list is what the table and its
+          details panel are built from */
+          fetchExpenses(),
+          /* The budget's totals are worked out from the expenses it holds, so
+          the budget list reports what is left once this has reloaded */
+          fetchBudgets(),
+        ])
+
+        alert(data.message || 'Expense deleted successfully.')
+        console.log('[SUCCESS: Expenses.js] Expense deleted:', data.expenseId || expenseId, 'from budget', data.budgetId)
+        return true
+      } catch (error) {
+        // Only a network level failure reaches here, a 4xx or 5xx is handled above
+        setError?.('Could not reach the server. Please check your connection and try again.')
+        console.error(`[ERROR: Expenses.js] Delete expense request failed: ${error.message}`)
+        return false
+      }
+    },[editingExpense, setError, closeEditExpense, fetchExpenses, fetchBudgets])
 
     /* Loads the logged in user's trips from GET /trip/fetchTrips.
     The route is behind checkJwtToken and filters on the userId it reads off that
@@ -984,14 +1284,22 @@ export default function Expenses(//Export default Expenses.js component
                     <ExpensesList
                         expenses={expenses}
                         loadingExpenses={loadingExpenses}
-                        /* Reads one expense back from the API by its id, for
-                        editing it against what is currently stored */
-                        fetchExpense={fetchExpense}
                         fetchExpenses={fetchExpenses}
                         currentUser={currentUser}
-                        setError={setError}
-                        toggleEditExpenseForm={toggleEditExpenseForm}
+                        /* Reads the expense back from the API by its id and
+                        opens the edit form on what is currently stored */
+                        startExpenseEdit={startExpenseEdit}
+                        /* Closes that form again, which the list does whenever
+                        the details panel it was opened from closes */
+                        closeEditExpense={closeEditExpense}
+                        /* Removes one expense and reloads both lists. Reports
+                        whether it actually went, so the list can close its
+                        details panel on success */
+                        deleteExpense={deleteExpense}
                         showEditExp={showEditExp}
+                        /* So the panel can say whether the form below it is the
+                        one open on the expense it is showing */
+                        editingExpenseId={editingExpense?._id || null}
                     />
                 </div>
             </Col>
@@ -1043,7 +1351,27 @@ export default function Expenses(//Export default Expenses.js component
                   <Row id='editExpRow' style={{width: '100%'}}>
                     <Col id='editExpenseCol' style={{width: '100%'}}>
                       <div id='editExpensePanal' style={{width: '100%'}} >
-                        <EditExpense/>
+                        <EditExpense
+                          currentUser={currentUser}
+                          /* The expense the form was opened on, read back from
+                          the API by the expenses list's EDIT. Null until that
+                          list hands one over */
+                          expense={editingExpense}
+                          editExpenseData={editExpenseData}
+                          setEditExpenseData={setEditExpenseData}
+                          editExpense={editExpense}
+                          submitting={submittingEditExpense}
+                          fieldErrors={editExpenseFieldErrors}
+                          /* Clearing leaves every field as the expense is
+                          stored, the checkbox included */
+                          emptyForm={expenseEditForm(editingExpense)}
+                          /* Fills the trip select. An expense is embedded in the
+                          budget of its trip, so only a trip that has one can
+                          hold it — which makes these the trips it can move to */
+                          budgets={budgets}
+                          loadingBudgets={loadingBudgets}
+                          currencyOptions={currencyOptions}
+                        />
                       </div>
                     </Col>
                   </Row>
