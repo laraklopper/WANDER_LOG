@@ -207,7 +207,7 @@ export default function BudgetList(
   return (
     <div id='budgetListDiv'>
         <div id='listBtnDiv'>
-              <Stack direction="horizontal" gap={3} id='listButtonSTack'>
+              <Stack direction="horizontal" gap={3} id='listButtonStack'>
                 <div className="p-2" id='refreshBudgetBlock'>
                     <Button
         id='refreshBudgetsBtn'
