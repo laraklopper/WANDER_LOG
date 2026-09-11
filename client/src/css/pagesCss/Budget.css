@@ -249,6 +249,12 @@ LAYOUT
 /* ===================
 LAYOUT
 ============*/
+#conversions-list-display{
+    padding: 5px 0px;
+    margin: 0px;
+    width: 100%;
+    display: flex;
+}
 #calculations-panal,
 #vat-calculations-panal,
 #conversions-list-panal{

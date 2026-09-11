@@ -3,7 +3,7 @@ import '../css/componentCss/FilterForms.css'
 import '../css/componentCss/FormSetup.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
-
+import { Ban, Search } from 'lucide-react';
 export default function FilterExpenses() {
   return (
     <form id='filterForm'>
@@ -81,7 +81,7 @@ export default function FilterExpenses() {
         variant='warning'
         id='applyFiltersBtn'      
         >
-          APPLY
+          APPLY<Search fontWeight={700} aria-hidden='true' focusable='false' />
         </Button>
       </div>
       <div className="p-2">
@@ -89,7 +89,7 @@ export default function FilterExpenses() {
          variant='danger'
          id='clearFiltersBtn'
          >
-          CLEAR FILTERS
+          CLEAR FILTERS<Ban fontWeight={700} aria-hidden='true' focusable='false'/>
         </Button>
       </div>
     </Stack>
