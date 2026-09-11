@@ -265,7 +265,9 @@ export default function TripsList(
             </table>
             {exportList && (
                 <div id='exportTripsBlock'>
-                    <ExportForm/>
+                    {/* The count is passed so the form can keep the button from
+                    asking for an export of an account with no trips on it */}
+                    <ExportForm resource='trips' count={userTrips.length}/>
                 </div>
             )}
         </div>

@@ -49,6 +49,11 @@ app.use(cors({
     origin: clientUrl,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+    /* The export routes answer with a file and name it in Content-Disposition.
+    A cross origin response only lets the page read the handful of headers CORS
+    exposes by default, so without this the export form could not read the name
+    the server chose and would have to make one up for the download */
+    exposedHeaders: ['Content-Disposition'],
 }));
 
 /* Parses incoming JSON bodies into req.body. Without this the login and

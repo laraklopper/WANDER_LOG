@@ -334,7 +334,9 @@ export default function ExpensesList(
         {/* EXPORT FORM*/}
         {showExportForm && (
           <div id='exportListBlock'>
-          <ExportForm/>
+          {/* The count is passed so the form can keep the button from asking
+          for an export of an account with no expenses on it */}
+          <ExportForm resource='expenses' count={expenses.length}/>
 
         </div>
         ) }

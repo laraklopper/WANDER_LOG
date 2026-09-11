@@ -325,7 +325,10 @@ export default function BudgetList(
             {exportBudgets &&(
                 <div id='exportListPanal'>
                     <div id='exportBlock'>
-                        <ExportForm/>
+                        {/* The count is passed so the form can keep the button
+                        from asking for an export of an account with no budgets
+                        set on it */}
+                        <ExportForm resource='budgets' count={budgets.length}/>
                     </div>
                 </div>
             )}

@@ -269,7 +269,9 @@ export default function EntriesList(
             </table>
             {exportList && (
                 <div>
-                    <ExportForm/>
+                    {/* The count is passed so the form can keep the button from
+                    asking for an export of an account with no entries on it */}
+                    <ExportForm resource='entries' count={userEntries.length}/>
                 </div>
             )}
         </div>

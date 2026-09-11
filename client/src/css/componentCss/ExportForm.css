@@ -41,3 +41,29 @@
     background-color: #323A42;
     color: #E8F0F6;
 }
+/* ============
+CONFIRMATION MESSAGE: shown once a file has been handed to the browser. The
+failure message next to it uses .formErrorBlock and .formErrorMessage from
+FormSetup.css, so only the success wording is styled here — in the dark green
+the palette keeps for a completed action rather than the error red
+========*/
+.exportConfirmationBlock{
+    display: flex;
+    justify-content: center;
+    margin: 0px;
+    padding: 5px 0px;
+}
+.exportConfirmationMessage{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+    margin: 0px;
+    padding: 0px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: "Open Sans", sans-serif;
+    letter-spacing: 1px;
+    text-align: center;
+    color: #1B5E20;
+}
