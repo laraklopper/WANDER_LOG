@@ -21,6 +21,7 @@ const entryRoutes = require('./routes/entryRoutes')
 const expenseRoutes = require('./routes/expenseRoutes.js')
 const budgetRoutes = require('./routes/budgetRoutes.js')
 const apiRoutes = require('./routes/apiRoutes.js')
+const exportRoutes = require('./routes/exportRoutes.js')
 // Extract enviromental variables
 const port = process.env.PORT || 3001;
 /* Origin the React dev server runs on. Set CLIENT_URL in .env to point the
@@ -70,7 +71,9 @@ app.use('/trip', tripRoutes);// Trip related routes -The logged in user's trips
 app.use('/entry', entryRoutes );//Entry related routes
 app.use('/expense', expenseRoutes )//Expense related routes
 app.use('/budget', budgetRoutes)///Budget related routes
+app.use('/exports' , exportRoutes)//Data export related routes
 app.use('/api', apiRoutes)// Currency related routes - the currency list, conversion, and the logged in user's saved conversions
+
 // Lightweight endpoint for checking the API is up
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', database: mongoose.connection.readyState === 1 });
