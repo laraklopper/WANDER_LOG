@@ -1,13 +1,16 @@
+// EditPasswordForm.js
+//IMPORT REQUIRED MODULES AND PACKAGES
 import React, { useState, useCallback, useMemo } from 'react'
+// IMPORT CSS STYLESHEETS
 import '../css/componentCss/EditUserForms.css'
 import '../css/componentCss/FormSetup.css'
+// IMPORT BOOTSTRAP COMPONENTS
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
+// IMPORT ICONS FROM LUCIDE-REACT
 import { Asterisk, Eye, EyeOff, Bug, Check } from 'lucide-react';
 
 // Regex pattern to check for at least 8 characters and one special character.
-// Kept identical to the one checkPassword applies on the server, so the form
-// never accepts a password the API would then reject
 const strongPasswordRegex = /^(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$/;
 
 // IDs used to tie each message to the input it belongs to, via aria-describedby
@@ -17,22 +20,28 @@ const strengthErrorId = 'newPasswordStrengthError';
 const matchErrorId = 'confirmPasswordMatchError';
 const reuseErrorId = 'newPasswordReuseError';
 
-export default function EditPasswordForm({currentUser, setError}) {
+//EditPasswordForm function component
+export default function EditPasswordForm(//Export default EditPasswordForm.js function component
+  {//PROPS PASSED FROM PARENT COMPONENT(Profile.js)
+    currentUser, 
+    setError
+  }) {
     //===========STATE VARIABLES===========
+    // State to display password messages
     const [showPswdMsg, setShowPswdMsg] = useState(false);
-    const [showCurrentPswd, setShowCurrentPswd] = useState(false);
-    const [showNewPswd, setShowNewPswd] = useState(false);
-    const [showConfirmNewPswd, setShowConfirmNewPswd] = useState(false);
-    const [currentPassword, setCurrentPassword] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmNewPassword, setConfirmNewPassword] = useState('');
-    const [loading, setLoading] = useState(false)//Loading
-    /* The form level message returned by the request. Held here as well as
-    pushed to setError, so the reason stays next to the submit button the user
-    just pressed rather than only at the top of the profile page */
+    // State to toggle password display
+    const [showCurrentPswd, setShowCurrentPswd] = useState(false);//State to display the current password
+    const [showNewPswd, setShowNewPswd] = useState(false);//State to display new password
+    const [showConfirmNewPswd, setShowConfirmNewPswd] = useState(false);//State upsrt to show the converted password
+    // ----FORM INPUT VARIABLES-----------------
+    const [currentPassword, setCurrentPassword] = useState('');// Stores the user's current password entered into the form
+    const [newPassword, setNewPassword] = useState('');// Stores the new password that the user wants to change to
+    const [confirmNewPassword, setConfirmNewPassword] = useState('');// Stores the confirmed password input
+    const [loading, setLoading] = useState(false)// Used to disable buttons and display a loading message while saving.
     const [formError, setFormError] = useState(null);
     const [statusMessage, setStatusMessage] = useState(null);
 
+    //Function to ensure the password has all necessary requirements
      const isStrongPassword = useCallback((pwd)=> {
         return strongPasswordRegex
             .test(
@@ -40,9 +49,7 @@ export default function EditPasswordForm({currentUser, setError}) {
             );
     },[])
 
-    /* Live checks on what has been typed so far. Each one is only shown once the
-    field it belongs to has something in it, so an untouched form is not covered
-    in errors before the user has had a chance to type */
+    /* Live checks on what has been typed so far. */
     const showStrengthError = useMemo(
       () => newPassword.length > 0 && !isStrongPassword(newPassword),
       [newPassword, isStrongPassword]
@@ -61,8 +68,7 @@ export default function EditPasswordForm({currentUser, setError}) {
     // Joins the IDs that are currently rendered into a single aria-describedby value
     const describedBy = (...ids) => ids.filter(Boolean).join(' ') || undefined;
 
-    /* Clears every field and closes the three reveal toggles, so a password is
-    never left visible in a field the user believes they have emptied */
+    //Function to reset editPassword form
     const resetForm = useCallback(() => {
       setCurrentPassword('');
       setNewPassword('');
@@ -79,6 +85,7 @@ export default function EditPasswordForm({currentUser, setError}) {
       setError?.(message);
     }, [setError]);
 
+    //Function to edit user password
     const editPassword = useCallback(async (e) => {
         e.preventDefault();
         // Blocks a second request while the first is still running
@@ -88,15 +95,14 @@ export default function EditPasswordForm({currentUser, setError}) {
         setFormError(null)
         setStatusMessage(null)
 
-        /* All the checks below run before the request so a password the server
-        would reject never leaves the browser. They also return before setLoading,
-        so the submit button is not left disabled on a validation failure */
-        // Validate that the new password and confirm new password match
+        // Condittional rendering to check that the new password 
+        // and confirm new password match
         if (newPassword !== confirmNewPassword) {
           failWith('New password and confirm new password do not match.');
-          return;
+          return;// Exit the function early
         }
 
+        // Conditional rendering to check password strength
         if (!isStrongPassword(newPassword)) {
           failWith(//Message for weak password
             'New password must be at least 8 characters long and include at least one special character.'
@@ -107,7 +113,7 @@ export default function EditPasswordForm({currentUser, setError}) {
         // Matches the rule the server applies, which returns a 400 for a reused password
         if (currentPassword === newPassword) {
           failWith('New password must be different from your current password.');
-          return;
+          return;// Exit the function early
         }
 
         const token = localStorage.getItem('token')
@@ -125,27 +131,24 @@ export default function EditPasswordForm({currentUser, setError}) {
           setLoading(true)
 
           const response = await fetch(`http://localhost:3001/users/${userId}/editPassword`, {
-            method: 'PATCH',
-            mode: 'cors',
+            method: 'PATCH',//HTTP request method
+            mode: 'cors',// Enable Cross-origin resource sharing
             headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',// Specify the Content-Type in the request payload
+              'Authorization': `Bearer ${token}`,// Attach JWT token for authorization
             },
-            body: JSON.stringify({
+            body: JSON.stringify({// Convert the password data to a JSON string
               currentPassword,
               newPassword,
             }),
           });
 
-          /* Safely parse the JSON response. Guarded because the body is empty or
-          is not JSON at all on a 429 from the rate limiter, and response.json()
-          would throw before the status could be reported */
-          const data = await response.json().catch(() => ({}));
+          
+          const data = await response.json().catch(() => ({}));// Safely parse the JSON response (avoid crash if server returns non-JSON)
 
+          /* Conditional rendering to check if the response
+               is not successful (status code is not in the range 200-299)*/
           if (!response.ok) {
-            /* Falls back through the shapes the API can return: a plain message,
-            the field keyed errors a Mongoose ValidationError produces, an error
-            string, then the status text */
             const errorMessage =
               data?.message ||
               (data?.errors && Object.values(data.errors).join(' ')) ||
@@ -160,7 +163,7 @@ export default function EditPasswordForm({currentUser, setError}) {
           // Clear the form fields after successful update
           resetForm();
           setStatusMessage('Password updated successfully.');
-          alert('Password updated successfully!');
+          alert('Password updated successfully!');// Notify the user of success
         } catch (error) {
           // Only a network level failure reaches here, a 4xx or 5xx is handled above
           console.error('[ERROR: EditPasswordForm.js] Password update request failed:', error.message);
@@ -173,9 +176,7 @@ export default function EditPasswordForm({currentUser, setError}) {
 
       //=======================JSX RENDERING========================
   return (
-    /* No method attribute, a form element only accepts GET or POST and the
-    PATCH is sent by editPassword rather than by the browser */
-    <form id='edit-password-form' onSubmit={editPassword} aria-label='Edit Password Form'>
+    <form id='edit-password-form' onSubmit={editPassword} aria-labelledby='Edit Password Form'>
       <div id='formHeadingBlock'>
         <h3 id='formHeading'>Edit Password</h3>
       </div>

@@ -1,3 +1,4 @@
+// CurrencyConverter.js
 import React, { useState } from 'react'
 import '../css/componentCss/CurrencyConverter.css'
 import '../css/componentCss/FormSetup.css'

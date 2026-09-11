@@ -1,3 +1,4 @@
+//AddEntryForm.js
 import React, { useMemo, useState } from 'react'
 import '../css/componentCss/FormSetup.css'
 import '../css/componentCss/AddEntryForm.css'
@@ -12,11 +13,7 @@ accepting characters at the point the API would refuse them */
 const TITLE_MAX = 150;
 const BODY_MAX = 2000;
 
-/* The empty form used by the clear button when the page does not supply one.
-Kept in sync with EMPTY_ENTRY in pages/Journal.js, which is passed in as a prop.
-The trip is held as tripId rather than a title, because that is what the API
-takes: it loads the trip and reads the stored title off it. The owner is left out
-on purpose, userId and username come from the token and the database */
+/* The empty form used by the clear button when the page does not supply one.*/
 const BLANK_ENTRY = {
   tripId: '',
   title: '',
@@ -29,19 +26,14 @@ export default function AddEntryForm(
         currentUser,
         newEntryData = BLANK_ENTRY,
         setNewEntryData,
-        addEntry,
-        // True while the add entry request is in flight, set by the Journal page
-        submitting = false,
-        /* Field keyed messages from the server, for rules the browser cannot
-        check. Keyed by schema path, so the trip arrives as 'tripId' */
-        fieldErrors = {},
+        addEntry,        
+        submitting = false,// True while the add entry request is in flight, set by the Journal page
+        fieldErrors = {},// Field keyed messages from the server, for rules the browser cannot check
         emptyForm = BLANK_ENTRY,
-        /* The logged in user's trips, loaded by the Journal page. An entry has to
-        be filed against one of them, so the form cannot be submitted until at
-        least one trip exists */
-        trips = [],
+        trips = [],//Logged in users trips
         loadingTrips = false
     }) {
+        //====================STATE VARIABLES================================
         const [formError, setFormError] = useState(null)// Form level error shown above the submit button
         const [touched, setTouched] = useState({
             tripId: false,// Tracks if the trip select was touched
@@ -151,6 +143,7 @@ export default function AddEntryForm(
             addEntry?.()
         }
 
+        //Function to handle input changes
         const handleInput = (event) => {
             const {name, value} = event.target;
 
@@ -161,6 +154,7 @@ export default function AddEntryForm(
             }))
         }
 
+        //function to ckear form inpus
         const clearForm = () => {
             const confirmClear = window.confirm(// Ask the user to confirm before clearing all input fields
                 "Are you sure you want to clear the form?"
@@ -207,16 +201,13 @@ export default function AddEntryForm(
             <div id='addEntry-group1'>
             <Stack gap={3} id='addEntry-stack1'>
                 <div className="p-2" id='addEntry-div1'>
+                {/* USERNAME: value={`${currentUser?.username || 'USERNAME'}`}  */}
                     <div className='input-div'>
                         <label className='addEntry-label' htmlFor='newEntryUsername'>USERNAME:</label>
-                        {/* Read only, and never submitted: the API takes the
-                        owner from the token and reads the username from the
-                        account, so this is only here to confirm who the entry
-                        is being logged for */}
                         <input
                             className='input'
                             id='newEntryUsername'
-                            readOnly
+                            readOnly// Read only, and never submitted
                             value={`${currentUser?.username || 'USERNAME'}`}
                             // ARIA ATTRIBUTES:
                             aria-required='true'
@@ -226,6 +217,7 @@ export default function AddEntryForm(
                     </div>
                 </div>
                 <div className="p-2">
+                {/* TRIP: value={newEntryData.tripId || ''} */}
                     <div className='input-div'>
                         <label className='addEntry-label' htmlFor='newEntryTrip'>TRIP:</label>
                         <select
@@ -279,6 +271,7 @@ export default function AddEntryForm(
                     )}
                 </div>
       <div className="p-2">
+      {/* DATE: value={newEntryData.date || ''} */}
         <label className='addEntry-label' htmlFor='currentDate'>DATE:</label>
         <div className='input-div'>
             <input
@@ -287,6 +280,7 @@ export default function AddEntryForm(
                 className='input'
                 required
                 name='date'
+                // EVENTS
                 value={newEntryData.date || ''}
                 onChange={handleInput}
                 onBlur={() => markTouched('date')}
@@ -310,6 +304,7 @@ export default function AddEntryForm(
             {/* GROUP 2 */}
             <div id='addEntry-group2'>
                  <Stack gap={3} id='addEntry-stack2'>
+                 {/* TITLE : value={newEntryData.title || ''}*/}
                     <div className="p-2" id='entry-block1'>
                         <label className='addEntry-label' htmlFor='newEntryTitle'>TITLE:</label>
                         <div className='input-div'>
@@ -340,6 +335,7 @@ export default function AddEntryForm(
                         )}
                     </div>
                     <div className="p-2" id='entry-block2'>
+                    {/* DETAILS: value={newEntryData.body || ''} */}
                         <label className='addEntry-label' htmlFor='entryTextInput'>DETAILS:</label>
                         <div className='input-div'>
                             <textarea

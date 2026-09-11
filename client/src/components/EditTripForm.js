@@ -49,9 +49,6 @@ export default function EditTripForm(
     // =========STATE VARIABLES=============
     const [dateMsg, setDateMsg] = useState(false)
     const [formError, setFormError] = useState(null)// Form level error shown above the submit button
-    /* Only the two fields that can be wrong without being empty are tracked. The
-    rest cannot: this form has no required input, so a blank one is a field being
-    left as it is rather than a field with something missing from it */
     const [touched, setTouched] = useState({
         country: false,// Tracks if the country field was touched
         endDate: false,// Tracks if the end date field was touched
@@ -163,12 +160,7 @@ export default function EditTripForm(
         }));
     };
 
-    /* Changing the destination type clears the country as well as setting the
-    type. Without this, a country typed while the trip was being made
-    international would still be sitting in state after it was switched back to
-    domestic, and would be sent with an edit whose input is no longer on screen.
-    The API drops the stored country from a domestic trip anyway, so clearing the
-    field keeps the form saying what the edit will actually do */
+    //Function to change the destination type
     const handleDestinationTypeChange = (event) => {
         const { value } = event.target;
 
@@ -183,10 +175,6 @@ export default function EditTripForm(
         }));
     };
 
-    /* Only the rules the browser cannot enforce on its own are checked here.
-    maxLength and type constraints are still handled by the native validation on
-    each input, which blocks submit before this runs. There is nothing to check
-    for an empty field: this form requires none of them */
     const handleEditTrip = (e) => {
         e.preventDefault()
         // Ignored while a request is already running, so the form cannot double post
@@ -273,8 +261,6 @@ export default function EditTripForm(
             be filled in for one trip while another is the one open */}
             <h3 id='formHeading'>EDIT TRIP: {trip?.title || NOT_AVAILABLE}</h3>
         </div>
-        {/* Says once what every field on the form then relies on, rather than
-        repeating 'leave blank to keep' under each of the eight inputs */}
         <div id='editTripInfoBlock'>
             <p className='editInfoMsg'>
             <i><small>Only fill in what you want to change. Anything left blank stays as it is.</small></i> 
@@ -314,11 +300,9 @@ export default function EditTripForm(
                         </small>
                     </div>
                     <div className="p-2" id='editPurposeBlock'>
+                    {/* EDIT TRIP PURPOSE: value={editTripData.purpose || ''} */}
                         <label className='editTrip-label' htmlFor='editTripPurpose'>PURPOSE</label>
                         <div className='input-div'>
-                        {/* The first option is the purpose the trip already has,
-                        and carries no value, so leaving the select on it sends
-                        no purpose with the edit */}
                             <select
                             className='input'
                             id='editTripPurpose'
@@ -347,7 +331,7 @@ export default function EditTripForm(
                         </small>
                     </div>
                     <div className="p-2" id='editStatusBlock'>
-                    {/* EDIT STATUS */}
+                    {/* EDIT STATUS: value={editTripData.status || ''} */}
                         <label className='editTrip-label' htmlFor='editTripStatus'>EDIT STATUS:</label>
                         <div className='input-div'>
                             <select
@@ -388,6 +372,7 @@ export default function EditTripForm(
             </div>
             {/* STACK 2 : destination : Type, location, country*/}
                 <Stack gap={3} id='editTripStack2'>
+                {/* DESTINATION TYPE: value={editTripData.destination?.destinationType || ''} */}
                     <div className="p-2" id='editTripTypeBlock'>
                         <label className='editTrip-label' htmlFor='editTripDestinationType'>EDIT DESTINATION TYPE:</label>
                         <select
@@ -418,6 +403,7 @@ export default function EditTripForm(
                         </small>
                     </div>
                     <div className="p-2" id='editLocationBlock'>
+                    {/* EDIT TRIP LOCATION: value={editTripData.destination?.tripLocation || ''} */}
                         <div className='input-div'>
                          <label className='editTrip-label' htmlFor='editTripLocation'>EDIT LOCATION:</label>
                             <input
@@ -441,11 +427,8 @@ export default function EditTripForm(
                                 CURRENTLY: {storedLocation || NOT_AVAILABLE}
                             </small>
                         </div>
-                        {/* ONLY DISPLAY IF TYPE IS INTERNATIONAL: read off the
-                        type this edit would leave the trip with, so the input
-                        appears as soon as the select is switched to
-                        international and goes again when it is switched back.
-                        A domestic trip stores no country at all */}
+                        {/* EDIT COUNTRY: value={editTripData.destination?.country || ''} */}
+                        {/* ONLY DISPLAY IF TYPE IS INTERNATIONAL*/}
                         {isInternational && (
                           <div className='input-div'>
                          <label className='editTrip-label' htmlFor='editTripCountry'>COUNTRY:</label>
@@ -453,10 +436,7 @@ export default function EditTripForm(
                                 className='input'
                                 id='editTripCountry'
                                 type='text'
-                                /* Only required while the trip is being made
-                                international and holds no country to keep:
-                                without one there would be nothing to store */
-                                required={countryMissing}
+                                required={countryMissing}// Only required if the trip type is international
                                 maxLength={50}
                                 placeholder={storedCountry || 'COUNTRY'}
                                 name='destination.country'
@@ -490,10 +470,10 @@ export default function EditTripForm(
                 </Stack>
             </div>
             {/* GROUP 3: START DATE + END DATE */}
-              <div id='editTripGroup3'>
+              <div id='editTripGroup3' aria-labelledby='editDateGroup'>
               <div className='editTripGroupHead'>
               <span id='editTripGroup3Head-span'>
-                    <h4 className='formSectionHeading'>DATE</h4>
+                    <h4 className='formSectionHeading' id='editDateGroup'>DATE</h4>
                 <Calendars style={{margin: '0px', padding: '0px'}} fontWeight={700} size={24} aria-hidden='true' focusable='false'/>
               </span>
               </div>
@@ -501,7 +481,7 @@ export default function EditTripForm(
                  <Stack direction="horizontal" gap={3} id='editTripStack3'>
       <div className="p-2" id='editTripDateBlock'>
         <div className='date-input'>
-        {/* START DATE */}
+        {/* START DATE: value={editTripData.date?.startDate || ''} */}
             <div className='input-div'>
                 <label className='editTrip-label' htmlFor='editTripStartDate'>EDIT START DATE:</label>
                 <input
@@ -528,7 +508,7 @@ export default function EditTripForm(
                     CURRENTLY: {toLongDate(trip?.date?.startDate)}
                 </small>
             </div>
-            {/* END DATE */}
+            {/* END DATE: value={editTripData.date?.endDate || ''} */}
             <div className='input-div'>
                 <label className='editTrip-label' htmlFor='editTripEndDate'>EDIT END DATE:</label>
                 <input
@@ -537,9 +517,7 @@ export default function EditTripForm(
                     name='date.endDate'
                     value={editTripData.date?.endDate || ''}
                     type='date'
-                    /* Stops the picker offering a date before the trip starts,
-                    whether that is the start date this edit is setting or the
-                    one the trip is already stored with */
+                    /* Stops the picker offering a date before the trip starts, */
                     min={startDate || undefined}
                     onFocus={() => setDateMsg(true)}
                     onBlur={() => {
@@ -595,9 +573,7 @@ export default function EditTripForm(
             </p>
           </div>
         )}
-        {/* SERVER SIDE FIELD ERRORS, returned when the API rejects the edit.
-        These are rules the browser cannot check on its own, so they can only be
-        reported after a round trip */}
+        {/* SERVER SIDE FIELD ERRORS*/}
         {serverErrors.length > 0 && (
           <div id={serverErrorId} className='formErrorBlock' role='alert' aria-live='assertive'>
             {serverErrors.map(([field, message]) => (
@@ -608,7 +584,7 @@ export default function EditTripForm(
             ))}
           </div>
         )}
-        {/* GROUP 4 */}
+        {/* GROUP 5 */}
         <div id='editTripGroup5'>
         {/* STACK 4 */}
             <Stack direction="horizontal" gap={3} id='editTripBtnStack'>
