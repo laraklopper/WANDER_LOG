@@ -49,6 +49,20 @@ LISTS SECTION:
   width: 100%; 
   padding: 5px;
 }
+#filterExpensePanal{
+        width: 100%;
+        justify-content: center;
+    margin: 0px;
+    display: flex;
+    padding: 0px;
+}
+#filterBlock{
+        width: 100%;
+    margin: 0px;
+    padding: 0px;
+    display: flex;
+    justify-content: center;
+}
 #expenses-list-row{
     width: 100%;
     margin: 0px;

@@ -97,3 +97,9 @@ under the group's own label rather than run on beside it */
     text-decoration: underline;
     
 }
+#listButtonStack{
+        border-bottom: solid;
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+}
