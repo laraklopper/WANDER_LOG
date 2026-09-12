@@ -41,9 +41,7 @@ const matchEnum = (value, allowed) =>
 
 /* Reads one value off a submission by the schema path the form names its input
 by, so a destination arrives as 'destination.tripLocation' and a date as
-'date.startDate'.
-
-Both shapes are read, the nested one first, so a body built as
+'date.startDate'. Both shapes are read, the nested one first, so a body built as
 { date: { startDate: '2025-01-01' } } and one built as
 { 'date.startDate': '2025-01-01' } are understood the same way. */
 const readPath = (body, group, key) => {
@@ -57,13 +55,6 @@ can be judged from a single submitted value on its own:
 - a country belongs on an international trip, and is required for one, while a
   domestic trip stores none at all
 - a trip cannot end before it starts
-
-Both are checked against the whole trip, which on a create is the submission and
-on an edit is the merge of the submitted changes over what is already stored: an
-edit that moves only the start date still has to be compared against the stored
-end date, and one that only switches the type to international has to find a
-country either in the body or already on the trip.
-
 Returns `{ message }` describing the problem, or null when the trip is usable. */
 const checkTripRules = ({ destinationType, country, startDate, endDate }) => {
     if (destinationType === 'International' && !String(country ?? '').trim()) {
@@ -228,9 +219,7 @@ const parseTripInput = (body = {}, { partial = false } = {}) => {
 
         if (problem) return problem;
 
-        /* The country only belongs on an international trip, so it is left
-        undefined on a domestic one rather than stored next to a location that is
-        already inside the user's own country */
+        /* The country only belongs on an international trip */
         if (destination.destinationType !== 'International') destination.country = undefined;
     }
 

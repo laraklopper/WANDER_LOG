@@ -29,7 +29,7 @@ const Entry = require('../models/entrySchema');
 own, so both the expense export and the budget export read this one collection */
 const Budget = require('../models/budgetSchema');
 const User = require('../models/userSchema');
-const { checkJwtToken } = require('./middleware');
+const { checkJwtToken, exportLimiter } = require('./middleware');
 const {
     CONTENT_TYPES,
     matchFormat,
@@ -42,18 +42,8 @@ const {
 } = require('../util/exportFile');
 const router = express.Router()
 
-/* An export reads every record of one type on the account and builds a file out
-of them, which costs more than the reads the pages themselves make. The limit is
-loose enough that nobody choosing both formats for all four lists would meet it,
-and stops one client asking for full exports in a loop. Returns 429 (RFC 6585)
-once the quota is used up */
-const exportLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,// 15 minute window
-    max: 60,// 60 exports per window per IP
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { success: false, message: 'Too many exports, please try again in 15 minutes' },
-});
+
+
 
 /* Shown in place of the trip title on a record whose trip has since been
 deleted. Matches what expenseRoutes.js reports in the same case, so a row reads

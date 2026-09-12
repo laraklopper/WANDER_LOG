@@ -3,6 +3,7 @@
 file using the dotenv package*/
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
+const rateLimit = require('express-rate-limit');
 const User = require('../models/userSchema')
 // Extract enviromental variables
 const secretKey = process.env.JWT_SECRET_KEY || 'secretKey';
@@ -66,6 +67,41 @@ const checkJwtToken = (req, res, next) => {
         });
      }
 };
+
+/*===========================
+RATE-LIMIT MIDDLEWARE
+==============*/
+/* Limits repeated attempts from one IP so the login endpoint cannot be used to
+guess passwords. Returns 429 (RFC 6585) once the quota is used up */
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,// 15 minute window
+    max: 10,// 10 attempts per window per IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: 'Too many login attempts, please try again in 15 minutes' },
+});
+
+/* Registration is limited more loosely: it is not a guessing target, but the
+limit stops one client creating accounts in bulk */
+const registerLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,// 1 hour window
+    max: 20,// 20 registrations per window per IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { message: 'Too many registration attempts, please try again later' },
+});
+/* An export reads every record of one type on the account and builds a file out
+of them, which costs more than the reads the pages themselves make. The limit is
+loose enough that nobody choosing both formats for all four lists would meet it,
+and stops one client asking for full exports in a loop. Returns 429 (RFC 6585)
+once the quota is used up */
+const exportLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,// 15 minute window
+    max: 60,// 60 exports per window per IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, message: 'Too many exports, please try again in 15 minutes' },
+});
 
 /*====================
 ADMIN ONLY MIDDLEWARE
@@ -165,5 +201,8 @@ const checkPassword = (req, res, next) => {
 module.exports = {
     checkJwtToken,
     checkAdmin,
-    checkPassword
+    checkPassword,
+    exportLimiter,
+    loginLimiter,
+    registerLimiter
 }

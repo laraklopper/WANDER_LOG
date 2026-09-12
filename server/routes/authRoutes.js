@@ -2,57 +2,44 @@
 /* Load environment variables from a .env
 file using the dotenv package*/
 require('dotenv').config()
-const express = require('express');
-const jwt = require('jsonwebtoken');
-const rateLimit = require('express-rate-limit');
+// IMPORT REQUIRED MODULES AND PACKAGES
+const express = require('express');//Express framework for building web applications
+const jwt = require('jsonwebtoken');// Import the JSON Web Token (JWT) library
+// Import schemas
 const User = require('../models/userSchema');
-const { checkPassword } = require('./middleware');
-const router = express.Router()
+// Import Middleware
+const { checkPassword, registerLimiter, loginLimiter} = require('./middleware');
+const router = express.Router()// Create a new router object using Express
 
-/* Read once at module load. ensureJwtSecret() has already run in app.js by this
-point, so the key is guaranteed to be present in the environment */
-const secretKey = process.env.JWT_SECRET_KEY;
+// Extract environmental variables (with safe fallbacks for local dev)
+const secretKey = process.env.JWT_SECRET_KEY || 'secretKey';// JWT secret key
+const tokenExpiry = process.env.TOKEN_EXPIRY ||'12h';// JWT expiry Time
+const jwtAlgorithm = process.env.JWT_ALGORITHM || 'HS256';// JWT algorithm
 
-// How long a session lasts before the user has to log in again
-const TOKEN_EXPIRY = '12h';
-
-/* Limits repeated attempts from one IP so the login endpoint cannot be used to
-guess passwords. Returns 429 (RFC 6585) once the quota is used up */
-const loginLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,// 15 minute window
-    max: 10,// 10 attempts per window per IP
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { message: 'Too many login attempts, please try again in 15 minutes' },
-});
-
-/* Registration is limited more loosely: it is not a guessing target, but the
-limit stops one client creating accounts in bulk */
-const registerLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000,// 1 hour window
-    max: 20,// 20 registrations per window per IP
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { message: 'Too many registration attempts, please try again later' },
-});
-
-/**
- * Signs a JWT for the given user.
- * The payload deliberately carries only the id and the role: everything else is
- * read from the database on each request, so a stale token cannot grant access
- * based on details that have since changed.
- */
+//=====CHECK IF ALL THE ENVIRONMENTAL VARIABLES A PRESENT=========
+// Conditional rendering to check if the environmental variables are missing
+if (!secretKey) {
+    console.warn("[WARNING: authRoutes.js]: JWT_SECRET_KEY not set. Using fallback key.");// Log a warning message in the console for debugging purposes
+}
+else if(!tokenExpiry){
+    console.warn('[WARNING: authRoutes.js] Missing exiration time, using fallback time')// Log a warning message in the console for debugging purposes
+}
+else if(!jwtAlgorithm){
+    console.warn('[WARNING: authRoutes.js] Missing jwt algorithm, using fallback algorithm.'); // Log a warning message in the console for debugging purposes
+}
+// UTILITY FUNCTIONS
+// Function to sign the JWT token for the given user
 const signToken = (user) =>
     jwt.sign(
         { userId: user._id, admin: user.admin },
-        secretKey,
+        secretKey,//SecretKey
         {
-            expiresIn: TOKEN_EXPIRY,
-            algorithm: 'HS256',
+            expiresIn: tokenExpiry,//Token expiry time
+            algorithm: jwtAlgorithm,//JWT Algorithm
         }
     );
 
-    
+//=============ROUTES================
 /*──────────────────────────── POST ROUTES ──────────────────────────────
     POST: Used to create a new resource/submit data to the database
  ─────────────────────────────────────────────────────────────────────────*/
@@ -134,10 +121,7 @@ router.post('/register', registerLimiter , checkPassword, async (req, res) => {
             return res.status(409).json({ message: `${takenField} is already registered` });
         };
 
-        /* Every field the form sends is passed through. fullName and address are
-        required by the schema, so leaving them out would fail validation.
-        The password is hashed by the pre('save') hook on the schema, and
-        confirmPassword is dropped by the same hook once it has been compared */
+        /* Every field the form sends is passed through. */
         const newUser = new User({
             username,
             fullName,
@@ -172,9 +156,7 @@ router.post('/register', registerLimiter , checkPassword, async (req, res) => {
             });
         }
 
-        /* Duplicate key error from the unique indexes on username and email.
-        Reachable when two requests register the same details at the same time,
-        after the findOne check above has already passed for both */
+        /* Duplicate key error from the unique indexes on username and email */
         if (error.code === 11000) {
             const field = Object.keys(error.keyPattern || {})[0] || 'Account';
             console.error(`[ERROR: authRoutes.js "/register"] Duplicate ${field}`);
@@ -182,8 +164,9 @@ router.post('/register', registerLimiter , checkPassword, async (req, res) => {
         }
 
         console.error('[ERROR: authRoutes.js "/register"] Failed to add User:', error.message);
-        return res.status(500).json({ message: 'Internal Server Error' })
+        return res.status(500).json({ message: 'Internal Server Error' })// Return a 500 (Internal Server Error) status code with a json message
     }
 })
 
+//Export the authRouter
 module.exports = router

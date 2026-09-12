@@ -11,10 +11,7 @@
 all routes require JWT Auth
 
 An expense is not a model of its own: it is embedded in the budget of the trip it
-belongs to, one budget per trip (see section 6.1 of Documents/SCHEMAS.md). So an
-expense is always written through its parent, and a trip with no budget has
-nowhere to put one — which is why the form's trip select is filled from
-/fetchBudgets rather than from the trip list.
+belongs to, one budget per trip
 */
 
 /* Load environment variables from a .env
@@ -426,14 +423,6 @@ router.get('/fetchExpenses', checkJwtToken, async (req, res) => {
 FETCH A SINGLE EXPENSE
 =======================================*/
 /* expense/fetchExpense/:id - Fetches one expense by its own id.
-
-The id is the one Mongo gave the embedded subdocument, not a document of its
-own, so the parent is found by the expense it holds and the expense is then read
-off it. The budget is matched on that id and the owner together, so another
-account's expense is not found at all rather than found and then refused —
-which is also why a missing one is reported as a 404 either way, and never says
-whether it exists on someone else's account.
-
 Used to fill the edit form with what is currently stored, so the trip and the
 base currency travel with it the same way they do in the list. */
 router.get('/fetchExpense/:id', checkJwtToken, async (req, res) => {
@@ -449,8 +438,7 @@ router.get('/fetchExpense/:id', checkJwtToken, async (req, res) => {
         const expenseId = String(req.params.id ?? '').trim();
 
         /* Checked before the budget is looked up, so a malformed id is reported
-        as a 400 rather than reaching Mongoose as a CastError and being reported
-        as a 500 */
+        as a 400 */
         if (!mongoose.Types.ObjectId.isValid(expenseId)) {
             console.warn('[WARN: expenseRoutes.js, GET /fetchExpense/:id] Invalid expense id', expenseId);// Log a warning message in the console for debugging purposes
             return res.status(400).json({ success: false, message: 'That expense id is not valid' });// Respond with a 400 (Bad Request) status code
@@ -495,24 +483,8 @@ router.get('/fetchExpense/:id', checkJwtToken, async (req, res) => {
 ADD AN EXPENSE
 =======================================*/
 /* expense/addExpense - Adds one expense to the budget of the selected trip.
-
 An expense is embedded in its budget rather than stored on its own, so it is
-pushed onto the parent and the parent is saved: that is what runs the
-subdocument's own validation, and what keeps the budget's totals virtuals in
-agreement with what it holds.
-
-The owner is taken from the JWT and the username is read from the database, so a
-body carrying another account's username cannot file an expense against someone
-else. The form shows the username as a read only field for that reason: it is
-there to confirm who the expense is being logged for, not to be submitted.
-
-The budget is matched on the trip and the owner together, so an expense cannot be
-added to another account's budget, and a trip with no budget is reported as such
-rather than silently creating one — a budget needs a total, which this form does
-not ask for.
-
-Everything else goes through parseExpenseInput, so the whole submission is
-checked and normalised in one place before the subdocument is built. */
+pushed onto the parent and the parent is saved */
 router.post('/addExpense', checkJwtToken, async (req, res) => {
     try {
         const userId = req.user?.userId;
@@ -620,28 +592,9 @@ router.post('/addExpense', checkJwtToken, async (req, res) => {
 EDIT AN EXPENSE
 =======================================*/
 /* expense/updateExpense/:id - Edits one of the logged in user's expenses.
-
-The id is the one Mongo gave the embedded subdocument, so the parent budget is
-found by the expense it holds, matched on the owner at the same time: another
-account's expense is not found at all rather than found and then refused — which
-is also why a missing one is reported as a 404 either way, and never says whether
-it exists on someone else's account.
-
-Three things cannot be written through here:
-- the owner, username, which is read off the account for the same reason it is on
-  a create
-- convertedAmount, which is worked out from an exchange rate rather than typed,
-  and is recalculated below whenever the figure it was derived from moves
-- the expense's own id, which is kept even when the expense changes trip
-
+The id is the one Mongo gave the embedded subdocument
 Only the fields the form filled in arrive, so everything goes through
-parseExpenseInput in partial mode: a field the body does not carry is left as it
-is stored, and one that is present is checked the same way a create checks it.
-
-Changing the trip is a move rather than a field being written. An expense is
-embedded in the budget of its trip rather than stored on its own, so it is taken
-off one parent and pushed onto the other, and a trip with no budget has nowhere
-to put it. */
+parseExpenseInput in partial mode */
 router.patch('/updateExpense/:id', checkJwtToken, async (req, res) => {
     try {
         const userId = req.user?.userId;
@@ -881,9 +834,7 @@ router.delete('/delete/:id', checkJwtToken, async (req, res) => {
         }
 
         /* Matched on the expense and the owner together, so a budget belonging
-        to another account is not found at all. Read whole rather than through a
-        projection, because it is saved again below and Mongoose does not
-        validate the paths a projection left out */
+        to another account is not found at all. */
         const budget = await Budget.findOne({ userId, 'expenses._id': expenseId }).exec();
 
         /* Conditional rendering to check an expense with that id exists on this

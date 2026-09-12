@@ -6,22 +6,7 @@
 - PATCH /editBudget/:id - edit a trip budget
 - DELETE /deleteBudget/:id - delete a budget, and the expenses embedded in it
 
-all routes require JWT Auth
-
-One budget document per trip (see section 6 of Documents/SCHEMAS.md), with that
-trip's expenses embedded in it. So the routes written here are what the whole
-expense chain waits on: a trip with no budget has nowhere to put an expense,
-which is why POST /expense/addExpense answers 404 for one and why the add expense
-form's trip select is filled from the budgets rather than from the trips.
-
-Both writes save through the document rather than with findOneAndUpdate, because
-the schema's pre('save') hook is what works out dailyBudget from the trip's dates
-when it has been left blank, and an update query would not run it.
-
-The delete is the other side of that embedding: an expense is a sub-document of
-its trip's budget rather than a document of its own, so removing a budget removes
-every expense on that trip with it, in the same write and with nothing orphaned.
-*/
+all routes require JWT Auth*/
 
 /* Load environment variables from a .env
 file using the dotenv package*/
@@ -29,14 +14,8 @@ require('dotenv').config()
 const express = require('express');
 const mongoose = require('mongoose');
 const Budget = require('../models/budgetSchema');
-/* Queried to check the selected trip exists and belongs to the caller, and
-required here anyway so the Trip model is registered on mongoose whatever order
-the route modules load in — saving a budget runs a pre('save') hook that reads
-the trip's dates, which throws a MissingSchemaError if nothing has loaded it */
 const Trip = require('../models/tripSchema');
 const { apiCurrencies } = require('../serverData/currencies');
-/* The same ten keys budgetSchema builds its categoryLimits from, so a limit is
-only ever accepted for a category an expense can actually be filed under */
 const { EXPENSE_CATEGORIES } = require('../serverData/expenseData');
 const { checkJwtToken } = require('./middleware');
 const router = express.Router()
@@ -51,16 +30,7 @@ const CURRENCY_CODES = new Set(apiCurrencies);
 BUDGET INPUT PARSING AND VALIDATION
 =======================================*/
 /* Reads one money field off a submission and normalises it into the number the
-schema stores. Every amount on a budget is optional except the total, and an
-optional one that was left blank is stored as null rather than left unset, which
-is the schema's own default and what 'no cap' means for a category limit.
-
-The value is coerced before it is stored so a figure the browser never validated,
-such as one sent straight to the API, is caught here rather than reaching
-Mongoose as a CastError. Zero is allowed, matching min 0 on the schema and the
-min='0' on each input.
-
-Returns `{ message }` describing the problem, or `{ value }` with the figure. */
+schema stores. eturns `{ message }` describing the problem, or `{ value }` with the figure. */
 const parseMoney = (value, label, { required = false } = {}) => {
     // Conditional rendering to check whether the field was filled in at all
     if (value === undefined || value === null || value === '') {
@@ -81,34 +51,15 @@ const parseMoney = (value, label, { required = false } = {}) => {
 
 /* Reads one value off a submission by the schema path the form names its input
 by. The budget form names them with those paths, so a category limit arrives as
-'categoryLimits.food' and an alert as 'alerts.notifyOnExceed'.
-
-Both shapes are read, the nested one first, so a body built as
-{ categoryLimits: { food: 500 } } and one built as { 'categoryLimits.food': 500 }
-store the same limit. */
+'categoryLimits.food' and an alert as 'alerts.notifyOnExceed'. */
 const readPath = (body, group, key) => {
     const nested = body?.[group]?.[key];
     return nested === undefined ? body?.[`${group}.${key}`] : nested;
 }
 
 /* Reads a budget's fields off a request body and normalises them into the shape
-the document expects. Every rule the schema enforces is checked first, so a bad
-submission is reported as a 400 with one clear message instead of a Mongoose
-ValidationError.
-
-The owner is not read here: userId comes from the JWT, so a body carrying another
-account's id cannot file a budget against someone else. Neither are the expenses,
-which are written through /expense/addExpense rather than typed into this form,
-nor the totals, which are virtuals worked out from those expenses.
-
-`partial` is the difference between the two routes. A create has to carry a trip,
-a base currency and a total; an edit only carries what was changed, so a field
-that is absent is left as it is stored rather than being reported as missing. A
-field that is present but blank is still meaningful in both: it clears an
-optional amount back to null.
-
-Returns `{ message }` describing the first problem found, or the normalised
-fields when the input is usable — only the ones the body actually supplied. */
+the document expects. Returns `{ message }` describing the first problem found, 
+or the normalised fields when the input is usable — only the ones the body actually supplied. */
 const parseBudgetInput = (body = {}, { partial = false } = {}) => {
     const { tripId, baseCurrency, totalBudget, dailyBudget } = body;
     const input = {};
@@ -246,14 +197,8 @@ FETCH A SINGLE BUDGET
 The budget is matched on that id and the owner together, so another account's
 budget is not found at all rather than found and then refused — which is also why
 a missing one is reported as a 404 either way, and never says whether it exists on
-someone else's account.
-
-Written alongside the edit route because that route cannot be reached without it.
-An edit is a PATCH of the fields the form owns, so the form has to open against
-every one of them as it is currently stored: /expense/fetchBudgets returns only
-the four fields its trip select reads, and an edit opened from that would submit
-ten blank category limits over the stored ones. The expenses are returned with
-it for the same reason — the base currency is locked once there are any. */
+someone else's account. Written alongside the edit route because that route cannot be reached without it.
+*/
 router.get('/fetchBudget/:id', checkJwtToken, async (req, res) => {
     try {
         const userId = req.user?.userId;
@@ -312,23 +257,7 @@ router.get('/fetchBudget/:id', checkJwtToken, async (req, res) => {
 ADD A BUDGET
 =======================================*/
 /* budget/addBudget - Sets the budget for one of the logged in user's trips. A
-single trip may only ever have one.
-
-The owner is taken from the JWT rather than the body, so a budget cannot be filed
-against someone else's account, and the trip is matched on its id and that owner
-together, so another account's trip is not found at all rather than found and then
-refused.
-
-The one budget per trip rule is enforced here rather than by the database: tripId
-is documented as unique but carries a plain index on the schema, so a trip that
-already has a budget is looked up and reported as a 409 keyed on tripId, which is
-what the form shows against its trip select. That trip is not offered by the
-select in the first place — the page lists only the trips whose hasBudget is
-false — so this catches a stale list as much as a body sent straight to the API.
-
-Saved through the document rather than created with insertOne, because the
-schema's pre('save') hook is what fills in dailyBudget from the trip's dates when
-it was left blank. */
+single trip may only ever have one. */
 router.post('/addBudget', checkJwtToken, async (req, res) => {
     try {
         const userId = req.user?.userId;
@@ -432,11 +361,7 @@ they are stored. Two of them cannot be written at all:
   that currency as it is added, and totalSpent sums those stored figures, so
   changing it afterwards would leave the totals adding up amounts in a currency
   they are no longer expressed in. It is free to change on a budget with nothing
-  spent against it yet.
-
-Saved through the document rather than with findOneAndUpdate, so the schema's
-pre('save') hook runs: clearing the daily budget stores null, and the hook then
-works it out again from the total and the trip's dates. */
+  spent against it yet. */
 router.patch('/editBudget/:id', checkJwtToken, async (req, res) => {
     try {
         const userId = req.user?.userId;
@@ -594,17 +519,14 @@ router.delete('/deleteBudget/:id', checkJwtToken, async (req, res) => {
         const budgetId = String(req.params.id ?? '').trim();
 
         /* Checked before the budget is looked up, so a malformed id is reported
-        as a 400 rather than reaching Mongoose as a CastError and being reported
-        as a 500 */
+        as a 400 */
         if (!mongoose.Types.ObjectId.isValid(budgetId)) {
             console.warn('[WARN: budgetRoutes.js, DELETE /deleteBudget/:id] Invalid budget id', budgetId);// Log a warning message in the console for debugging purposes
             return res.status(400).json({ success: false, message: 'That budget id is not valid' });// Respond with a 400 (Bad Request) status code
         }
 
         /* Matched on the budget and the owner together, so another account's
-        budget is not found at all rather than found and then deleted. The
-        removed document is returned, which is what the expense count below is
-        read off — after this write there is nothing left to count them from */
+        budget is not found at all rather than found and then deleted. */
         const budget = await Budget.findOneAndDelete({ _id: budgetId, userId }).exec();
 
         /* Conditional rendering to check a budget was actually removed. Covers

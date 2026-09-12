@@ -139,16 +139,7 @@ const validationErrors = (error) => Object.fromEntries(
 READ EVERY ENTRY THE LOGGED IN USER HAS WRITTEN
 =======================================*/
 /* entry/fetchEntries - Lists every journal entry belonging to the logged in
-user, newest first.
-
-Filtered on the userId read off the token, never one carried in the query, so the
-list only ever holds this account's own entries.
-
-The entries of a single trip are served by GET /trip/fetchTrip/:id instead: this
-route is the whole journal across every trip, which is what the travel log's
-entries list is built from. Each entry stores the title of the trip it is filed
-against, so nothing has to be populated to name it — the trip is kept in step by
-PATCH /editEntry/:id, which reads that title off the trip document. */
+user, newest first */
 router.get('/fetchEntries', checkJwtToken, async (req, res) => {
     try {
         const userId = req.user?.userId;// Extract the userId from the decoded JWT token payload
@@ -179,18 +170,7 @@ router.get('/fetchEntries', checkJwtToken, async (req, res) => {
 CREATE AN ENTRY
 =======================================*/
 /* entry/addEntry - Creates one journal entry for the logged in user.
-
-The owner is taken from the JWT and the username is read from the database, so a
-body carrying another account's userId or username cannot file an entry against
-someone else. The form shows the username as a read only field for that reason:
-it is there to confirm who the entry is being logged for, not to be submitted.
-
-The trip is loaded and checked against the same token, so an entry cannot be
-added to a trip belonging to another account, and its stored title is read off
-that document rather than trusted from the body.
-
-Everything else goes through parseEntryInput, so the whole submission is checked
-and normalised in one place before the document is built. */
+The owner is taken from the JWT and the username is read from the database.*/
 router.post('/addEntry', checkJwtToken, async (req, res) => {
     try {
         const userId = req.user?.userId;
@@ -210,8 +190,7 @@ router.post('/addEntry', checkJwtToken, async (req, res) => {
         }
 
         /* The username is stored on the entry as well as the id, so read from the
-        account rather than trusted from the body. Doubles as a check that the
-        user on the token still exists */
+        Doubles as a check that the user on the token still exists */
         const user = await User.findById(userId).select('username').exec();
 
         // Conditional rendering to check the user on the token still exists
@@ -264,23 +243,7 @@ router.post('/addEntry', checkJwtToken, async (req, res) => {
 EDIT AN ENTRY
 =======================================*/
 /* entry/editEntry/:id - Edits one of the logged in user's journal entries.
-
-The entry is matched on its id and the owner together, so another account's entry
-is not found at all rather than found and then refused — which is also why a
-missing one is reported as a 404 either way, and never says whether it exists on
-someone else's account.
-
-Three things cannot be written through here:
-- the owner, userId and username, which come from the token and the account for
-  the same reason they do on a create
-- the trip's title, which is read off the trip document the entry is being moved
-  to rather than trusted from the body, so a stored title cannot disagree with
-  the trip it names
-- the entry's own id
-
-Only the fields the form filled in arrive, so everything goes through
-parseEntryInput in partial mode: a field the body does not carry is left as it is
-stored, and one that is present is checked the same way a create checks it. */
+The entry is matched on its id and the owner together*/
 router.patch('/editEntry/:id', checkJwtToken, async (req, res) => {
     try {
         const userId = req.user?.userId;
@@ -293,9 +256,6 @@ router.patch('/editEntry/:id', checkJwtToken, async (req, res) => {
 
         const entryId = String(req.params.id ?? '').trim();
 
-        /* Checked before the entry is looked up, so a malformed id is reported as
-        a 400 rather than reaching Mongoose as a CastError and being reported as
-        a 500 */
         if (!mongoose.Types.ObjectId.isValid(entryId)) {
             console.warn('[WARN: entryRoutes.js, PATCH /editEntry/:id] Invalid entry id', entryId);// Log a warning message in the console for debugging purposes
             return res.status(400).json({ success: false, message: 'That entry id is not valid' });// Respond with a 400 (Bad Request) status code
@@ -315,10 +275,7 @@ router.patch('/editEntry/:id', checkJwtToken, async (req, res) => {
             return res.status(400).json({ success: false, message: 'There is nothing to update' });// Respond with a 400 (Bad Request) status code
         }
 
-        /* Matched on the entry and the owner together, so another account's entry
-        is not found at all rather than found and then refused. Read before the
-        trip below, so a trip is never looked up for an entry this account cannot
-        see */
+        //  Matched on the entry and the owner together
         const entry = await Entry.findOne({ _id: entryId, userId }).exec();
 
         // Conditional rendering to check an entry with that id exists on this account
@@ -333,17 +290,13 @@ router.patch('/editEntry/:id', checkJwtToken, async (req, res) => {
         if (input.body !== undefined) changes.body = input.body;
         if (input.date !== undefined) changes.date = input.date;
 
-        /* Only a trip that is not the one the entry is already filed against is a
-        move: a form left on 'keep this trip' sends the stored id back, and
-        rewriting the entry with the trip it already has is not a change */
+        /* Only a trip that is not the one the entry is already filed against is a move*/
         const movingTrip = input.tripId !== undefined
             && String(input.tripId) !== String(entry.tripId);
         let newTrip = null;
 
         if (movingTrip) {
-            /* Matched on the id and the owner together, so an entry cannot be
-            moved onto a trip belonging to another account: that trip is not
-            found at all rather than found and then refused */
+            /* Matched on the id and the owner together*/
             newTrip = await Trip.findOne({ _id: input.tripId, userId }).select('title').exec();
 
             // Conditional rendering to check the trip exists and belongs to this user
@@ -357,19 +310,12 @@ router.patch('/editEntry/:id', checkJwtToken, async (req, res) => {
             changes.trip = newTrip.title;
         }
 
-        /* Reported rather than written, because the body can carry a field and
-        still hold no change in it: an edit whose only field was the trip the
-        entry is already on arrives here with nothing left to set */
+        
         if (!Object.keys(changes).length) {
             console.warn('[WARN: entryRoutes.js, PATCH /editEntry/:id] Nothing changed on entry', entryId);// Log a warning message in the console for debugging purposes
             return res.status(400).json({ success: false, message: 'There is nothing to update' });// Respond with a 400 (Bad Request) status code
         }
 
-        /* Updated through the query rather than by saving the document, because
-        entrySchema increments the trip's entryCount from a post save hook: that
-        hook cannot tell a create from an edit, so saving here would count this
-        entry a second time. runValidators keeps the schema's own rules on the
-        fields being written, which are raised below as a ValidationError */
         const updatedEntry = await Entry.findOneAndUpdate(
             { _id: entry._id, userId },
             { $set: changes },
@@ -384,10 +330,7 @@ router.patch('/editEntry/:id', checkJwtToken, async (req, res) => {
         }
 
         /* An entry that moved trip has to be counted against the trip it moved
-        to and taken off the one it left. entrySchema only maintains entryCount
-        on a create and a delete, and this edit is neither, so the two trips are
-        adjusted here. Both are filtered on the owner as well as the id, and
-        requested together because neither needs the other's answer */
+        to and taken off the one it left */
         if (movingTrip) {
             await Promise.all([
                 Trip.findOneAndUpdate({ _id: entry.tripId, userId }, { $inc: { entryCount: -1 } }).exec(),
@@ -422,19 +365,7 @@ router.patch('/editEntry/:id', checkJwtToken, async (req, res) => {
 /*=====================================
 DELETE AN ENTRY
 =======================================*/
-/* entry/delete/:id - Removes one of the logged in user's journal entries.
-
-The entry is matched on its id and the owner together, so another account's entry
-is not found at all rather than found and then refused — which is also why a
-missing one is reported as a 404 either way, and never says whether it exists on
-someone else's account.
-
-Nothing is filed against an entry, so unlike a trip there is nothing to clear up
-after it: the only other record that knows about it is the entryCount stored on
-its trip, and that is maintained by the post findOneAndDelete hook on entrySchema.
-Removed through findOneAndDelete for exactly that reason — deleteOne would not
-fire the hook, and the trip would go on counting an entry that is no longer
-stored. */
+/* entry/delete/:id - Removes one of the logged in user's journal entries.*/
 router.delete('/delete/:id', checkJwtToken, async (req, res) => {
     try {
         const userId = req.user?.userId;
@@ -447,41 +378,26 @@ router.delete('/delete/:id', checkJwtToken, async (req, res) => {
 
         const entryId = String(req.params.id ?? '').trim();
 
-        /* Checked before the entry is looked up, so a malformed id is reported
-        as a 400 rather than reaching Mongoose as a CastError and being reported
-        as a 500 */
         if (!mongoose.Types.ObjectId.isValid(entryId)) {
             console.warn('[WARN: entryRoutes.js, DELETE /delete/:id] Invalid entry id', entryId);// Log a warning message in the console for debugging purposes
             return res.status(400).json({ success: false, message: 'That entry id is not valid' });// Respond with a 400 (Bad Request) status code
         }
 
-        /* Matched on the entry and the owner together, so another account's
-        entry is not found at all rather than found and then deleted. The
-        document comes back with the delete, so the trip it was filed against can
-        be reported without a read of its own */
         const entry = await Entry.findOneAndDelete({ _id: entryId, userId }).exec();
 
-        /* Conditional rendering to check an entry with that id existed on this
-        account. Covers both an entry that does not exist and one on another
-        account */
+        /* Conditional rendering to check an entry with that id existed*/
         if (!entry) {
             console.warn('[WARN: entryRoutes.js, DELETE /delete/:id] No entry found for id', entryId, 'and user', userId);// Log a warning message in the console for debugging purposes
             return res.status(404).json({ success: false, message: 'That entry could not be found on your account' });// Respond with a 404 (Not Found) status code
         }
 
         console.log('[SUCCESS: entryRoutes.js, DELETE /delete/:id] Deleted entry', entryId, 'from trip', String(entry.tripId));// Log a success message in the console for debugging purposes
-        return res.status(200).json({
+        return res.status(200).json({// Respond with a 200 (OK) status code and what was removed
             success: true,
-            /* Names the entry that went, because the list it was deleted from
-            shows several and the panel it was deleted through is closing */
             message: `${entry.title || 'Entry'} deleted successfully.`,
-            /* Both returned so the client can drop the row and close any panel
-            or form open on this entry without waiting on a refetch to learn
-            which one went, and can reload the trip whose entryCount the hook on
-            entrySchema has just decremented */
             entryId,
             tripId: entry.tripId,
-        });// Respond with a 200 (OK) status code and what was removed
+        });
     } catch (error) {
         console.error('[ERROR: entryRoutes.js, DELETE /delete/:id]', error.message);// Log an error message in the console for debugging purposes
         return res.status(500).json({ success: false, message: 'Internal Server Error' });// Respond with a 500 (Internal Server Error) status code

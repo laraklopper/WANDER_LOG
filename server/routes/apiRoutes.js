@@ -11,8 +11,7 @@
 file using the dotenv package*/
 require('dotenv').config()
 const express = require('express');
-/* Required for ObjectId.isValid on DELETE /history/:id: querying on a malformed
-id raises a CastError, which would be reported as a 500 rather than a 400 */
+/* Required for ObjectId.isValid on DELETE /history/:id: querying on a malformed*/
 const mongoose = require('mongoose');
 const router = express.Router()
 const User = require('../models/userSchema')
@@ -246,12 +245,7 @@ router.post('/save', checkJwtToken, async (req, res) => {
 /*=====================================
 DELETE A SAVED CONVERSION
 =======================================*/
-/* Removes one of the logged in user's saved conversions.
-
-The id and the user are matched in a SINGLE query rather than fetching the
-record and then checking who owns it. A conversion belonging to another user
-therefore behaves exactly like one that does not exist, so an id cannot be
-guessed at to find out whether it is someone else's. */
+/* Removes one of the logged in user's saved conversions.*/
 router.delete('/history/:id', checkJwtToken, async (req, res) => {
     try {
         const { id } = req.params;
