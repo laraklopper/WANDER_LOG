@@ -116,7 +116,7 @@ one row from stretching to the height of the one beside it holding four */
 /* DETAILS STACK1: https://react-bootstrap.netlify.app/docs/layout/stack*/
 #userProfileStack1{
     display: flex;
-    align-items: baseline;
+    align-items: flex-start;
     margin: 0px;
     padding: 0px;
     width: 100%;
@@ -149,8 +149,7 @@ one row from stretching to the height of the one beside it holding four */
 
 /* Each block is given an equal share of its row, so the two rows line their
 columns up with one another rather than each sizing to its own content */
-#profileNameBlock,
-#profilePictureBlock{
+#profileNameBlock{
     display: flex;
     flex-direction: column;
     gap: 5px;
@@ -161,10 +160,15 @@ columns up with one another rather than each sizing to its own content */
 rather than left against the block beside it */
 #profilePictureBlock{
     align-items: flex-end;
+    display: flex;
+    width: 180px;
+}
+#profilePicDiv{
+    width: inherit;
 }
 #profileAvatar{
-    width: 120px;
-    height: 120px;
+    width: fit-content;
+    height: 300px;
     object-fit: cover;
     border: solid 2px #323A42;
 }

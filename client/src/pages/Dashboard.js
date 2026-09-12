@@ -13,9 +13,7 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { Link } from 'react-router-dom';
 import { PlaneLanding } from 'lucide-react';
-import Map from '../css/images/High-Resolution-World-Map-2048x1024.jpg'
-// IMPORT UTILITY FUNCTIONS
-import { profilePictureUrl } from '../util/imageUrl'
+
 // ============MAIN DASHBOARD COMPONENT============
 export default function Dashboard(//Export the default Dashboard.js function component
   {//PROPS PASSED FROM PARENT COMPONENT (App.js)
@@ -39,10 +37,7 @@ export default function Dashboard(//Export the default Dashboard.js function com
   /* What the profile column reads the picture through. Optional on the schema
   and defaulted to null, so the column is left empty rather than framing
   nothing, the same as the profile page does */
-  /* An uploaded picture is stored as a path relative to the API, so the helper
-  puts the API origin back on the front. A picture that was saved as a full URL
-  is handed back unchanged */
-  const profilePicture = profilePictureUrl(currentUser?.profilePicture);
+  const profilePicture = currentUser?.profilePicture || '';
   const showProfilePicture = Boolean(profilePicture) && profilePicture !== brokenPictureUrl;
 
   //=====================JSX RENDERING========================
@@ -59,7 +54,6 @@ export default function Dashboard(//Export the default Dashboard.js function com
           <div className='event-bar'>
             <div className='event-track'>
               <PlaneLanding size={32} fill='orange' color='#000' aria-hidden='true' className='event-slide'/>
-
             </div>
           </div>
         </Col>
@@ -80,7 +74,6 @@ export default function Dashboard(//Export the default Dashboard.js function com
 <Stack gap={3} id='dashboardStack'>
 {/* FULL NAME */}
       <div className="p-2" id='dashboardUsernameBlock1'>
-     
       <span className='profile-span'>
         <h5 className='profile-label'>NAME:</h5>
         <span id='profileFullName'>
@@ -122,7 +115,7 @@ export default function Dashboard(//Export the default Dashboard.js function com
               {/* PROFILE PICTURE IF SET: add <h5>'NO PHOTO'</h5> if the account carries
               none, and blanked again if the saved URL fails to load */}
                <Stack gap={3} id='profilePictureStack'>
-      <div className="p-2" id='profilePictureBlock'>
+      <div className="p-2" id='dashboardPictureBlock'>
         {showProfilePicture ? (
                 /* The alt text is the name on its own, because a screen reader
                 already announces an img as an image and naming it a picture
@@ -162,24 +155,7 @@ export default function Dashboard(//Export the default Dashboard.js function com
           </div>
         </div>
       </section>
-      {/* ==================
-      SECTION 2:
-      ============== */}
-      <section id='dashboardSection2'>
-        <div id='dashBoardSec2-panal'>
-          <Row id='dashboardImgRow'>
-       
-            <Col  md={12} id='dashBoardImgCol'>
-            <div id='mapImgDiv' >
-<img src={Map} alt='WorldMap' id='worldMap'/>
-            </div>
-              
-            </Col>
-           
-      </Row>
-
-        </div>
-      </section>
+   
       <Footer logout={logout}/>
     </div>
   )

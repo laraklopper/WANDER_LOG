@@ -22,6 +22,7 @@ LAYOUT
    width: 100%;
    height: 100%;
    display: flex;
+       gap: 10px;
    justify-content: center;
    align-items: center;
    flex-direction: column;
@@ -64,11 +65,21 @@ rather than left against the details beside it */
    justify-content: flex-end;
    align-items: flex-start;
 }
+#dashboardPictureBlock{
+   display: flex;
+   align-items: flex-end;
+   margin: 0px;
+   padding: 0px;
+   flex-direction: column;
+}
 /* Matched to #profileAvatar on the profile page, so the same picture is not a
 different size and frame on each of the two pages that show it */
 #dashboardAvatar{
-   width: 120px;
-   height: 120px;
+   width: fit-content;
+   height: 300px;
+   margin: 0px;
+   padding: 0px;
+   background-position: center;
    object-fit: cover;
    border: solid 2px #323A42;
 }
@@ -89,16 +100,19 @@ different size and frame on each of the two pages that show it */
 #dashBoardProfile{
    width: 100%;
    display: flex;
+   background-color: silver;
    width: 100%;
    margin: 0px;
    padding: 0px;
+   border: solid #323A42 2px;
+   border-radius: 8px;
 }
 #profilePictureStack{
    margin: 0px;
    padding: 0px;
    width: 100%;
    display: flex;
-   justify-content: center;
+   align-items: flex-end;
 }
 #dashboardProfileBody{
    width: 100%;
@@ -142,7 +156,8 @@ different size and frame on each of the two pages that show it */
 }
 #profilePictureBlock{
    display: flex;
-   align-items: center;
+   align-items: flex-end;
+   justify-content: flex-end;
    margin: 0px;
    padding: 0px;
 }
@@ -151,6 +166,12 @@ different size and frame on each of the two pages that show it */
        justify-content: flex-end;
    width: 100%;
    margin: 0px;
+}
+#dashboardProfilePicBlock{
+   display: flex;
+   align-items: flex-end;
+   flex-direction: column;
+   width: fit-content;
 }
 /* ===============
 SECTION 2

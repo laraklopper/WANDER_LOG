@@ -293,7 +293,7 @@ export default function Profile(//Export the default Profile.js function compone
       </div>
       <div className="p-2 ms-auto"/>
       <div className="p-2" id='profilePictureBlock'>
-         <div>
+         <div id='profilePicDiv'>
           {/* PROFILE PICTURE: left blank when the account carries none, and
           blanked again if the saved URL fails to load */}
           {showProfilePicture && (
