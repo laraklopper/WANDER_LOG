@@ -15,7 +15,32 @@ const Budget = require('../models/budgetSchema');
 const Vat = require('../models/vatSchema');
 const Conversion = require('../models/currConverterSchema');
 const { checkJwtToken, checkAdmin, checkPassword } = require('./middleware');
+// Multer middleware and helpers, shared with the registration route
+const {
+    uploadProfilePicture,
+    handleUploadError,
+    profilePicturePath,
+    discardUploadOnFailure,
+    removeStoredPicture,
+} = require('./uploadMiddleware');
 const router = express.Router()
+
+/* The edit form posts multipart/form-data so it can carry a new profile
+picture, and a multipart field is always a string with no nesting. fullName and
+address are therefore sent as JSON text and read back here, while a request
+that arrived as application/json already holds the object and is passed
+straight through */
+const parseObjectField = (value, fieldName) => {
+    if (value === undefined || value === null || value === '') return undefined;
+    if (typeof value === 'object') return value;
+    try {
+        return JSON.parse(value);
+    } catch {
+        const error = new Error(`${fieldName} was not sent in a readable format`);
+        error.status = 400;
+        throw error;
+    }
+};
 
 /* A password change has to be told the current password, which makes it a
 guessing target in the same way the login endpoint is. The quota is per IP and
@@ -174,10 +199,24 @@ router.patch('/:id/editPassword', checkJwtToken, checkPassword, editPasswordLimi
 Only the five fields the edit form owns are read from the body. Everything else
 is ignored, so adding "admin": true, "password" or "entries" to the JSON cannot
 escalate the account or overwrite the stored hash */
-router.patch('/:id/editUser', checkJwtToken, async (req, res) => {
+/* checkJwtToken runs first so an unauthenticated request is turned away before
+multer writes anything to disk. It only reads the Authorization header, so it
+does not need a parsed body, while checkJwtToken aside nothing may read
+req.body until uploadProfilePicture has read the multipart stream */
+router.patch(
+    '/:id/editUser',
+    checkJwtToken,
+    uploadProfilePicture,
+    handleUploadError,
+    discardUploadOnFailure,
+    async (req, res) => {
     try {
         const { id } = req.params;
-        const { username, fullName, email, address, profilePicture } = req.body || {};
+        const { username, email, profilePicture, removeProfilePicture } = req.body || {};
+
+        // Sent as JSON text by the form, because a multipart field cannot nest
+        const fullName = parseObjectField(req.body?.fullName, 'Full name');
+        const address = parseObjectField(req.body?.address, 'Address');
 
         /* checkJwtToken assigns the decoded token, not a loaded account, so the
         id comes from the payload that signToken put there */
@@ -248,9 +287,24 @@ router.patch('/:id/editUser', checkJwtToken, async (req, res) => {
             }
         }
 
-        /* Clearing the picture is a real edit, and the form sends null to do it,
-        so an absent key is the only value that means "leave this one alone" */
-        if (profilePicture !== undefined) user.profilePicture = profilePicture;
+        /* The picture can be changed three ways, and the file the account is
+        already using is remembered first so it can be deleted once the new
+        value has been saved */
+        const previousPicture = user.profilePicture;
+
+        if (req.file) {
+            // A new upload, already written to disk by multer
+            user.profilePicture = profilePicturePath(req.file);
+        } else if (removeProfilePicture === true || removeProfilePicture === 'true') {
+            /* Removing the picture is a real edit, so it is asked for with its
+            own flag rather than by sending an empty value, which a multipart
+            body cannot tell apart from a field that was never filled in */
+            user.profilePicture = null;
+        } else if (profilePicture !== undefined) {
+            /* A picture given as a link to another site, which is how accounts
+            created before the upload existed still store theirs */
+            user.profilePicture = profilePicture;
+        }
 
         /* Saying nothing changed is clearer than reporting a success the user
         cannot see. The setters on the schema have already run by this point, so a
@@ -263,12 +317,26 @@ router.patch('/:id/editUser', checkJwtToken, async (req, res) => {
         setters on profilePicture and address.line2 both run */
         await user.save();
 
+        /* Only once the new value is safely stored, so a failed save leaves the
+        account still pointing at a file that exists. Does nothing unless the
+        old value was an upload of ours that is no longer referenced */
+        if (user.profilePicture !== previousPicture) {
+            removeStoredPicture(previousPicture);
+        }
+
         console.info(`[SUCCESS: userRoutes.js "/:id/editUser"] ${user.username} updated their profile`);
         return res.status(200).json({
             message: 'Profile updated successfully',
             user: user.toPublicJSON(),
         });
     } catch (error) {
+        /* Raised by parseObjectField when fullName or address could not be read
+        as JSON, which means the client built the multipart body wrongly */
+        if (error.status === 400) {
+            console.error('[ERROR: userRoutes.js "/:id/editUser"]', error.message);
+            return res.status(400).json({ message: error.message });
+        }
+
         /* Mongoose collects every failed field rule into one ValidationError.
         They are returned as a 400 with a field keyed object so the edit form can
         show each message next to the input that caused it */

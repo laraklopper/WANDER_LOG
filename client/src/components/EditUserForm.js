@@ -1,14 +1,25 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import '../css/componentCss/EditUserForms.css'
 import '../css/componentCss/FormSetup.css'
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
 import { Bug } from 'lucide-react';
 import { provinces } from '../data/locations';
+import { profilePictureUrl } from '../util/imageUrl';
 
 /* Mirrors the email pattern used by the server (userSchema.js) so the client
 rejects the same addresses the API would reject */
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/* The profile picture rules below mirror the multer configuration the server
+uses (routes/uploadMiddleware.js), so a file the API would refuse is caught
+before it is uploaded rather than after 2MB has gone over the network */
+const MAX_PICTURE_BYTES = 2 * 1024 * 1024;// 2MB, the multer fileSize limit
+const ALLOWED_PICTURE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+/* Passed to the input's accept attribute so the file picker only offers these,
+which is a convenience and not a check: accept can be bypassed by dragging a
+file in, so the type is still verified below and again on the server */
+const PICTURE_ACCEPT = ALLOWED_PICTURE_TYPES.join(',');
 
 /* province is stored on the address as a plain string, and the schema enum is
 built from the same list, so the two can only disagree if the user edits the
@@ -28,12 +39,17 @@ export default function EditUserForm({
 }) {
   const [emailMsg, setEmailMsg] = useState(false)
   const [formError, setFormError] = useState(null)// Form level error shown above the submit button
+  const [pictureError, setPictureError] = useState(null)// Error shown under the profile picture input
+  /* A file input cannot be given a value from React: the browser only lets the
+  user set it, so resetting the form leaves the chosen file name on screen.
+  Changing this key remounts the input, which is what actually empties it */
+  const [fileInputKey, setFileInputKey] = useState(0)
+  const [picturePreview, setPicturePreview] = useState(null)// Object URL for the new file
   /* Only the fields that can raise an error of their own are tracked. The rest
   are checked by the server, which returns its messages in fieldErrors */
   const [touched, setTouched] = useState({
     username: false,      // Tracks if username field was touched
     email: false,         // Tracks if email field was touched
-    profilePicture: false,// Tracks if profile picture field was touched
     line2: false,         // Tracks if address.line2 was touched
     province: false,      // Tracks if address.province was touched
   })
@@ -47,33 +63,34 @@ export default function EditUserForm({
     setTouched({
       username: true,
       email: true,
-      profilePicture: true,
       line2: true,
       province: true,
     });
 
   /* The saved account, flattened to one level. Used by the reset button, and to
   work out whether anything was actually changed, which an edit form has to know
-  and a registration form does not */
+  and a registration form does not.
+
+  The picture is left out of both maps: it is now a chosen file rather than
+  text, and every value here is compared with trim(). It is tracked on its own
+  by pictureChanged below */
   const savedValues = useMemo(() => ({
     username: currentUser?.username || '',
     firstName: currentUser?.fullName?.firstName || '',
     lastName: currentUser?.fullName?.lastName || '',
     email: currentUser?.email || '',
-    profilePicture: currentUser?.profilePicture || '',
     line1: currentUser?.address?.line1 || '',
     line2: currentUser?.address?.line2 || '',
     city: currentUser?.address?.city || '',
     province: currentUser?.address?.province || '',
   }), [currentUser]);
 
-  // The same nine values as they currently stand in the form
+  // The same eight values as they currently stand in the form
   const currentValues = useMemo(() => ({
     username: editUserData?.username || '',
     firstName: editUserData?.fullName?.firstName || '',
     lastName: editUserData?.fullName?.lastName || '',
     email: editUserData?.email || '',
-    profilePicture: editUserData?.profilePicture || '',
     line1: editUserData?.address?.line1 || '',
     line2: editUserData?.address?.line2 || '',
     city: editUserData?.address?.city || '',
@@ -105,19 +122,51 @@ export default function EditUserForm({
     () => !emailEmpty && !emailRegex.test(currentValues.email.trim()),
     [emailEmpty, currentValues.email]
   );
-  /* type='url' accepts any scheme, including mailto: and javascript:, so the
-  value is parsed here and limited to the two schemes a browser can render in
-  an <img> */
-  const profilePictureInvalid = useMemo(() => {
-    const value = currentValues.profilePicture.trim();
-    if (!value) return false;// Optional, so a blank field is not an error
-    try {
-      const { protocol } = new URL(value);
-      return protocol !== 'http:' && protocol !== 'https:';
-    } catch {
-      return true;// Not a URL at all
+  //========== PROFILE PICTURE ====================
+  /* The form state holds whatever the picker last produced, so it is narrowed
+  to a File before being previewed or read for its size */
+  const profilePictureFile = useMemo(
+    () => (editUserData?.profilePicture instanceof File ? editUserData.profilePicture : null),
+    [editUserData?.profilePicture]
+  );
+  // Set by the REMOVE CURRENT PICTURE checkbox
+  const removePicture = Boolean(editUserData?.removeProfilePicture);
+
+  /* The picture the account is saved with, which stays on screen until a new
+  file is chosen or removal is ticked. Read through the helper because an
+  uploaded picture is stored as a path relative to the API */
+  const savedPicture = profilePictureUrl(currentUser?.profilePicture);
+
+  /* Shows the chosen file without uploading it first. createObjectURL hands
+  back a URL pointing at the file already on the user's machine, and holds it in
+  memory until it is revoked, which the cleanup below does whenever the choice
+  changes or the form unmounts */
+  useEffect(() => {
+    if (!profilePictureFile) {
+      setPicturePreview(null);
+      return;
     }
-  }, [currentValues.profilePicture]);
+    const objectUrl = URL.createObjectURL(profilePictureFile);
+    setPicturePreview(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [profilePictureFile]);
+
+  /* Checks one file against the same rules as the server, and returns the
+  message to show, or null when the file is acceptable */
+  const validatePicture = (file) => {
+    if (!file) return null;// The field is optional, so no file is valid
+    if (!ALLOWED_PICTURE_TYPES.includes(file.type)) {
+      return 'Profile picture must be a JPG, PNG, WEBP or GIF image';
+    }
+    if (file.size > MAX_PICTURE_BYTES) {
+      return 'Profile picture must be 2MB or smaller';
+    }
+    return null;
+  };
+
+  /* Either asking for a different picture or asking for the saved one to go
+  counts as an edit, and both are kept out of savedValues/currentValues */
+  const pictureChanged = Boolean(profilePictureFile) || removePicture;
   /* The optional fields still carry a minimum length on the schema, so a single
   character in line 2 is rejected by the server even though leaving it blank is fine */
   const line2TooShort = useMemo(
@@ -132,17 +181,18 @@ export default function EditUserForm({
 
   //========== UNCHANGED FORM ====================
   /* A PATCH that changes nothing is a wasted round trip, and reporting a
-  success the user cannot see is worse than saying there was nothing to save */
+  success the user cannot see is worse than saying there was nothing to save.
+  The picture is asked about separately, because it is not one of the text
+  values the comparison below walks through */
   const noChanges = useMemo(
-    () => Object.keys(savedValues).every(
+    () => !pictureChanged && Object.keys(savedValues).every(
       (key) => savedValues[key].trim() === currentValues[key].trim()
     ),
-    [savedValues, currentValues]
+    [pictureChanged, savedValues, currentValues]
   );
 
   const showUsernameLengthError = touched.username && usernameTooShort;
   const showEmailFormatError = touched.email && emailInvalid;
-  const showProfilePictureError = touched.profilePicture && profilePictureInvalid;
   const showLine2LengthError = touched.line2 && line2TooShort;
   const showProvinceInvalidError = touched.province && provinceInvalid;
 
@@ -160,8 +210,11 @@ export default function EditUserForm({
       document.getElementById('editUserEmail')?.focus()
       return
     }
-    if (profilePictureInvalid) {
-      setFormError('Profile picture must be a full URL starting with http:// or https://.')
+    /* Re-checked on submit as well as on change, because a file refused on
+    change is not stored and must not be silently ignored here */
+    if (pictureError) {
+      setFormError(pictureError)
+      console.warn(`[WARN: EditUserForm.js]: ${pictureError}`)
       document.getElementById('editProfilePic')?.focus()
       return
     }
@@ -185,9 +238,42 @@ export default function EditUserForm({
   /* Nested paths are written as 'fullName.firstName' and 'address.city' on the
   name attribute, so one handler can update either level of editUserData */
   const handleInputChange = (event) => {
-    const { name, value } = event.target;
+    const { name, value, type, checked, files } = event.target;
 
     setFormError(null);// Any edit clears the form level error
+
+    /* A file input reports its selection through files, not value, which only
+    ever holds a fake path such as C:\fakepath\photo.jpg. multiple is not set,
+    so there is at most one file to take */
+    if (type === 'file') {
+      const file = files?.[0] || null;
+      const message = validatePicture(file);
+      setPictureError(message);
+      setEditUserData((prev) => ({
+        ...prev,
+        /* A rejected file is not kept, so it can never be submitted, but the
+        input is left as the user set it so the name stays visible next to the
+        error explaining why it was refused */
+        profilePicture: message ? null : file,
+        /* Choosing a picture and asking for the saved one to be removed are
+        opposite requests, so picking a file clears the tick */
+        removeProfilePicture: false,
+      }));
+      return;
+    }
+
+    /* The remove tick. Choosing a file and then ticking this discards the
+    choice, the mirror of the branch above */
+    if (name === 'removeProfilePicture') {
+      setPictureError(null);
+      setEditUserData((prev) => ({
+        ...prev,
+        removeProfilePicture: checked,
+        profilePicture: checked ? null : prev.profilePicture,
+      }));
+      if (checked) setFileInputKey((key) => key + 1);// Empties the file input
+      return;
+    }
 
     if (name.startsWith('fullName.')) {
       const [, field] = name.split('.');
@@ -225,7 +311,10 @@ export default function EditUserForm({
         lastName: savedValues.lastName,
       },
       email: savedValues.email,
-      profilePicture: savedValues.profilePicture,
+      /* Back to "no new picture chosen and none removed", which leaves the
+      account using whatever it is already saved with */
+      profilePicture: null,
+      removeProfilePicture: false,
       address: {
         line1: savedValues.line1,
         line2: savedValues.line2,
@@ -236,11 +325,13 @@ export default function EditUserForm({
     setTouched({
       username: false,
       email: false,
-      profilePicture: false,
       line2: false,
       province: false,
     });
     setFormError(null);
+    setPictureError(null);
+    // Remounts the file input, the only way to clear a chosen file from React
+    setFileInputKey((key) => key + 1);
   };
 
   // ========= IDs USED BY aria-describedby =========
@@ -248,7 +339,7 @@ export default function EditUserForm({
   const emailFormatErrorId = 'editUserEmailFormatError';// ID used for invalid email error
   const emailHelpId = 'editUserEmailHelp';// ID used for the email privacy note
   const profilePictureHelpId = 'editUserProfilePictureHelp';// ID used for the profile picture hint
-  const profilePictureErrorId = 'editUserProfilePictureError';// ID used for invalid picture URL error
+  const profilePictureErrorId = 'editUserProfilePictureError';// ID used for a rejected file error
   const line2HelpId = 'editUserAddressLine2Help';// ID used for the optional line 2 hint
   const line2LengthErrorId = 'editUserAddressLine2LengthError';// ID used for short line 2 error
   const provinceInvalidErrorId = 'editUserAddressProvinceInvalidError';// ID used for unknown province error
@@ -403,35 +494,73 @@ export default function EditUserForm({
             <div className="p-2" id='edituser-profile-pic-block'>
               <label className='edit-profile-label' htmlFor='editProfilePic'>PROFILE PICTURE:</label>
               <div className='input-div'>
+                {/* Uploaded as a file rather than linked by URL, so the picture
+                is stored by the API instead of being loaded from another site.
+                key remounts the input when the form is reset or removal is
+                ticked, because React cannot empty a file input by setting its
+                value */}
                 <input
+                  key={fileInputKey}
                   className='input'
-                  type='url'
+                  type='file'
                   id='editProfilePic'
-                  placeholder='PROFILE PICTURE URL'
-                  maxLength={2048}
+                  accept={PICTURE_ACCEPT}
                   name='profilePicture'
-                  value={editUserData.profilePicture || ''}
                   onChange={handleInputChange}
-                  onBlur={() => markTouched('profilePicture')}
+                  // The tick means the saved picture is going, so no file is wanted
+                  disabled={removePicture}
                   // ARIA ATTRIBUTES:
-                  aria-invalid={showProfilePictureError || hasServerError('profilePicture') ? 'true' : 'false'}
+                  aria-invalid={pictureError || hasServerError('profilePicture') ? 'true' : 'false'}
                   aria-describedby={describedBy(
                     profilePictureHelpId,
-                    showProfilePictureError && profilePictureErrorId,
+                    pictureError && profilePictureErrorId,
                     hasServerError('profilePicture') && serverErrorId
                   )}
                 />
               </div>
+              {/* REMOVE CURRENT PICTURE: only offered when there is one to
+              remove. Leaving the file input empty cannot mean "remove it",
+              because that is also what it means to change nothing */}
+              {Boolean(currentUser?.profilePicture) && (
+                <div className='input-div' id='edituser-remove-pic-block'>
+                  <label className='edit-profile-label' htmlFor='editRemoveProfilePic'>
+                    REMOVE CURRENT PICTURE:
+                  </label>
+                  <input
+                    type='checkbox'
+                    id='editRemoveProfilePic'
+                    name='removeProfilePicture'
+                    checked={removePicture}
+                    onChange={handleInputChange}
+                  />
+                </div>
+              )}
             </div>
             <div className="p-2 ">
-              <p className='infoText' id={profilePictureHelpId}>ENTER FULL URL, OR LEAVE BLANK TO REMOVE</p>
+              <p className='infoText' id={profilePictureHelpId}>
+                CHOOSE A JPG, PNG, WEBP OR GIF UP TO 2MB, OR LEAVE AS IT IS TO KEEP YOUR CURRENT PICTURE
+              </p>
+              {/* The picture as it stands: the newly chosen file once one has
+              been picked, otherwise the one saved on the account, and nothing
+              at all while removal is ticked */}
+              {!removePicture && (picturePreview || savedPicture) && (
+                <img
+                  id='editProfilePicPreview'
+                  src={picturePreview || savedPicture}
+                  alt={picturePreview ? 'Preview of the picture you selected' : 'Your current profile picture'}
+                  width={72}
+                  height={72}
+                />
+              )}
             </div>
             {/* PROFILE PICTURE ERROR */}
             <div className="p-2 ms-auto">
-              {showProfilePictureError && (
+              {/* The browser cannot report a file that is too large or of the
+              wrong type, so the message is shown on screen */}
+              {pictureError && (
                 <p id={profilePictureErrorId} className='formErrorMessage' role='alert'>
                   <Bug size={16} fontWeight={900} aria-hidden='true' focusable='false' />
-                  Enter a full URL starting with http:// or https://
+                  {pictureError}
                 </p>
               )}
             </div>

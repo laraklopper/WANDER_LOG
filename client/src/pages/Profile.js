@@ -19,12 +19,14 @@ import EditUserForm from '../components/EditUserForm';
 import { useLocation, useNavigate } from 'react-router-dom';
 // IMPORT UTILITY FUNCTIONS
 import { NOT_AVAILABLE, toFullName, toLongDate } from '../util/formatCalculations';
+import { profilePictureUrl } from '../util/imageUrl';
 
 // ======MAIN PROFILE FUNCTION COMPONENT=======
 export default function Profile(//Export the default Profile.js function component
   {//PROPS PASSED FROM PARENT COMPONENT (App.js)
-    currentUser, 
-    logout, 
+    currentUser,
+    setCurrentUser,
+    logout,
     setError
   }) {
     /* The ADD/EDIT PHOTO link on the dashboard asks for the form to be open on
@@ -57,7 +59,13 @@ export default function Profile(//Export the default Profile.js function compone
       lastName: '',
     },
     email: '',
-    profilePicture: '',
+    /* Holds the File the user picked, or null. Posted as multipart form data
+    by editUser, which is how the image reaches multer on the server */
+    profilePicture: null,
+    /* Set by the remove tick on the form. Asking for the saved picture to be
+    deleted has to be said outright, because an empty file input is also what
+    "I am not changing the picture" looks like */
+    removeProfilePicture: false,
     address: {
       line1: '',
       line2: '',
@@ -76,7 +84,11 @@ export default function Profile(//Export the default Profile.js function compone
       lastName: currentUser?.fullName?.lastName || '',
     },
     email: currentUser?.email || '',
-    profilePicture: currentUser?.profilePicture || '',
+    /* Reopening the form starts from "no new picture chosen", never from the
+    saved one: a File cannot be rebuilt out of the stored path, and the saved
+    picture is shown from currentUser by the form itself */
+    profilePicture: null,
+    removeProfilePicture: false,
     address: {
       line1: currentUser?.address?.line1 || '',
       line2: currentUser?.address?.line2 || '',
@@ -87,7 +99,10 @@ export default function Profile(//Export the default Profile.js function compone
 
   /* What the details panel reads the picture through. Optional on the schema and
   defaulted to null, so the block is left empty rather than framing nothing */
-  const profilePicture = currentUser?.profilePicture || '';
+  /* An uploaded picture is stored as a path relative to the API, so the helper
+  puts the API origin back on the front. A picture that was saved as a full URL
+  is handed back unchanged */
+  const profilePicture = profilePictureUrl(currentUser?.profilePicture);
   const showProfilePicture = Boolean(profilePicture) && profilePicture !== brokenPictureUrl;
 
   /* Refills the form whenever it is opened, and again if currentUser is
@@ -128,22 +143,42 @@ export default function Profile(//Export the default Profile.js function compone
       setError?.(null)
       setFieldErrors({})
 
+      /* Sent as multipart form data rather than JSON, because JSON can only
+      carry text and a new profile picture is a binary file. FormData is the
+      browser's own multipart builder, and is what multer reads on the server */
+      const formData = new FormData()
+
+      // Every value is sent as text: a multipart field has no other type
+      formData.append('username', editUserData.username)
+      formData.append('email', editUserData.email)
+
+      /* multipart has no concept of a nested object, so these two are sent as
+      JSON text and parsed back into objects by the editUser route */
+      formData.append('fullName', JSON.stringify(editUserData.fullName))
+      formData.append('address', JSON.stringify(editUserData.address))
+
+      /* Only appended when a file was chosen. Appending null would send the
+      string 'null' as the picture */
+      if (editUserData.profilePicture instanceof File) {
+        formData.append('profilePicture', editUserData.profilePicture)
+      }
+      /* Only sent when it is actually being asked for, so an ordinary edit
+      leaves the saved picture alone */
+      if (editUserData.removeProfilePicture) {
+        formData.append('removeProfilePicture', 'true')
+      }
+
       const response = await fetch(`http://localhost:3001/users/${userId}/editUser`, {
         method: 'PATCH',
         mode: 'cors',
+        /* Authorization is still set by hand, but not Content-Type: the browser
+        has to set that itself, because it must include the boundary string that
+        separates the parts of the body. Setting it by hand omits the boundary
+        and multer cannot read the body */
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          username: editUserData.username,
-          fullName: editUserData.fullName,
-          email: editUserData.email,
-          address: editUserData.address,
-          /* Optional field. Sent as null when blank, because the schema types it
-          as a String defaulting to null and '' would be stored as an empty URL */
-          profilePicture: editUserData.profilePicture || null,
-        }),
+        body: formData,
       })
 
       /* Safely parse the JSON response. Guarded because the body is empty or is
@@ -154,6 +189,13 @@ export default function Profile(//Export the default Profile.js function compone
       if (response.ok) {
         setError?.(null)
         setFieldErrors({})
+        /* The route answers with the saved account, so the copy held in App is
+        replaced rather than refetched. Without this the details panel and the
+        profile picture would keep showing the old values until a reload */
+        if (data?.user) setCurrentUser?.(data.user)
+        /* A replaced picture is served under a new file name, so nothing has to
+        be done about a cached copy of the old one */
+        setBrokenPictureUrl(null)
         alert('Profile updated successfully.')
         setShowEditProfileForm(false)
       } else {
@@ -176,7 +218,7 @@ export default function Profile(//Export the default Profile.js function compone
     } finally {
       setSubmitting(false)
     }
-  },[submitting, currentUser, editUserData, setError])
+  },[submitting, currentUser, editUserData, setError, setCurrentUser])
   const toggleEditProfile = useCallback(() => {
     setShowEditProfileForm(prevState => !prevState);
     setShowEditPswdForm(false); // Ensure the edit password form is hidden when toggling the profile form

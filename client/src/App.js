@@ -290,7 +290,16 @@ export default function App() {
             }/>
             <Route path='/profile' element={
               <ProtectedUserRoute currentUser={currentUser}>
-                <Profile currentUser={currentUser} logout={logout} setError={setError}/>
+                {/* setCurrentUser is passed down because the edit form saves
+                changes to the account held here, and the PATCH returns the
+                updated user. Without it a new profile picture would not appear
+                until the next reload refetched the account */}
+                <Profile
+                  currentUser={currentUser}
+                  setCurrentUser={setCurrentUser}
+                  logout={logout}
+                  setError={setError}
+                />
               </ProtectedUserRoute>
             }/>
             <Route path='/users' element={

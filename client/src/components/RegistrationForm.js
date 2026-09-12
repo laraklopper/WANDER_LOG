@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import '../css/componentCss/RegistrationForm.css'
 import '../css/componentCss/FormSetup.css'
 import Stack from 'react-bootstrap/Stack';
@@ -10,6 +10,16 @@ import { provinces } from '../data/locations';
 // rejects the same addresses the API would reject.
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/* The profile picture rules below mirror the multer configuration the server
+uses (routes/uploadMiddleware.js), so a file the API would refuse is caught
+before it is uploaded rather than after 2MB has gone over the network */
+const MAX_PICTURE_BYTES = 2 * 1024 * 1024;// 2MB, the multer fileSize limit
+const ALLOWED_PICTURE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+/* Passed to the input's accept attribute so the file picker only offers these,
+which is a convenience and not a check: accept can be bypassed by dragging a
+file in, so the type is still verified below and again on the server */
+const PICTURE_ACCEPT = ALLOWED_PICTURE_TYPES.join(',');
+
 /* The empty form used by the clear button when the page does not supply one.
 Kept in sync with EMPTY_FORM in pages/Register.js, which is passed in as a prop */
 const BLANK_FORM = {
@@ -19,7 +29,9 @@ const BLANK_FORM = {
   dateOfBirth: '',
   address: { line1: '', line2: '', city: '', province: '' },
   admin: false,
-  profilePicture: '',
+  /* Holds the File chosen in the picker rather than a string, because the
+  registration request posts it as multipart form data */
+  profilePicture: null,
   password: '',
   confirmPassword: '',
 };
@@ -38,6 +50,12 @@ export default function RegistrationForm({
   const [showPswd, setShowPswd] = useState(false)
   const [passwordMsg, setPasswordMsg] = useState(false)
   const [formError, setFormError] = useState(null)// Form level error shown above the submit button
+  const [pictureError, setPictureError] = useState(null)// Error shown under the profile picture input
+  /* A file input cannot be given a value from React: the browser only lets the
+  user set it, so clearing the form leaves the chosen file name on screen.
+  Changing this key remounts the input, which is what actually empties it */
+  const [fileInputKey, setFileInputKey] = useState(0)
+  const [picturePreview, setPicturePreview] = useState(null)// Object URL for the thumbnail
   const [touched, setTouched] = useState({
     username: false,       // Tracks if username field was touched
     firstName: false,      // Tracks if first name field was touched
@@ -132,6 +150,41 @@ export default function RegistrationForm({
     [passwordEmpty, confirmPasswordEmpty, newUserData.password, newUserData.confirmPassword]
   );
 
+  //========== PROFILE PICTURE ====================
+  /* The form state holds whatever the picker last produced, so it is narrowed
+  to a File before being previewed or read for its size */
+  const profilePictureFile = useMemo(
+    () => (newUserData.profilePicture instanceof File ? newUserData.profilePicture : null),
+    [newUserData.profilePicture]
+  );
+
+  /* Shows the chosen picture without uploading it first. createObjectURL hands
+  back a URL pointing at the file already on the user's machine, and holds it in
+  memory until it is revoked, which the cleanup below does whenever the choice
+  changes or the form unmounts */
+  useEffect(() => {
+    if (!profilePictureFile) {
+      setPicturePreview(null);
+      return;
+    }
+    const objectUrl = URL.createObjectURL(profilePictureFile);
+    setPicturePreview(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [profilePictureFile]);
+
+  /* Checks one file against the same rules as the server, and returns the
+  message to show, or null when the file is acceptable */
+  const validatePicture = (file) => {
+    if (!file) return null;// The field is optional, so no file is valid
+    if (!ALLOWED_PICTURE_TYPES.includes(file.type)) {
+      return 'Profile picture must be a JPG, PNG, WEBP or GIF image';
+    }
+    if (file.size > MAX_PICTURE_BYTES) {
+      return 'Profile picture must be 2MB or smaller';
+    }
+    return null;
+  };
+
   //========== AGE VALIDATION ====================
   const minAge = newUserData.admin === true ? 21 : 18;
   // Checks whether the selected date of birth makes the user too young
@@ -191,6 +244,14 @@ export default function RegistrationForm({
       document.getElementById('regisConfirmPasswordInput')?.focus()
       return
     }
+    /* Re-checked on submit as well as on change, because a file refused on
+    change is not stored and must not be silently ignored here */
+    if (pictureError) {
+      setFormError(pictureError)
+      console.warn(`[WARN: RegistrationForm.js]: ${pictureError}`)
+      document.getElementById('regisProfilePicture')?.focus()
+      return
+    }
 
     setFormError(null)
     console.log('[INFO: RegistrationForm.js]: Registering new user');
@@ -200,10 +261,24 @@ export default function RegistrationForm({
   const today = new Date().toISOString().split('T')[0]
 
   const handleInputChange = (event) => {
-    const { name, value, type, checked } = event.target;
+    const { name, value, type, checked, files } = event.target;
     const val = type === 'checkbox' ? checked : value;
 
     setFormError(null);// Any edit clears the form level error
+
+    /* A file input reports its selection through files, not value, which only
+    ever holds a fake path such as C:\fakepath\photo.jpg. multiple is not set,
+    so there is at most one file to take */
+    if (type === 'file') {
+      const file = files?.[0] || null;
+      const message = validatePicture(file);
+      setPictureError(message);
+      /* A rejected file is not kept, so it can never be submitted, but the
+      input is left as the user set it so the name stays visible next to the
+      error explaining why it was refused */
+      setNewUserData((prev) => ({ ...prev, profilePicture: message ? null : file }));
+      return;
+    }
 
     if (name.startsWith('fullName.')) {
       const [, field] = name.split('.');
@@ -248,7 +323,10 @@ export default function RegistrationForm({
       confirmPassword: false,
     });
     setFormError(null);
+    setPictureError(null);
     setShowPswd(false);
+    // Remounts the file input, the only way to clear a chosen file from React
+    setFileInputKey((key) => key + 1);
   }
 
   // ========= IDs USED BY aria-labelledby / aria-describedby =========
@@ -270,6 +348,7 @@ export default function RegistrationForm({
   const cityErrorId = 'registrationAddressCityError';// ID used for city error message
   const provinceErrorId = 'registrationAddressProvinceError';// ID used for province error message
   const profilePictureHelpId = 'registrationProfilePictureHelp';// ID used for the optional profile picture hint
+  const profilePictureErrorId = 'registrationProfilePictureError';// ID used for the rejected file error
   const formErrorId = 'registrationFormError';// ID used for the form level error message
 
   const serverErrorId = 'registrationServerErrors';// ID used for the block listing the server's field errors
@@ -652,21 +731,51 @@ export default function RegistrationForm({
             <div className="p-2" id='regis-profilepic-block'>
               {/* optional */}
               <label className='regis-label' htmlFor='regisProfilePicture'>PROFILE PICTURE:</label>
+              {/* Uploaded as a file rather than linked by URL, so the picture is
+              stored by the API instead of being loaded from another site.
+              key remounts the input when the form is cleared, because React
+              cannot empty a file input by setting its value */}
               <input
+                key={fileInputKey}
                 className='input'
                 id='regisProfilePicture'
-                type='url'
-                placeholder='PROFILE PICTURE URL'
+                type='file'
+                accept={PICTURE_ACCEPT}
                 name='profilePicture'
-                value={newUserData.profilePicture}
                 onChange={handleInputChange}
+                // ARIA ATTRIBUTES:
                 aria-required='false'
-                aria-describedby={profilePictureHelpId}
+                aria-invalid={pictureError || hasServerError('profilePicture') ? 'true' : 'false'}
+                aria-describedby={describedBy(
+                  profilePictureHelpId,
+                  pictureError && profilePictureErrorId,
+                  hasServerError('profilePicture') && serverErrorId
+                )}
               />
-              <small id={profilePictureHelpId}>Optional, must be a full URL</small>
+              <small id={profilePictureHelpId}>Optional, JPG, PNG, WEBP or GIF, up to 2MB</small>
+              {/* The browser cannot report a file that is too large or of the
+              wrong type, so the message is shown on screen */}
+              {pictureError && (
+                <p id={profilePictureErrorId} className='formErrorMessage' role='alert'>
+                  <Bug size={16} fontWeight={900} aria-hidden='true' focusable='false' />
+                  {pictureError}
+                </p>
+              )}
             </div>
             <div className="p-2 ms-auto"></div>
-            <div className="p-2"></div>
+            <div className="p-2">
+              {/* Thumbnail of the chosen file, drawn from the local object URL
+              so nothing has to be uploaded for the user to see it */}
+              {picturePreview && (
+                <img
+                  id='regisProfilePicturePreview'
+                  src={picturePreview}
+                  alt={`Preview of ${profilePictureFile?.name || 'the selected profile picture'}`}
+                  width={72}
+                  height={72}
+                />
+              )}
+            </div>
           </Stack>
           {/* STACK 7 */}
           <Stack direction="horizontal" gap={3} id='regis-stack7'>

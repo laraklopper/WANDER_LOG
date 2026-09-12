@@ -12,6 +12,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
+const multer = require('multer');
+// Folder multer writes uploaded profile pictures into
+const { UPLOAD_ROOT } = require('./routes/uploadMiddleware');
 // Import routers
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -67,6 +70,20 @@ app.use(express.urlencoded({ extended: true }));
 proxy's when the app is deployed behind one */
 app.set('trust proxy', 1);
 
+/* Serves the uploaded profile pictures. Multer only writes the file to disk,
+nothing about that makes it reachable over HTTP, so the folder is mounted here
+under the same /uploads path the register route stores on the user document.
+
+Mounted before the routers so a picture is served without touching the API,
+and read only: express.static answers GET and HEAD and nothing else, so the
+folder cannot be written to or listed through this mount */
+app.use('/uploads', express.static(UPLOAD_ROOT, {
+    index: false,// No directory listing when a folder itself is requested
+    /* Pictures are given a generated, unique name and are never overwritten,
+    so a cached copy can never be stale */
+    maxAge: '7d',
+}));
+
 // =========ROUTES===========
 // Prefix all route modules with their base path.
 app.use('/auth', authRoutes);// Authentication related routes-Login and registration
@@ -98,6 +115,17 @@ app.use((error, req, res, next) => {
 
     if (error.type === 'entity.parse.failed') {
         return res.status(400).json({ message: 'Request body is not valid JSON' });
+    }
+
+    /* Safety net for an upload failure on a route that did not add its own
+    handler after the multer middleware. A bad file is the client's mistake, so
+    it is a 400 rather than the 500 the fallback below would return */
+    if (error instanceof multer.MulterError) {
+        return res.status(400).json({
+            message: error.code === 'LIMIT_FILE_SIZE'
+                ? 'The uploaded file is too large'
+                : 'The uploaded file could not be accepted',
+        });
     }
 
     res.status(error.status || 500).json({ message: 'Internal Server Error' });

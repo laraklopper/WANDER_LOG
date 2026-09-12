@@ -14,6 +14,8 @@ import Footer from '../components/Footer'
 import { Link } from 'react-router-dom';
 import { PlaneLanding } from 'lucide-react';
 import Map from '../css/images/High-Resolution-World-Map-2048x1024.jpg'
+// IMPORT UTILITY FUNCTIONS
+import { profilePictureUrl } from '../util/imageUrl'
 // ============MAIN DASHBOARD COMPONENT============
 export default function Dashboard(//Export the default Dashboard.js function component
   {//PROPS PASSED FROM PARENT COMPONENT (App.js)
@@ -37,7 +39,10 @@ export default function Dashboard(//Export the default Dashboard.js function com
   /* What the profile column reads the picture through. Optional on the schema
   and defaulted to null, so the column is left empty rather than framing
   nothing, the same as the profile page does */
-  const profilePicture = currentUser?.profilePicture || '';
+  /* An uploaded picture is stored as a path relative to the API, so the helper
+  puts the API origin back on the front. A picture that was saved as a full URL
+  is handed back unchanged */
+  const profilePicture = profilePictureUrl(currentUser?.profilePicture);
   const showProfilePicture = Boolean(profilePicture) && profilePicture !== brokenPictureUrl;
 
   //=====================JSX RENDERING========================

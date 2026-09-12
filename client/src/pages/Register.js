@@ -29,7 +29,9 @@ const EMPTY_FORM = {
     province: '',
   },
   admin: false,
-  profilePicture: '',
+  /* Holds the File the user picked, or null. Posted as multipart form data by
+  addUser, which is how the image reaches multer on the server */
+  profilePicture: null,
   password: '',
   confirmPassword: ''
 };
@@ -63,27 +65,40 @@ export default function Register(//Export default Registration function componen
       setError?.(null)
       setFieldErrors({})
 
+      /* Sent as multipart form data rather than JSON, because JSON can only
+      carry text and the profile picture is a binary file. FormData is the
+      browser's own multipart builder, and is what multer reads on the server */
+      const formData = new FormData()
+
+      // Every value is sent as text: a multipart field has no other type
+      formData.append('username', newUserData.username)
+      formData.append('email', newUserData.email)
+      formData.append('dateOfBirth', newUserData.dateOfBirth)
+      formData.append('password', newUserData.password)
+      // Sent so the schema can re-check the match on the server
+      formData.append('confirmPassword', newUserData.confirmPassword)
+      /* Arrives as the string 'true' or 'false', which the route turns back
+      into a boolean, since both strings are truthy on their own */
+      formData.append('admin', String(newUserData.admin))
+
+      /* multipart has no concept of a nested object, so these two are sent as
+      JSON text and parsed back into objects by the register route */
+      formData.append('fullName', JSON.stringify(newUserData.fullName))
+      formData.append('address', JSON.stringify(newUserData.address))
+
+      /* Optional, so the field is only appended when a file was chosen.
+      Appending null would send the string 'null' as the picture */
+      if (newUserData.profilePicture instanceof File) {
+        formData.append('profilePicture', newUserData.profilePicture)
+      }
+
       const response = await fetch('http://localhost:3001/auth/register', {
         method: 'POST',
         mode: 'cors',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username :newUserData.username,
-          fullName: newUserData.fullName,
-          email: newUserData.email,
-          dateOfBirth: newUserData.dateOfBirth,
-          address: newUserData.address,
-          admin : newUserData.admin,
-          /* Optional field. Sent as null when blank, because the schema types it
-          as a String defaulting to null and '' would be stored as an empty URL */
-          profilePicture: newUserData.profilePicture || null,
-          password: newUserData.password,
-          // Sent so the schema can re-check the match on the server
-          confirmPassword: newUserData.confirmPassword
-
-        })
+        /* No Content-Type header: the browser has to set it itself, because it
+        must include the boundary string that separates the parts of the body.
+        Setting it by hand omits the boundary and multer cannot read the body */
+        body: formData,
       })
 
        const data = await response.json().catch(() => ({}))
