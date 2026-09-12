@@ -8,7 +8,7 @@ const jwt = require('jsonwebtoken');// Import the JSON Web Token (JWT) library
 // Import schemas
 const User = require('../models/userSchema');
 // Import Middleware
-const { checkPassword, registerLimiter, loginLimiter} = require('./middleware');
+const { checkPassword, checkAge, registerLimiter, loginLimiter} = require('./middleware');
 const router = express.Router()// Create a new router object using Express
 
 // Extract environmental variables (with safe fallbacks for local dev)
@@ -76,7 +76,10 @@ router.post('/login', loginLimiter, async (req, res) => {
 })
 
 //Route to send a POST request to the register endpoint
-router.post('/register', registerLimiter , checkPassword, async (req, res) => {
+/* checkAge runs before the handler so an underage registration is refused
+without a database lookup. The schema enforces the same limits in its
+pre('validate') hook, which covers any write that does not come through here */
+router.post('/register', registerLimiter , checkPassword, checkAge, async (req, res) => {
     try {
         const {
             username,

@@ -274,10 +274,92 @@ const hashPassword = async (req, res, next) => {
 /*===============================
 AGE VALIDATION MIDDLEWARE
 ===================*/
+/* Minimum age in years, keyed by role. Admin users carry elevated privileges,
+so they must be older. These mirror MIN_AGE in userSchema.js, which applies the
+same two limits in its pre('validate') hook: this middleware rejects the request
+before any database work is done, and the schema remains the last line of defence
+for any write that does not pass through this route */
+const MIN_AGE = { user: 18, admin: 21 };
+
+/* Returns the age in whole years as at today.
+A year subtraction on its own is not enough, because the birthday may not have
+come round yet this year */
+const ageInYears = (dateOfBirth) => {
+    const dob = new Date(dateOfBirth);
+    const now = new Date();
+    let age = now.getFullYear() - dob.getFullYear();
+    const monthDiff = now.getMonth() - dob.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < dob.getDate())) {
+        age--;
+    }
+    return age;
+};
+
 /*Middleware function to check that user age
 All users must be 18 or older; admin users must be 21 or older*/
-const checkAge= async (req, res, next) => {
-    
+const checkAge = (req, res, next) => {
+    console.log('[DEBUG: middleware.js, checkAge] Middleware triggered');// Log message in the console for debugging purposes
+
+    const { dateOfBirth, admin = false } = req.body || {};// Extract the date of birth and the requested role from the request body
+
+    /* Every failure below is reported with a field keyed errors object as well
+    as a message, the same shape the route returns for a Mongoose
+    ValidationError, so the registration form can show it against the input */
+    // Conditional rendering to check that a date of birth was sent
+    if (!dateOfBirth) {
+        console.error('[ERROR: middleware.js, checkAge] Date of birth is required');// Log an error message in the console for debugging purposes
+        return res.status(400).json({// Respond with a 400 (Bad Request) status code and an error message
+            success: false,//Success status
+            message: 'Date of Birth is required',//JSON message
+            errors: { dateOfBirth: 'Date of Birth is required' },// Keyed by field for the form
+        });
+    }
+
+    const dob = new Date(dateOfBirth);// Parse the submitted value into a Date
+
+    /* An unparseable value, such as a typed date the form did not normalise,
+    gives an Invalid Date whose time is NaN */
+    if (Number.isNaN(dob.getTime())) {
+        console.error('[ERROR: middleware.js, checkAge] Date of birth could not be parsed:', dateOfBirth);// Log an error message in the console for debugging purposes
+        return res.status(400).json({// Respond with a 400 (Bad Request) status code and an error message
+            success: false,//Success status
+            message: 'Date of Birth must be a valid date',//JSON message
+            errors: { dateOfBirth: 'Date of Birth must be a valid date' },// Keyed by field for the form
+        });
+    }
+
+    //Conditional rendering to check the date is in the past
+    if (dob >= new Date()) {
+        console.error('[ERROR: middleware.js, checkAge] Date of birth is not in the past:', dateOfBirth);// Log an error message in the console for debugging purposes
+        return res.status(400).json({// Respond with a 400 (Bad Request) status code and an error message
+            success: false,//Success status
+            message: 'Date of Birth must be a valid past date',//JSON message
+            errors: { dateOfBirth: 'Date of Birth must be a valid past date' },// Keyed by field for the form
+        });
+    }
+
+    /* The admin flag decides which limit applies. A checkbox posted as a form
+    encoded body arrives as the string 'true', so that is treated the same as a
+    real boolean and nothing else counts as a request for admin rights */
+    const isAdmin = admin === true || admin === 'true';
+    const minAge = isAdmin ? MIN_AGE.admin : MIN_AGE.user;
+    const age = ageInYears(dob);
+
+    //Conditional rendering to check the user meets the minimum age for their role
+    if (age < minAge) {
+        console.warn(`[WARN: middleware.js, checkAge] Age ${age} is below the minimum of ${minAge}`);// Log a warning message in the console for debugging purposes
+        /* Worded the same way as the schema message so a user sees one wording
+        whichever check catches them */
+        const message = `You must be at least ${minAge} years old to register${isAdmin ? ' as an admin' : ''}`;
+        return res.status(400).json({// Respond with a 400 (Bad Request) status code and an error message
+            success: false,//Success status
+            message,//JSON message
+            errors: { dateOfBirth: message },// Keyed by field for the form
+        });
+    }
+
+    console.log(`[SUCCESS: middleware.js, checkAge] Age ${age} meets the minimum of ${minAge}`);//Log a message in the console for debugging purposes
+    return next();// Call the next middleware or route handler
 }
 
 
@@ -286,6 +368,7 @@ module.exports = {
     checkJwtToken,
     checkAdmin,
     checkPassword,
+    checkAge,
     hashPassword,
     exportLimiter,
     loginLimiter,
