@@ -53,34 +53,36 @@ All routes that require authentication expect a `Bearer <token>` value in the `A
 
 ### 1.1. ROUTERS AND BASE PATHS
 
-Every router is mounted on a base path in [app.js](../server/app.js#L65-L71). The endpoints in the tables below are written in full, base path included.
+Every router is mounted on a base path in [app.js](../server/app.js#L72-L80). The endpoints in the tables below are written in full, base path included.
 
 | Base path | Router | Mounted | Purpose |
 |---|---|---|---|
 | `/auth` | [authRoutes.js](../server/routes/authRoutes.js) | Yes | Login and registration |
-| `/users` | [userRoutes.js](../server/routes/userRoutes.js) | Yes | The current user, user lookups and profile edits |
+| `/users` | [userRoutes.js](../server/routes/userRoutes.js) | Yes | The current user, user lookups, profile edits and the admin delete |
 | `/vat` | [vatRoutes.js](../server/routes/vatRoutes.js) | Yes | The VAT calculator and the user's saved calculations |
 | `/trip` | [tripRoutes.js](../server/routes/tripRoutes.js) | Yes | The logged in user's trips |
 | `/entry` | [entryRoutes.js](../server/routes/entryRoutes.js) | Yes | Journal entries written against a trip |
 | `/expense` | [expenseRoutes.js](../server/routes/expenseRoutes.js) | Yes | Expenses, embedded in the budget of their trip |
 | `/budget` | [budgetRoutes.js](../server/routes/budgetRoutes.js) | Yes | One budget per trip, and the expenses embedded in it |
+| `/exports` | [exportRoutes.js](../server/routes/exportRoutes.js) | Yes | Data export to `.csv` / `.xlsx` |
 | `/api` | [apiRoutes.js](../server/routes/apiRoutes.js) | Yes | Currency list, conversion and saved conversions |
-| `/export` | [exportRoutes.js](../server/routes/exportRoutes.js) | **No** | Data export to `.csv` / `.xlsx` — a stub, no handlers written |
 
-The table is in mount order, which is also the order the routers are required at the top of [app.js](../server/app.js#L16-L22).
+The table is in mount order, which is also the order the routers are required at the top of [app.js](../server/app.js#L16-L24). Note the export base path is **`/exports`**, plural — it is the one base path that does not match its router's filename, and the client builds its URLs from the same plural in [ExportForm.js](../client/src/components/ExportForm.js#L167).
 
 ### 1.2. CONVENTIONS
 
 These apply to every table below, so they are not repeated in each one.
 
-- **Auth** is `JWT` where [checkJwtToken](../server/routes/middleware.js#L13) runs before the handler, and `None` where the route is public. The token is signed with `HS256` and expires after **12 hours**.
+- **Auth** is `JWT` where [checkJwtToken](../server/routes/middleware.js#L17) runs before the handler, and `None` where the route is public. The token is signed with `HS256` and expires after **12 hours**.
 - **The owner is always taken from the token**, never from the request body or a query param, so a request can only ever read or write the caller's own records.
-- **Status** records whether the handler is written. `Implemented` is live; `Planned` is documented in the route file's header comment but has no handler yet; `Not written` is neither, and is listed only because the client or this document expects it. All but the first fall through to the 404 handler in [app.js](../server/app.js#L79).
-- **A planned route is left as a comment, never as a handler-less `router.get`.** Express 5 throws `argument handler is required` when a route is registered without one, which would stop the whole router loading and take every route below it with it. This is why the placeholders in the route files are comments — see the note in [budgetRoutes.js](../server/routes/budgetRoutes.js#L230-L235).
-- **Response shape** is not uniform across the routers. `/auth` and `/users` return the payload or `{ message }` at the top level; `/trip`, `/entry`, `/expense`, `/budget`, `/vat` and `/api` wrap every response in `{ success: boolean, ... }`.
+- **Admin-only routes add [checkAdmin](../server/routes/middleware.js#L162)** after `checkJwtToken`. It loads the stored account rather than trusting the `admin` claim on the token, because a token is signed once at login and carries the flag as it stood then — an account since demoted would otherwise keep presenting a token that still claims the right until it expires. Only [`DELETE /users/:id/deleteUser`](#14-users) uses it.
+- **Body rules that do not need the database are enforced as middleware**, before the handler runs, so a bad request is refused without a lookup or a write. Two run on registration — [checkPassword](../server/routes/middleware.js#L220) and [checkAge](../server/routes/middleware.js#L300) — and both are mirrored by the same rule in the schema, which stays the last line of defence for any write that does not come through the route.
+- **Status** records whether the handler is written. `Implemented` is live; `Planned` is documented in the route file's header comment but has no handler yet. A planned route falls through to the 404 handler in [app.js](../server/app.js#L89).
+- **A planned route is left as a comment, never as a handler-less `router.get`.** Express 5 throws `argument handler is required` when a route is registered without one, which would stop the whole router loading and take every route below it with it. This is why the placeholders in the route files are comments — see the note in [budgetRoutes.js](../server/routes/budgetRoutes.js#L185-L190).
+- **Response shape** is not uniform across the routers. `/auth` and `/users` return the payload or `{ message }` at the top level; `/trip`, `/entry`, `/expense`, `/budget`, `/vat` and `/api` wrap every response in `{ success: boolean, ... }`. `/exports` is the exception either way: a success is the **file itself**, not JSON, and only its failures are `{ success: false, message }`.
 - **Field-level errors come back keyed by their schema path.** A rule only Mongoose can judge is caught as a `ValidationError` and flattened into `{ message, errors: { <path>: <message> } }`, so the form can show each message against the input that caused it. The keys are the schema's own paths — `totalBudget`, `categoryLimits.food` — and each form names its inputs by that path, so nothing has to be translated.
 - **Ownership checks are folded into the query** on the routes that read one record by id, so another account's record is *not found* rather than *found and refused*, and an id cannot be guessed at to discover whether it exists elsewhere.
-- **Rate limited** routes return `429` once the quota is used up. Only three routes carry a limiter — see the notes in [1.3](#13-auth) and [1.4](#14-users).
+- **Rate limited** routes return `429` once the quota is used up. Seven routes carry a limiter: `/auth/login`, `/auth/register`, `/users/:id/editPassword`, and all four `/exports` routes, which share one limiter between them. The quotas are given in each section's notes.
 
 ### 1.3. AUTH
 
@@ -88,15 +90,35 @@ These apply to every table below, so they are not repeated in each one.
 
 | Method | Endpoint | Auth | Status | Description |
 |---|---|---|---|---|
-| `POST` | [`/auth/login`](../server/routes/authRoutes.js#L60) | None | Implemented | Validates credentials; returns `{ token, user }` |
-| `POST` | [`/auth/register`](../server/routes/authRoutes.js#L92) | None | Implemented | Creates a new account; returns `{ token, user }` and logs the user straight in |
+| `POST` | [`/auth/login`](../server/routes/authRoutes.js#L47) | None | Implemented | Validates credentials; returns `{ token, user }` |
+| `POST` | [`/auth/register`](../server/routes/authRoutes.js#L82) | None | Implemented | Creates a new account; returns `{ token, user }` and logs the user straight in |
 
 **Notes**
 
 | Endpoint | Body | Rate limit | Other |
 |---|---|---|---|
 | `POST /auth/login` | `username`, `password` | 10 attempts / 15 min / IP | An unknown username and a wrong password both return the same `401`, so the endpoint cannot be used to test which usernames exist |
-| `POST /auth/register` | `username`, `fullName`, `email`, `dateOfBirth`, `address`, `password`, `confirmPassword`, `profilePicture` (optional), `admin` (default `false`) | 20 registrations / hour / IP | [checkPassword](../server/routes/middleware.js#L74) enforces 8+ characters with one special character. A taken username or email returns `409` naming the field |
+| `POST /auth/register` | `username`, `fullName`, `email`, `dateOfBirth`, `address`, `password`, `confirmPassword`, `profilePicture` (optional), `admin` (default `false`) | 20 registrations / hour / IP | Two middleware run before the handler, in this order: [checkPassword](../server/routes/middleware.js#L220) enforces 8+ characters with one special character, and [checkAge](../server/routes/middleware.js#L300) enforces the minimum age. A taken username or email returns `409` naming the field |
+
+**The age rule.** All users must be **18 or older**; an account registering with `admin: true` must be **21 or older**. The limit is checked twice, on purpose:
+
+| Where | What it does |
+|---|---|
+| [checkAge](../server/routes/middleware.js#L300) | Refuses the request before any database work — no duplicate lookup, no save. Returns `400` with `{ success, message, errors: { dateOfBirth } }` |
+| [`userSchema.pre('validate')`](../server/models/userSchema.js#L205) | The same two limits, applied to the document itself, so an underage account cannot be written by any other path. Surfaces as the route's usual `ValidationError` `400` |
+
+Each keeps its limits in a `MIN_AGE = { user: 18, admin: 21 }` map alongside an `ageInYears` helper that decrements when the birthday has not yet come round this year — a plain year subtraction would let someone through on the day before their eighteenth. The refusal message is worded identically in both places, so the user sees one wording whichever layer catches them. The map and the helper are **duplicated** rather than shared, so a change to either limit has to be made in both files.
+
+`checkAge` returns `400` for four distinct cases, each keyed to `dateOfBirth` so [Register.js](../client/src/pages/Register.js#L110) can show it against the date input rather than only in the page banner:
+
+| Case | Message |
+|---|---|
+| No `dateOfBirth` in the body | `Date of Birth is required` |
+| A value that does not parse as a date | `Date of Birth must be a valid date` |
+| A date not in the past | `Date of Birth must be a valid past date` |
+| Below the limit for the role | `You must be at least 18 years old to register`, or `…at least 21 years old to register as an admin` |
+
+`admin` is read as `true` or the string `'true'`, so a checkbox arriving from a form-encoded body decides the limit the same way a JSON boolean does, and nothing else counts as a request for admin rights.
 
 ### 1.4. USERS
 
@@ -104,11 +126,11 @@ These apply to every table below, so they are not repeated in each one.
 
 | Method | Endpoint | Auth | Status | Description |
 |---|---|---|---|---|
-| `GET` | [`/users/me`](../server/routes/userRoutes.js#L35) | JWT | Implemented | Returns the currently authenticated user's public profile |
-| `GET` | [`/users/findUsers`](../server/routes/userRoutes.js#L55) | JWT | Implemented | Returns all users, or one filtered by the `?username=` query param |
-| `PATCH` | [`/users/:id/editPassword`](../server/routes/userRoutes.js#L85) | JWT | Implemented | Updates the account password |
-| `PATCH` | [`/users/:id/editUser`](../server/routes/userRoutes.js#L169) | JWT | Implemented | Updates `username`, `fullName`, `email`, `address` and `profilePicture` |
-| `DELETE` | `/users/:id` | JWT | **Not written** | No delete handler exists on this router |
+| `GET` | [`/users/me`](../server/routes/userRoutes.js#L43) | JWT | Implemented | Returns the currently authenticated user's public profile |
+| `GET` | [`/users/findUsers`](../server/routes/userRoutes.js#L63) | JWT | Implemented | Returns all users, or one filtered by the `?username=` query param |
+| `PATCH` | [`/users/:id/editPassword`](../server/routes/userRoutes.js#L93) | JWT | Implemented | Updates the account password |
+| `PATCH` | [`/users/:id/editUser`](../server/routes/userRoutes.js#L177) | JWT | Implemented | Updates `username`, `fullName`, `email`, `address` and `profilePicture` |
+| `DELETE` | [`/users/:id/deleteUser`](../server/routes/userRoutes.js#L324) | JWT + **admin** | Implemented | Removes one account and every record filed against it |
 
 **Notes**
 
@@ -118,6 +140,7 @@ These apply to every table below, so they are not repeated in each one.
 | `GET /users/findUsers` | — | — | Query: `?username=`. Every record is returned through `toPublicJSON()`. `password` is `select: false` on the schema and stripped again by the `toJSON` transform |
 | `PATCH /users/:id/editPassword` | `currentPassword`, `newPassword` | 10 failed attempts / 15 min / IP | The current password is confirmed even though the token is valid, so a token taken from a shared machine is not enough to lock the owner out. `403` when `:id` is not the caller's own id — admins are not exempt. `400` when the new password matches the current one. `checkPassword` runs before the limiter and a successful change is not counted, so only a real guess spends an attempt |
 | `PATCH /users/:id/editUser` | Any of `username`, `fullName`, `email`, `address`, `profilePicture` | — | Only those five fields are read, so `admin`, `password` or `entries` in the body cannot escalate the account. `address` is written key by key from a fixed list rather than looped over the body, so an unknown key cannot be added to the document. `profilePicture` is cleared by sending `null` — an absent key is the only value meaning *leave this alone*. `403` when `:id` is not the caller's own id; `409` on a taken username or email; `400` when nothing changed |
+| `DELETE /users/:id/deleteUser` | `:id` is the target account's `_id` | — | The inverse of every other route on this router: it acts on **another** account, never the caller's own, which is why it is the one route behind `checkAdmin`. Two refusals come before the delete — `403` when `:id` is the acting admin's own id, and `403` when the target is itself an admin, read off the stored document so the flag cannot be talked around. **Everything the account owns goes with it**, because the schemas do not cascade: trips, journal entries, budgets with their embedded expenses, and both calculation histories. The expenses are counted *before* the budgets are removed, since an expense is a sub-document of its budget and there is nothing left to count once the parent has gone. The two histories are matched on `user` rather than `userId`, the field name their own schemas use. The account is deleted **last**, so a failure part way through leaves the user listed and the delete can be run again — recoverable in a way an orphaned record is not. `400` on a malformed id, `404` when no such account. Returns `{ success, message, userId, username, removedTrips, removedEntries, removedBudgets, removedExpenses, removedVatCalculations, removedConversions }`, and the message names each non-zero count, because those records are not on screen and the admin has no other way of seeing what the delete reached |
 
 ### 1.5. TRIPS
 
@@ -125,11 +148,11 @@ These apply to every table below, so they are not repeated in each one.
 
 | Method | Endpoint | Auth | Status | Description |
 |---|---|---|---|---|
-| `GET` | [`/trip/fetchTrips`](../server/routes/tripRoutes.js#L277) | JWT | Implemented | Lists every trip belonging to the logged in user, newest start date first, each with a resolved `hasBudget` |
-| `GET` | [`/trip/fetchTrip/:id`](../server/routes/tripRoutes.js#L338) | JWT | Implemented | Reads one trip back whole, with the journal entries filed against it |
-| `POST` | [`/trip/addTrip`](../server/routes/tripRoutes.js#L411) | JWT | Implemented | Creates one trip for the logged in user |
-| `PATCH` | [`/trip/editTrip/:id`](../server/routes/tripRoutes.js#L501) | JWT | Implemented | Updates the fields the body carries on one of the user's trips |
-| `DELETE` | [`/trip/deleteTrip/:id`](../server/routes/tripRoutes.js#L652) | JWT | Implemented | Deletes one trip, and the entries and budget filed against it |
+| `GET` | [`/trip/fetchTrips`](../server/routes/tripRoutes.js#L249) | JWT | Implemented | Lists every trip belonging to the logged in user, newest start date first, each with a resolved `hasBudget` |
+| `GET` | [`/trip/fetchTrip/:id`](../server/routes/tripRoutes.js#L293) | JWT | Implemented | Reads one trip back whole, with the journal entries filed against it |
+| `POST` | [`/trip/addTrip`](../server/routes/tripRoutes.js#L355) | JWT | Implemented | Creates one trip for the logged in user |
+| `PATCH` | [`/trip/editTrip/:id`](../server/routes/tripRoutes.js#L428) | JWT | Implemented | Updates the fields the body carries on one of the user's trips |
+| `DELETE` | [`/trip/deleteTrip/:id`](../server/routes/tripRoutes.js#L579) | JWT | Implemented | Deletes one trip, and the entries and budget filed against it |
 
 **Notes**
 
@@ -146,11 +169,11 @@ These apply to every table below, so they are not repeated in each one.
 
 | Method | Endpoint | Auth | Status | Description |
 |---|---|---|---|---|
-| `GET` | [`/entry/fetchEntries`](../server/routes/entryRoutes.js#L152) | JWT | Implemented | Lists every entry the logged in user has written, newest first — the entries of **one** trip are served by [`GET /trip/fetchTrip/:id`](#15-trips) |
+| `GET` | [`/entry/fetchEntries`](../server/routes/entryRoutes.js#L143) | JWT | Implemented | Lists every entry the logged in user has written, newest first — the entries of **one** trip are served by [`GET /trip/fetchTrip/:id`](#15-trips) |
 | `GET` | `/entry/fetchEntry/:id` | JWT | Planned | Fetch one entry |
-| `POST` | [`/entry/addEntry`](../server/routes/entryRoutes.js#L194) | JWT | Implemented | Creates one journal entry against one of the user's trips |
-| `PATCH` | [`/entry/editEntry/:id`](../server/routes/entryRoutes.js#L284) | JWT | Implemented | Updates the fields the body carries on one of the user's entries |
-| `DELETE` | [`/entry/delete/:id`](../server/routes/entryRoutes.js#L438) | JWT | Implemented | Deletes one of the user's entries, and takes it off its trip's `entryCount` |
+| `POST` | [`/entry/addEntry`](../server/routes/entryRoutes.js#L174) | JWT | Implemented | Creates one journal entry against one of the user's trips |
+| `PATCH` | [`/entry/editEntry/:id`](../server/routes/entryRoutes.js#L247) | JWT | Implemented | Updates the fields the body carries on one of the user's entries |
+| `DELETE` | [`/entry/delete/:id`](../server/routes/entryRoutes.js#L369) | JWT | Implemented | Deletes one of the user's entries, and takes it off its trip's `entryCount` |
 
 **Notes**
 
@@ -169,12 +192,12 @@ An expense is **not a model of its own**: it is embedded in the budget of the tr
 
 | Method | Endpoint | Auth | Status | Description |
 |---|---|---|---|---|
-| `GET` | [`/expense/fetchBudgets`](../server/routes/expenseRoutes.js#L343) | JWT | Implemented | Lists the user's budgets with their trip title and base currency, for the form's trip select |
-| `GET` | [`/expense/fetchExpenses`](../server/routes/expenseRoutes.js#L394) | JWT | Implemented | Lists every expense across all of the user's trips, newest spend first |
-| `GET` | [`/expense/fetchExpense/:id`](../server/routes/expenseRoutes.js#L439) | JWT | Implemented | Fetches one expense by its own subdocument id |
-| `POST` | [`/expense/addExpense`](../server/routes/expenseRoutes.js#L516) | JWT | Implemented | Adds one expense to the budget of the selected trip |
-| `PATCH` | [`/expense/updateExpense/:id`](../server/routes/expenseRoutes.js#L645) | JWT | Implemented | Edits one expense, moving it to another trip's budget when the trip is changed |
-| `DELETE` | [`/expense/delete/:id`](../server/routes/expenseRoutes.js#L863) | JWT | Implemented | Removes one expense from the budget it was spent against |
+| `GET` | [`/expense/fetchBudgets`](../server/routes/expenseRoutes.js#L340) | JWT | Implemented | Lists the user's budgets with their trip title and base currency, for the form's trip select |
+| `GET` | [`/expense/fetchExpenses`](../server/routes/expenseRoutes.js#L391) | JWT | Implemented | Lists every expense across all of the user's trips, newest spend first |
+| `GET` | [`/expense/fetchExpense/:id`](../server/routes/expenseRoutes.js#L428) | JWT | Implemented | Fetches one expense by its own subdocument id |
+| `POST` | [`/expense/addExpense`](../server/routes/expenseRoutes.js#L488) | JWT | Implemented | Adds one expense to the budget of the selected trip |
+| `PATCH` | [`/expense/updateExpense/:id`](../server/routes/expenseRoutes.js#L598) | JWT | Implemented | Edits one expense, moving it to another trip's budget when the trip is changed |
+| `DELETE` | [`/expense/delete/:id`](../server/routes/expenseRoutes.js#L816) | JWT | Implemented | Removes one expense from the budget it was spent against |
 
 **Notes**
 
@@ -196,10 +219,10 @@ One budget per trip, with that trip's expenses embedded in it (see [SCHEMAS.md �
 | Method | Endpoint | Auth | Status | Description |
 |---|---|---|---|---|
 | `GET` | `/budget/fetchBudgets` | JWT | Planned | List the user's budgets — served for now by [`/expense/fetchBudgets`](#17-expenses) |
-| `GET` | [`/budget/fetchBudget/:id`](../server/routes/budgetRoutes.js#L253) | JWT | Implemented | Fetches one budget whole, with its virtuals and its trip title |
-| `POST` | [`/budget/addBudget`](../server/routes/budgetRoutes.js#L328) | JWT | Implemented | Sets the budget for one trip. A trip may only ever have one |
-| `PATCH` | [`/budget/editBudget/:id`](../server/routes/budgetRoutes.js#L436) | JWT | Implemented | Edits the fields the budget form owns |
-| `DELETE` | [`/budget/deleteBudget/:id`](../server/routes/budgetRoutes.js#L584) | JWT | Implemented | Deletes a budget, and the expenses embedded in it |
+| `GET` | [`/budget/fetchBudget/:id`](../server/routes/budgetRoutes.js#L202) | JWT | Implemented | Fetches one budget whole, with its virtuals and its trip title |
+| `POST` | [`/budget/addBudget`](../server/routes/budgetRoutes.js#L261) | JWT | Implemented | Sets the budget for one trip. A trip may only ever have one |
+| `PATCH` | [`/budget/editBudget/:id`](../server/routes/budgetRoutes.js#L365) | JWT | Implemented | Edits the fields the budget form owns |
+| `DELETE` | [`/budget/deleteBudget/:id`](../server/routes/budgetRoutes.js#L509) | JWT | Implemented | Deletes a budget, and the expenses embedded in it |
 
 **Notes**
 
@@ -246,38 +269,60 @@ One budget per trip, with that trip's expenses embedded in it (see [SCHEMAS.md �
 
 | Method | Endpoint | Auth | Status | Description |
 |---|---|---|---|---|
-| `GET` | [`/api/currencies`](../server/routes/apiRoutes.js#L70) | JWT | Implemented | Every currency the converter can offer, as `{ code, name, symbol }` |
-| `GET` | [`/api/convert`](../server/routes/apiRoutes.js#L89) | JWT | Implemented | Converts an amount between two currencies. Saves nothing |
-| `GET` | [`/api/history`](../server/routes/apiRoutes.js#L145) | JWT | Implemented | The user's saved conversions, newest first |
-| `POST` | [`/api/save`](../server/routes/apiRoutes.js#L181) | JWT | Implemented | Saves a conversion to the logged in user's history |
-| `DELETE` | [`/api/history/:id`](../server/routes/apiRoutes.js#L255) | JWT | Implemented | Removes one of the user's saved conversions |
+| `GET` | [`/api/currencies`](../server/routes/apiRoutes.js#L69) | JWT | Implemented | Every currency the converter can offer, as `{ code, name, symbol }` |
+| `GET` | [`/api/convert`](../server/routes/apiRoutes.js#L88) | JWT | Implemented | Converts an amount between two currencies. Saves nothing |
+| `GET` | [`/api/history`](../server/routes/apiRoutes.js#L144) | JWT | Implemented | The user's saved conversions, newest first |
+| `POST` | [`/api/save`](../server/routes/apiRoutes.js#L180) | JWT | Implemented | Saves a conversion to the logged in user's history |
+| `DELETE` | [`/api/history/:id`](../server/routes/apiRoutes.js#L249) | JWT | Implemented | Removes one of the user's saved conversions |
 
-`GET /api/currencies` is the most-called endpoint in the app: besides the converter it fills the currency select on the budget form, the add-expense form and the expenses page, and is the source for [financeData.js](../client/src/data/financeData.js#L7) and [currencyFunc.js](../client/src/util/currencyFunc.js#L24).
+`GET /api/currencies` is the most-called endpoint in the app: besides the converter it fills the currency select on the budget form, the add-expense form and the expenses page, and is the source for [financeData.js](../client/src/data/financeData.js#L7) and [currencyFunc.js](../client/src/util/currencyFunc.js#L27).
 
-Every route on this router is called from the client, all five through [Budget.js](../client/src/pages/Budget.js), which owns the converter's state and passes the requests down: `/api/currencies`, `/api/convert` and `/api/save` to [CurrencyConverter.js](../client/src/components/CurrencyConverter.js), and `/api/history` and `/api/history/:id` to [ConversionsList.js](../client/src/components/ConversionsList.js). Nothing on the list is repriced — each record holds the rate its save fetched, so the display formatters in [currencyFunc.js](../client/src/util/currencyFunc.js#L68-L104) only read stored figures.
+Every route on this router is called from the client, all five through [Budget.js](../client/src/pages/Budget.js), which owns the converter's state and passes the requests down: `/api/currencies`, `/api/convert` and `/api/save` to [CurrencyConverter.js](../client/src/components/CurrencyConverter.js), and `/api/history` and `/api/history/:id` to [ConversionsList.js](../client/src/components/ConversionsList.js). Nothing on the list is repriced — each record holds the rate its save fetched, so the display formatters in [currencyFunc.js](../client/src/util/currencyFunc.js#L61-L104) only read stored figures.
 
 **Notes**
 
 | Endpoint | Body / params | Other |
 |---|---|---|
-| `GET /api/currencies` | — | Returns `{ success, live, total, currencies }`. `live` is `false` when the list came from the offline snapshot in [currencies.js](../server/serverData/currencies.js), so the client can tell a real list from a stand-in — [Budget.js](../client/src/pages/Budget.js#L59) keeps its own curated list when it is, because the snapshot carries codes without names |
+| `GET /api/currencies` | — | Returns `{ success, live, total, currencies }`. `live` is `false` when the list came from the offline snapshot in [currencies.js](../server/serverData/currencies.js), so the client can tell a real list from a stand-in — [Budget.js](../client/src/pages/Budget.js#L50) keeps its own curated list when it is, because the snapshot carries codes without names |
 | `GET /api/convert` | Query: `from`, `to`, `amount` | Both codes are trimmed and uppercased, so `?from=zar` is accepted. A conversion between a currency and itself short-circuits to a rate of `1` without calling the provider, and returns no `date`. `400` on a missing field, a non-positive amount, or a code the provider does not support; `502` when Frankfurter cannot price the pair. Returns `{ success, result, rate, date, from, to, amount }` |
-| `GET /api/history` | — | Returns `{ success, total, limit, conversions }`, capped at the newest **100** records, same as `/vat/history`. Each record carries the `convertedAmount` virtual, because `converterSchema` sets `toJSON: { virtuals: true }`. Fetched by [Budget.js](../client/src/pages/Budget.js#L187) when the conversions panel is opened, and rendered by [ConversionsList.js](../client/src/components/ConversionsList.js), which compares `total` against the array it was given to say when the view is truncated |
+| `GET /api/history` | — | Returns `{ success, total, limit, conversions }`, capped at the newest **100** records, same as `/vat/history`. Each record carries the `convertedAmount` virtual, because `converterSchema` sets `toJSON: { virtuals: true }`. Fetched by [Budget.js](../client/src/pages/Budget.js#L186) when the conversions panel is opened, and rendered by [ConversionsList.js](../client/src/components/ConversionsList.js), which compares `total` against the array it was given to say when the view is truncated |
 | `POST /api/save` | Body: `from`, `to`, `amount` | The rate is **fetched here** rather than read from the body, so a saved record always holds a rate the provider actually quoted. The `username` is read off the account, never trusted from the body. `convertedAmount` is not stored — it is a virtual off the amount and the rate, so there is no third figure to disagree with them |
-| `DELETE /api/history/:id` | `:id` | Matched on the id and the user in a single query, same as `/vat/history/:id`. `400` on a malformed id, `404` when not found. Returns `conversionId` so the client can drop the row, though `deleteConversion` in [Budget.js](../client/src/pages/Budget.js#L235) refetches the list instead, so what is on screen is what the database holds |
+| `DELETE /api/history/:id` | `:id` | Matched on the id and the user in a single query, same as `/vat/history/:id`. `400` on a malformed id, `404` when not found. Returns `conversionId` so the client can drop the row, though `deleteConversion` in [Budget.js](../client/src/pages/Budget.js#L226) refetches the list instead, so what is on screen is what the database holds |
 
 ### 1.11. EXPORT
 
-**Base path:** `/export`. [exportRoutes.js](../server/routes/exportRoutes.js) is a **comment-only stub** — eight lines, defining no router and exporting nothing, and it is not mounted.
+**Base path:** `/exports` — note the plural. Defined in [exportRoutes.js](../server/routes/exportRoutes.js). All routes require JWT and share one rate limiter.
+
+Every route answers with a **file** rather than with JSON, in either `.csv` or `.xlsx`, and returns the whole of that record type on the account.
 
 | Method | Endpoint | Auth | Status | Description |
 |---|---|---|---|---|
-| `GET` | `/export/trips` | JWT | Not written | Export trips to `.csv` or `.xlsx` |
-| `GET` | `/export/entries` | JWT | Not written | Export journal entries to `.csv` or `.xlsx` |
-| `GET` | `/export/expenses` | JWT | Not written | Export expenses to `.csv` or `.xlsx` |
-| `GET` | `/export/budget` | JWT | Not written | Export trip budgets to `.csv` or `.xlsx` |
+| `GET` | [`/exports/trips`](../server/routes/exportRoutes.js#L207) | JWT | Implemented | Every trip on the account, newest departure first |
+| `GET` | [`/exports/entries`](../server/routes/exportRoutes.js#L289) | JWT | Implemented | Every journal entry on the account, newest first |
+| `GET` | [`/exports/expenses`](../server/routes/exportRoutes.js#L357) | JWT | Implemented | Every expense across all trips, newest spend first |
+| `GET` | [`/exports/budgets`](../server/routes/exportRoutes.js#L441) | JWT | Implemented | Every trip budget on the account, newest first |
 
-The first three are the ones the stub's own header comment lists; `/export/budget` is named alongside them in [ExportForm.js](../client/src/components/ExportForm.js#L3-L6), which is where all four are recorded on the client.
+All four are recorded on the client in [ExportForm.js](../client/src/components/ExportForm.js#L3-L6), one form serving all four because every export asks the same single question.
+
+**Notes**
+
+| Endpoint | Query | Rate limit | Other |
+|---|---|---|---|
+| All four | `?format=csv` or `?format=xlsx` | 60 exports / 15 min / IP, **shared** across the four | The format is required, not defaulted: the select opens on a placeholder, so an empty one means the user submitted without choosing and is told so rather than handed a format they did not pick. `400` naming both formats when it is missing or unrecognised |
+| `GET /exports/trips` | — | — | `hasBudget` is answered from the caller's own budgets rather than read off the trip, the same way `GET /trip/fetchTrips` answers it. `entryCount` is read through a finite-number check rather than a falsy fallback, so a trip with no entries yet writes a nought instead of an empty cell |
+| `GET /exports/entries` | — | — | The body is stored as the editor's rich text HTML, so it is reduced to plain text before it is written — exported raw, the cell would hold markup. The trip is read off the entry's own stored title, so an entry whose trip has since been deleted still says which trip it was about |
+| `GET /exports/expenses` | — | — | There is no expense collection to query, so the caller's budgets are read and the expenses they hold are flattened into one list, then sorted after they are gathered because they arrive grouped by budget. Each row carries **both** figures — the amount as paid and the amount in the budget's base currency — so that second column totals to the trip's spend whatever each expense was paid in |
+| `GET /exports/budgets` | — | — | The whole document is loaded rather than a field selection, because the spend figures are virtuals computed off the embedded expenses and selecting away `expenses` would leave every total reading nought. `percentUsed` is worked out in the route rather than read off the virtual, which divides by the total and would write `Infinity` for a budget set at nought |
+
+**Shared behaviour**
+
+- **A success is the file, not JSON.** The response carries the media type of the format, a `Content-Disposition` naming the file, a `Content-Length` set from the buffer so the browser can show real download progress, and `Cache-Control: no-store`, because the body is one account's records and must not be kept by a cache. `Content-Disposition` is in the `exposedHeaders` of the CORS config in [app.js](../server/app.js#L52-L56), so the form can read the name the server chose instead of inventing one.
+- **The filename is built from the account and the date** it was taken, so two exports a month apart do not overwrite each other in the downloads folder.
+- **The username is read off the account, not the token**, which `signToken` deliberately fills with the id and the role alone. That lookup doubles as a check that the account still exists — a deleted one leaves a token that still verifies and has no data left to export, so it answers `401`.
+- **An empty export is a `404`**, not an empty file, and the message names the record type: there is nothing to open in a spreadsheet with no rows in it.
+- **Nothing is read from the query beyond the format**, and every query is filtered on the userId from the token, so an export can only ever hold the caller's own records.
+- **The list filters are not applied.** An export is a copy of the data, not a copy of the screen, and the filter forms do not yet submit anything for a route to filter on.
+- **The file itself is built by [exportFile.js](../server/util/exportFile.js)**, handed the columns and rows of native values each route shapes. A `date` cell is written as a real date and a `money` cell as a real number, so both sort and total in a spreadsheet rather than reading back as text.
 
 ### 1.12. SYSTEM
 
@@ -285,16 +330,16 @@ Defined directly on the app in [app.js](../server/app.js), not in a router.
 
 | Method | Endpoint | Auth | Status | Description |
 |---|---|---|---|---|
-| `GET` | [`/health`](../server/app.js#L73) | None | Implemented | Lightweight liveness check. Returns `{ status: 'ok', database: boolean }`, where `database` reflects the Mongoose connection state |
-| `ALL` | [`*` fallback](../server/app.js#L79) | None | Implemented | Any unmatched path returns `404` as JSON — `{ message: "Cannot <METHOD> <url>" }` — rather than Express's default HTML page |
-| `ALL` | [error handler](../server/app.js#L86) | None | Implemented | Catches anything passed to `next(error)`. A malformed JSON body returns `400`; anything else returns the error's own `status` or `500`, always with the generic `Internal Server Error` message |
+| `GET` | [`/health`](../server/app.js#L83) | None | Implemented | Lightweight liveness check. Returns `{ status: 'ok', database: boolean }`, where `database` reflects the Mongoose connection state |
+| `ALL` | [`*` fallback](../server/app.js#L89) | None | Implemented | Any unmatched path returns `404` as JSON — `{ message: "Cannot <METHOD> <url>" }` — rather than Express's default HTML page |
+| `ALL` | [error handler](../server/app.js#L96) | None | Implemented | Catches anything passed to `next(error)`. A malformed JSON body returns `400`; anything else returns the error's own `status` or `500`, always with the generic `Internal Server Error` message |
 
-**Request-level middleware**, applied in [app.js](../server/app.js#L41-L61) before any router:
+**Request-level middleware**, applied in [app.js](../server/app.js#L43-L68) before any router:
 
 | Middleware | Purpose |
 |---|---|
 | `helmet` | A baseline of security response headers, including a Content Security Policy. `crossOriginResourcePolicy` is relaxed to `cross-origin` so the React app on another origin can still load resources served from here |
-| `cors` | The frontend and the API run on different ports, so every request is cross-origin. Only `CLIENT_URL` is allowed — defaulting to `http://localhost:3000` — and only the methods and headers the app actually sends |
+| `cors` | The frontend and the API run on different ports, so every request is cross-origin. Only `CLIENT_URL` is allowed — defaulting to `http://localhost:3000` — and only the methods and headers the app actually sends. `Content-Disposition` is added to `exposedHeaders`, because a cross-origin response only lets the page read a handful of headers by default and the export form would otherwise be unable to read the filename the server chose |
 | `express.json` | Parses JSON bodies into `req.body`, capped at **1mb** so an oversized payload is not buffered into memory |
 | `express.urlencoded` | Parses form-encoded bodies, for a client that posts a plain HTML form |
 | `trust proxy` | Set to `1` so `express-rate-limit` reads the real client IP rather than the proxy's when deployed behind one |
@@ -327,12 +372,12 @@ Exchange rate provider behind the currency converter and the expense conversion.
 
 | Code | Meaning | When this API returns it |
 |---|---|---|
-| `200` | OK | A successful `GET`, `PATCH` or `DELETE` |
+| `200` | OK | A successful `GET`, `PATCH` or `DELETE` — and on `/exports`, the file itself |
 | `201` | Created | A successful `POST` that wrote a new record |
-| `400` | Bad Request | A missing or malformed field, a malformed `ObjectId`, a Mongoose `ValidationError`, a body with nothing to update, an attempt to move a budget to another trip, or a JSON body that could not be parsed |
+| `400` | Bad Request | A missing or malformed field, a malformed `ObjectId`, a Mongoose `ValidationError`, a body with nothing to update, a registration below the minimum age for its role, an attempt to move a budget to another trip, a missing or unrecognised `?format=` on an export, or a JSON body that could not be parsed |
 | `401` | Unauthorized | Missing, malformed, invalid or expired token; wrong credentials on login; wrong current password on a password change; a token whose user no longer exists |
-| `403` | Forbidden | A valid token aimed at another account's profile or password |
-| `404` | Not Found | The record does not exist, **or** belongs to another account; a trip with no budget on `POST /expense/addExpense`; also any unmatched path |
+| `403` | Forbidden | A valid token aimed at another account's profile or password; a non-admin token on `DELETE /users/:id/deleteUser`; an admin aiming that route at their own account or at another admin |
+| `404` | Not Found | The record does not exist, **or** belongs to another account; a trip with no budget on `POST /expense/addExpense`; an export with no records to write; also any unmatched path |
 | `409` | Conflict | A username or email that is already registered; a trip that already has a budget; a base currency changed on a budget that already holds expenses |
 | `429` | Too Many Requests | A rate limited route's quota is used up |
 | `500` | Internal Server Error | An unhandled fault. The message is deliberately generic; the detail is logged server-side |
@@ -344,13 +389,13 @@ Points where the code does not yet match the tables above. Recorded here so the 
 
 | Where | Issue |
 |---|---|
-| [exportRoutes.js](../server/routes/exportRoutes.js) | A comment-only stub: no `express.Router()`, no handlers, no `module.exports`, and not mounted. [ExportForm.js](../client/src/components/ExportForm.js#L3-L6) records all four paths |
-| [currConverterSchema.js](../server/models/currConverterSchema.js) | `baseCurrency` and `targetCurrency` are `enum`d against the offline snapshot while the routes validate against the **live** provider list. The two match today (165 codes), but a currency Frankfurter adds would pass `/api/convert` and then fail validation on `/api/save` as a `400` |
-| [budgetRoutes.js:235](../server/routes/budgetRoutes.js#L235) | `GET /budget/fetchBudgets` is a comment, not a handler. Listing a user's budgets is served by `/expense/fetchBudgets`, which returns only the four fields its trip select reads |
+| [currConverterSchema.js](../server/models/currConverterSchema.js#L39) | `baseCurrency` and `targetCurrency` are `enum`d against the offline snapshot while the routes validate against the **live** provider list. The two match today (165 codes), but a currency Frankfurter adds would pass `/api/convert` and then fail validation on `/api/save` as a `400` |
+| [budgetRoutes.js:190](../server/routes/budgetRoutes.js#L185-L190) | `GET /budget/fetchBudgets` is a comment, not a handler. Listing a user's budgets is served by `/expense/fetchBudgets`, which returns only the four fields its trip select reads |
 | [budgetSchema.js:204](../server/models/budgetSchema.js#L204) | `tripId` is documented as unique but carries a plain index, so the one-budget-per-trip rule is enforced by the `409` in `POST /budget/addBudget` rather than by the database. Two concurrent creates for the same trip could both pass that check |
-| [userRoutes.js](../server/routes/userRoutes.js) | No delete handler, so an account cannot be removed through the API |
-| [entryRoutes.js:190-197](../server/routes/entryRoutes.js#L190-L197), [expenseRoutes.js:555-562](../server/routes/expenseRoutes.js#L555-L562) | The `PATCH` and `DELETE` sections are placeholder comments with no handlers. Entries and expenses can be created and read but not edited or removed on their own routes — though both are cleared by `DELETE /trip/deleteTrip/:id`, and an expense by `DELETE /budget/deleteBudget/:id` |
-| [SCHEMAS.md §9](SCHEMAS.md#9-relationships) | Deletes are not cascaded by the schemas, so each delete route is responsible for clearing its own dependents. `DELETE /trip/deleteTrip/:id` does this for a trip's entries and budget; nothing does it for an account, which has no delete route at all |
+| [entryRoutes.js](../server/routes/entryRoutes.js) | `GET /entry/fetchEntry/:id` is named in the router's header comment but has no handler. Nothing needs it yet: the entries of one trip come back with `GET /trip/fetchTrip/:id`, and the whole list from `GET /entry/fetchEntries` |
+| [middleware.js:282](../server/routes/middleware.js#L282), [userSchema.js:18](../server/models/userSchema.js#L18) | `MIN_AGE` and `ageInYears` are defined twice, once per file, so the 18/21 limits and the age calculation have to be changed in both places. Shared behaviour with no shared source — see [1.3](#13-auth) |
+| [middleware.js](../server/routes/middleware.js#L248) | Three exports are unused by any route — `hashPassword`, `generalRateLimiter` and `passwordUpdateRateLimiter`. `hashPassword` would also throw on its first call: it uses `bcrypt` without requiring it. Password hashing is done by the `pre('save')` hook on `userSchema`, and the password-change quota by `editPasswordLimiter`, which [userRoutes.js](../server/routes/userRoutes.js#L24) defines itself |
+| [SCHEMAS.md §9](SCHEMAS.md#9-relationships) | Deletes are not cascaded by the schemas, so each delete route clears its own dependents: `DELETE /trip/deleteTrip/:id` for a trip's entries and budget, `DELETE /budget/deleteBudget/:id` for a budget's expenses, and `DELETE /users/:id/deleteUser` for everything an account owns. A schema-level hook would remove the need for each new route to remember |
 
 ## 5. REFERENCES
 
