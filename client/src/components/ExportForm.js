@@ -251,6 +251,7 @@ export default function ExportForm({
       <p className='visually-hidden' id={formTitleId}>{title}</p>
        <Stack direction="horizontal" gap={3}>
       <div className="p-2" id='exportFormSelectBlock'>
+      {/* EXPORT FORM FORMAT value={format}*/}
         <label className='exportLabel' htmlFor={formatSelectId}>CHOOSE EXPORT FORMAT:</label>
         <select
         className='input'
