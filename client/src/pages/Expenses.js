@@ -251,6 +251,11 @@ export default function Expenses(//Export default Expenses.js component
     non-null puts the form in edit mode and its id is what the PATCH is
     addressed to */
     const [editingBudget, setEditingBudget] = useState(null)
+    /* Bumped each time an edit lands, so the budget list's details panel reads
+    the budget back. That panel is filled from a read of its own and carries the
+    EDIT button the form is opened from, so a refreshed list of rows would leave
+    it reporting the figures the budget held before the edit */
+    const [budgetRefreshKey, setBudgetRefreshKey] = useState(0)
     /* Offered by the currency select until GET /api/currencies answers, and kept
     if it never does. The same list the currency converter falls back to */
     const [currencyOptions] = useState(FALLBACK_CURRENCIES)
@@ -969,6 +974,10 @@ export default function Expenses(//Export default Expenses.js component
           /* Reloaded because the base currency and the total are what the add
           expense form's select reports against the trip it offers */
           fetchBudgets()
+          /* Tells the budget list to read the edited budget back into its
+          details panel, which is filled from a read of its own rather than from
+          the rows and would otherwise keep showing the figures from before */
+          setBudgetRefreshKey((prev) => prev + 1)
           alert(data.message || 'Budget updated successfully.')
           console.log('[SUCCESS: Expenses.js] Budget updated:', data.budget?._id)
         } else {
@@ -1332,6 +1341,9 @@ export default function Expenses(//Export default Expenses.js component
                 /* An expense carries the budgetId it was filed against, so the
                 list counts the expenses per budget off this one */
                 expenses={expenses}
+                /* Bumped by editBudget, so the details panel reads the budget
+                it is open on back once the PATCH has landed */
+                refreshKey={budgetRefreshKey}
               />
             </div>
             </Col>

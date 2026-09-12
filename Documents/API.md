@@ -219,10 +219,10 @@ One budget per trip, with that trip's expenses embedded in it (see [SCHEMAS.md Â
 | Method | Endpoint | Auth | Status | Description |
 |---|---|---|---|---|
 | `GET` | `/budget/fetchBudgets` | JWT | Planned | List the user's budgets â€” served for now by [`/expense/fetchBudgets`](#17-expenses) |
-| `GET` | [`/budget/fetchBudget/:id`](../server/routes/budgetRoutes.js#L202) | JWT | Implemented | Fetches one budget whole, with its virtuals and its trip title |
-| `POST` | [`/budget/addBudget`](../server/routes/budgetRoutes.js#L261) | JWT | Implemented | Sets the budget for one trip. A trip may only ever have one |
-| `PATCH` | [`/budget/editBudget/:id`](../server/routes/budgetRoutes.js#L365) | JWT | Implemented | Edits the fields the budget form owns |
-| `DELETE` | [`/budget/deleteBudget/:id`](../server/routes/budgetRoutes.js#L509) | JWT | Implemented | Deletes a budget, and the expenses embedded in it |
+| `GET` | [`/budget/fetchBudget/:id`](../server/routes/budgetRoutes.js#L219) | JWT | Implemented | Fetches one budget whole, with its virtuals and its trip title |
+| `POST` | [`/budget/addBudget`](../server/routes/budgetRoutes.js#L278) | JWT | Implemented | Sets the budget for one trip. A trip may only ever have one |
+| `PATCH` | [`/budget/editBudget/:id`](../server/routes/budgetRoutes.js#L382) | JWT | Implemented | Edits the fields the budget form owns |
+| `DELETE` | [`/budget/deleteBudget/:id`](../server/routes/budgetRoutes.js#L535) | JWT | Implemented | Deletes a budget, and the expenses embedded in it |
 
 **Notes**
 

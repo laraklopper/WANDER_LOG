@@ -32,21 +32,35 @@ BUDGET INPUT PARSING AND VALIDATION
 /* Reads one money field off a submission and normalises it into the number the
 schema stores. eturns `{ message }` describing the problem, or `{ value }` with the figure. */
 const parseMoney = (value, label, { required = false } = {}) => {
+    /* Only a number or a string can be read as an amount. Anything else
+    coerces to a figure without being one — Number(true) is 1, Number([]) is 0
+    and Number(['5']) is 5 — and would otherwise be stored as that figure */
+    if (value !== undefined && value !== null && typeof value !== 'number' && typeof value !== 'string') {
+        return { message: `${label} must be a number` };
+    }
+
+    /* Trimmed before the blank check, so a field that holds only spaces is
+    read as empty rather than as Number('  '), which is 0 */
+    const amount = typeof value === 'string' ? value.trim() : value;
+
     // Conditional rendering to check whether the field was filled in at all
-    if (value === undefined || value === null || value === '') {
+    if (amount === undefined || amount === null || amount === '') {
         return required ? { message: `${label} is required` } : { value: null };
     }
 
-    const amount = Number(value);
+    const parsed = Number(amount);
 
-    if (Number.isNaN(amount)) {
+    /* isFinite rather than isNaN, so a figure too large to hold is refused as
+    well: Number('1e999') is Infinity, which passes a NaN check and a min 0
+    check and would be stored as Infinity */
+    if (!Number.isFinite(parsed)) {
         return { message: `${label} must be a number` };
     }
-    if (amount < 0) {
+    if (parsed < 0) {
         return { message: `${label} cannot be negative` };
     }
 
-    return { value: amount };
+    return { value: parsed };
 }
 
 /* Reads one value off a submission by the schema path the form names its input
@@ -175,7 +189,10 @@ show each message against the input that caused it.
 The keys are the schema's own paths — 'totalBudget', 'categoryLimits.food' — and
 the form names each input by that path, so nothing has to be translated. */
 const validationErrors = (error) => Object.fromEntries(
-    Object.entries(error.errors).map(([field, err]) => [field, err.message])
+    /* Defaulted to an empty object, so a ValidationError raised without a
+    collected field — which reading .errors of would throw on, inside the catch
+    that is already handling a failure — is still reported as a 400 */
+    Object.entries(error.errors ?? {}).map(([field, err]) => [field, err.message])
 );
 
 // ======ROUTES=====================
@@ -454,8 +471,17 @@ router.patch('/editBudget/:id', checkJwtToken, async (req, res) => {
         /* Saving is what validates the document, so a rule only the schema can
         judge is raised from here as a ValidationError and handled below rather
         than being written. It is also what runs the pre('save') hook, which
-        works the daily budget out again when this edit cleared it */
-        await budget.save();
+        works the daily budget out again when this edit cleared it.
+
+        validateModifiedOnly, because an expense is a sub-document of the budget
+        rather than a model of its own: a plain save() validates every path the
+        document was loaded with, so all of the stored expenses would be checked
+        again by an edit that only touched the budget's own fields. One that no
+        longer passes — a currency since dropped from the supported list, a title
+        longer than the limit it was stored before — would fail the whole edit
+        with a 400 keyed on expenses.0.currency, which is not a field the budget
+        form has an input for and so could never be corrected from it */
+        await budget.save({ validateModifiedOnly: true });
 
         console.log('[SUCCESS: budgetRoutes.js, PATCH /editBudget/:id] Budget updated:', budget._id);// Log a success message in the console for debugging purposes
         return res.status(200).json({

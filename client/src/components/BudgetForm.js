@@ -162,6 +162,21 @@ export default function BudgetForm({
   and the select is disabled anyway */
   const noTrips = !isEdit && !loadingTrips && trips.length === 0;
 
+  /* What the disabled trip select is labelled with in edit mode. GET
+  /budget/fetchBudget/:id returns the title alongside the id for exactly this,
+  so it is read off the budget first: the trips list may not have arrived yet,
+  and a trip that has since been deleted is not in it at all. Falls back to the
+  list, and then to the same wording the route uses for a trip that is gone */
+  const editTripTitle = useMemo(() => {
+    if (!isEdit) return '';
+    if (budget?.tripTitle) return budget.tripTitle;
+
+    const tripId = String(budgetData.tripId ?? '');
+    const trip = trips.find(({ _id }) => String(_id) === tripId);
+
+    return trip?.title || 'Trip no longer available';
+  }, [isEdit, budget, budgetData.tripId, trips]);
+
   const showTripError = touched.tripId && tripEmpty;
   const showBaseCurrencyError = touched.baseCurrency && baseCurrencyEmpty;
   const showTotalBudgetError = touched.totalBudget && totalBudgetEmpty;
@@ -338,7 +353,9 @@ export default function BudgetForm({
                   disabled={isEdit || submitting || loadingTrips || noTrips}
                   // ARIA ATTRIBUTES:
                   aria-required='true'
-                  aria-busy={loadingTrips}
+                  /* Only a create waits on the trips list, an edit is labelled
+                  from the budget it was opened on */
+                  aria-busy={!isEdit && loadingTrips}
                   aria-invalid={showTripError || hasServerError('tripId') ? 'true' : 'false'}
                   aria-describedby={describedBy(
                     tripHelpId,
@@ -347,15 +364,27 @@ export default function BudgetForm({
                     hasServerError('tripId') && serverErrorId
                   )}
                 >
-                  {/* The denormalised trip title comes from the same choice */}
-                  {loadingTrips && <option value=''>LOADING TRIPS...</option>}
-                  {!loadingTrips && noTrips && <option value=''>NO TRIPS YET</option>}
-                  {!loadingTrips && !noTrips && (
+                  {/* The denormalised trip title comes from the same choice.
+                  An edit carries the one option the budget already belongs to,
+                  built from the budget rather than from the trips list: the
+                  select's value would otherwise match nothing in that list
+                  while it is still loading, or once the trip has been deleted,
+                  and the disabled select would report the budget's trip as
+                  LOADING TRIPS... or as SELECT */}
+                  {isEdit ? (
+                    <option value={budgetData.tripId || ''}>{editTripTitle}</option>
+                  ) : (
                     <>
-                      <option value=''>SELECT</option>
-                      {trips.map(({ _id, title }) => (
-                        <option key={_id} value={_id}>{title}</option>
-                      ))}
+                      {loadingTrips && <option value=''>LOADING TRIPS...</option>}
+                      {!loadingTrips && noTrips && <option value=''>NO TRIPS YET</option>}
+                      {!loadingTrips && !noTrips && (
+                        <>
+                          <option value=''>SELECT</option>
+                          {trips.map(({ _id, title }) => (
+                            <option key={_id} value={_id}>{title}</option>
+                          ))}
+                        </>
+                      )}
                     </>
                   )}
                 </select>

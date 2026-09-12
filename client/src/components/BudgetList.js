@@ -32,7 +32,11 @@ export default function BudgetList(
         embedded in the budget of its trip and carries the budgetId it came out
         of, so the count per budget is read from this list rather than from the
         rows, which leave the expenses out on purpose */
-        expenses = []
+        expenses = [],
+        /* Bumped by the page each time its PATCH /budget/editBudget/:id
+        succeeds. The details panel is filled from a read of its own rather than
+        from the rows, so a refreshed list is not enough to move its figures */
+        refreshKey = 0
     }
 ) {
     const username = currentUser?.username || '';
@@ -57,6 +61,10 @@ export default function BudgetList(
     quick succession start two requests that can answer out of order, so a reply
     is only shown while it is still the one that was asked for last */
     const requestedIdRef = useRef(null)
+    /* The refreshKey the panel has already re-read for, so the effect below
+    only runs on a bump and not on the first render or on any other change in
+    its dependencies */
+    const seenRefreshRef = useRef(refreshKey)
 
     //================EVENT LISTENERS========================
 
@@ -198,6 +206,47 @@ export default function BudgetList(
         setSelectedId(null)
         setSelectedBudget(null)
     },[budgets, selectedId, loadingBudgets, loadingDetails])
+
+    /* Reads the open budget back once the page's edit of it has landed. The
+    panel is filled by handleSelect from a read of its own, and the EDIT button
+    that opens the form is on the panel itself, so a budget changed by that form
+    would otherwise keep reporting the totals and limits it held when the panel
+    was opened. The refreshed list is not enough: a row carries four fields and
+    the panel reports on all of them.
+
+    Read without clearing what is on screen, unlike handleSelect, so the panel
+    does not blink back to LOADING THE BUDGET for a refresh the user did not ask
+    for, and a read that failed leaves the panel as it was */
+    useEffect(() => {
+        // Conditional rendering to check this is a bump rather than any other change
+        if (refreshKey === seenRefreshRef.current) return;
+        seenRefreshRef.current = refreshKey;
+
+        // Conditional rendering to check the panel is open on a budget at all
+        if (!selectedId) return;
+
+        const budgetId = selectedId;
+        requestedIdRef.current = budgetId;
+
+        (async () => {
+            const budget = await fetchBudget?.(budgetId);
+
+            /* Conditional rendering to check this is still the budget the panel
+            is showing, the same as handleSelect: a CLOSE, or a VIEW of another
+            budget, has moved on from this request */
+            if (requestedIdRef.current !== budgetId) {
+                console.warn('[WARN: BudgetList.js] Ignored a late refresh for budget', budgetId);
+                return;
+            }
+            if (!budget) {
+                console.warn('[WARN: BudgetList.js] Could not re-read budget', budgetId, 'so the panel was left as it was');
+                return;
+            }
+
+            setSelectedBudget(budget)
+            console.log('[INFO: BudgetList.js] Refreshed the details panel for budget', budgetId);
+        })()
+    },[refreshKey, selectedId, fetchBudget])
 
     //===============JSX RENDERING==============
     /* Read as a boolean for the panel's own buttons: only one budget can be
