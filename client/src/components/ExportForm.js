@@ -248,10 +248,7 @@ export default function ExportForm({
   //===============JSX RENDERING==============
   return (
     <form id='exportForm' onSubmit={handleExport} aria-labelledby={formTitleId}>
-    <p className='visually-hidden' id={formTitleId}>
-            {/* EXPORT TITLE: e.g Export Trips */}
-            {title}
-        </p>
+      <p className='visually-hidden' id={formTitleId}>{title}</p>
        <Stack direction="horizontal" gap={3}>
       <div className="p-2" id='exportFormSelectBlock'>
         <label className='exportLabel' htmlFor={formatSelectId}>CHOOSE EXPORT FORM</label>
