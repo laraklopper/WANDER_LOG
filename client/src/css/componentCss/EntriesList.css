@@ -16,7 +16,14 @@ EntriesList.js */
     width: 100%;
     padding: 0px;
     margin: 0px;
+    gap: 10px;
 }
+#entriesFilterSummary{
+	margin:0px;
+padding:0px;
+text-align: center
+}
+
 /* The row above the table, holding the reload button. Kept to the right, the
 same side the trip list carries its own */
 #entriesListToolbar{
