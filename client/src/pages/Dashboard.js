@@ -12,6 +12,7 @@ import Stack from 'react-bootstrap/Stack';
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { Link } from 'react-router-dom';
+import { PlaneLanding } from 'lucide-react';
 import Map from '../css/images/High-Resolution-World-Map-2048x1024.jpg'
 // ============MAIN DASHBOARD COMPONENT============
 export default function Dashboard(//Export the default Dashboard.js function component
@@ -48,6 +49,16 @@ export default function Dashboard(//Export the default Dashboard.js function com
     {/* Render the Header.js function component 
     with 'DASHBOARD' as the pageHeader */}
       <Header currentUser={currentUser} heading={'DASHBOARD'}/>
+      <Row id='eventRow'>
+        <Col id='eventCol'>
+          <div className='event-bar'>
+            <div className='event-track'>
+              <PlaneLanding size={32} fill='orange' color='#000' aria-hidden='true' className='event-slide'/>
+
+            </div>
+          </div>
+        </Col>
+      </Row>
       <section id='dashboardSection1'>
         <div id='dashboardSection1Content' aria-describedby='dashboardText'>
         <p id='dashboardText' className='visually-hidden'>Wander Log is a travel journal application that allows you to document your travel experiences, create a travel log, and keep track of your adventures.</p>

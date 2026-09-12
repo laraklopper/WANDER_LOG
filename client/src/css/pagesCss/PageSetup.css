@@ -143,3 +143,74 @@ Accessibility helpers
     font-size: 24px;
     letter-spacing: 2px;
 }
+#eventRow{
+     width: 100%;
+    margin: 10px 0px 5px 0px;
+    padding: 5px 10px;
+}
+#eventCol{
+     width: 100%;
+    margin:  0px;
+    display: flex;
+    padding: 5px 10px;
+}
+.event-track {
+    position: relative;
+    width: 100%;
+    height: 40px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+}
+.event-bar{
+    display: flex;
+    align-items: center;    
+    width: 100%;
+    background-color: #1e7b1e;
+    border-top: 2px solid #000;
+    border-bottom: 2px solid #000;
+    margin: 0;
+    padding: 0;
+    height: 40px
+}
+/* =========================
+   UNIVERSAL EVENT ANIMATION
+   left → right → center
+   ========================= */
+   /* Any icon inside the track */
+.event-slide {
+    --icon-size: 32px;
+    /* MUST match icon size prop */
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    animation: slide-left-right-center 12s ease-in-out forwards;
+    will-change: left, transform;
+    pointer-events: none;
+}
+
+/* Keyframes: LEFT → RIGHT → CENTER */
+@keyframes slide-left-right-center {
+    0% {
+        left: 0;
+        transform: translateY(-50%);
+    }
+    65% {
+        left: calc(100% - var(--icon-size));
+        transform: translateY(-50%);
+    }
+    100% {
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+}
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .event-slide
+{
+        animation: none;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+}
