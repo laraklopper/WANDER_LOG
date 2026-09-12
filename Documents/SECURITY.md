@@ -10,22 +10,22 @@
 - Enforce strong passwords at registration and password updates
 - Limit API calls using express-rate-limit
 
-|GOAL| METHOD||
-|---|---|---|
-| PASSWORD HASHING |  Hashed password before storage using `bcrypt` middleware (salt rounds: 10) | *plaintext passwords are however used during development* |
-| STRONG PASSWORDS | Requirements for passwords | check password middleware |
-|AUTHENTICATE ALL REQUESTS| JWT authentication | `All routes that require authentication expect a `Bearer <token>` value in the `Authorization` header except the `/auth` routes in [authRoutes.js](../server/routes/authRoutes.js)`|
-| RESTRICT ACCESS BASED ON `RBAC` | Admin registration (based on age restrictions) |*provide admin users with certain privileges* |
-| SECURE HTTP HEADERS |  Set secure HTTP response headers using `helmet.js` middleware | |
-| SETUP CROSS-ORIGIN-RESOURCE-SHARING |Set `CORS` middleware which indicates which external domains are permitted to make requests to a server | *CORS must be configured in the Express backend to allow the React frontend to call the API*|
-| ENVIROMENTAL VARIABLES| Use `dotenv` middleware to secure enviromental variables |*The `.env` file is never committed to source control (listed in `.gitignore`)*|
-|RATE-LIMITING| Use rate-limiting middleware (`express-rate-limit` middleware) to limit API calls| *Prevent brute force*|
-
 <!-- - Enforce strong passwords at registration and password updates -->
 |
 ## TABLE OF CONTENTS
-1. 
-2
+1. [OVERVIEW](#1-overview)
+2. [THIRD PARTY PACKAGES]
+    - [2.1.JWT AUTHENTICATION](#21-jwt-authentication)
+    - [2.2. BCRYPT PASSWORD HASHING](#22-bcrypt-password-hashing)
+    - [2.3. CORS CONFIGURATION](#23-cors-configuration)
+    - [2.4. SECURE HTTP RESPONSE HEADERS](#24-helmet)
+    - [2.5. EXPRESS-RATE-LIMITING](#25-express-rate-limiting)
+    - [2.6. ENVIROMENTAL VARIABLES](#26-enviromental-variables)
+3. [CUSTOM MIDDLEWARE](#3-custom-middleware)
+4. [SECURITY UTILITIES](#4-security-utilities)
+    - [4.1. ENSURE JWT TOKEN](#41-ensure-jwt-secret-key-ensurejwtkey)
+    - [4.2. PROTECTED FRONT END ROUTES](#42-protected-front-end-routes)
+5. [REFERENCES](#5-references)
 
 - *View [GLOSSARY.md](../GLOSSARY.md) for terminolgy*
 ## 1. OVERVIEW
@@ -58,7 +58,7 @@ All routes that require authentication expect a `Bearer <token>` value in the `A
 Hashes passwords before storage using salt rounds.
 *plaintext passwords are however used during development*
 ### 2.3. CORS CONFIGURATION
-### 2.4. HELMET
+### 2.4. SECURE HTTP RESPONSE HEADERS
 
 Sets secure HTTP response headers to guard against common web attacks (XSS, clickjacking, MIME sniffing, etc.)
 ### 2.5. EXPRESS RATE LIMITING
@@ -95,8 +95,64 @@ Caps traffic at 100 requests per 15 minutes per IP using `express-rate-limit`. R
 
 Called once at startup in [server/app.js](../server/app.js) before any other module loads. It guarantees `JWT_SECRET_KEY` is available:
 
-## 4.2. PROTECTED FRONT-END ROUTES
-## 6. REFERENCES
+### 4.2. PROTECTED FRONT-END ROUTES
+
+Client-side `RBAC` is enforced by two wrapper components that gate access to a route's content based on login and admin status. Each wrapper checks `currentUser` (set on login) before rendering its `children`; if the check fails, the user is redirected to `/` instead of seeing the protected page.
+
+- [ProtectedUserRoute.js](../client/src/protectedRoutes/ProtectedUserRoute.js)
+
+
+This component protects routes that require a user to be logged in, regardless of their role.
+
+```js
+//ProtectedUserRoute.js
+import React from 'react' // Import the React module to use React functionalities
+// Import React Router components
+import {Navigate} from 'react-router-dom'
+
+//ProtectedUserRoute.js
+export default function ProtectedUserRoute({
+  //PROPS PASSED FROM PARENT COMPONENT
+  currentUser,
+  children
+}) {
+  // If no user is logged in,
+  // redirect to the home page.
+  if (!currentUser) {
+    return <Navigate to='/' />
+  }
+  // If a user is logged in,
+  // render the protected content.
+  return children
+}
+```
+
+- [`ProtectedAdminRoute.js`](/client/src/protectedRoutes/ProtectedAdminRoute.js)
+
+This component protects routes that should only be accessible by users who are logged in **AND** have administrator privileges.
+```js
+//ProtectedAdminRoute
+import React from 'react'
+import { Navigate } from 'react-router-dom'
+//ProtectedAdminRoute
+export default function ProtectedAdminRoute(
+    {//PROPS PASSED FROM PARENT COMPONENT
+        currentUser,
+        children
+    }
+) {
+ // If there is no logged-in user OR the user is not an admin,
+  // redirect them to the home page.
+    if (!currentUser || !currentUser.admin) {
+        return <Navigate to='/'/>
+    }
+     // If the user exists and is an admin,
+  // render the protected content (child component).
+    return children
+}
+
+```
+## 5. REFERENCES
 
 - https://nodejs.org/api/environment_variables.html#environment-variables
 - https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS
