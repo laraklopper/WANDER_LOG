@@ -271,9 +271,17 @@ const hashPassword = async (req, res, next) => {
         });
     }
 }
-//
+/*===============================
+AGE VALIDATION MIDDLEWARE
+===================*/
 /*Middleware function to check that user age
 All users must be 18 or older; admin users must be 21 or older*/
+const checkAge= async (req, res, next) => {
+    
+}
+
+
+//EXPORT
 module.exports = {
     checkJwtToken,
     checkAdmin,
@@ -281,5 +289,7 @@ module.exports = {
     hashPassword,
     exportLimiter,
     loginLimiter,
-    registerLimiter
+    registerLimiter,
+    generalRateLimiter,
+    passwordUpdateRateLimiter,
 }
