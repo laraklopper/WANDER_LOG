@@ -8,6 +8,9 @@ const User = require('../models/userSchema')
 // Extract enviromental variables
 const secretKey = process.env.JWT_SECRET_KEY || 'secretKey';
 
+// Industry standard, balances security and performance
+const SALT_ROUNDS = 10; // Number of hashing rounds 
+
 /*====================
 JWT VERIFICATION MIDDLEWARE
 ===============*/
@@ -71,6 +74,28 @@ const checkJwtToken = (req, res, next) => {
 /*===========================
 RATE-LIMIT MIDDLEWARE
 ==============*/
+/**Middleware General API rate limiterapplied to sensitive endpoints to limit 
+  to 100 requests per 15 minutes per IP*/
+const generalRateLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // Define the time window for rate limiting (15 minutes)
+    max: 100, // Limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again later',// Default message returned when the rate limit is exceeded
+    standardHeaders: true,// Include standard RateLimit headers in the response
+    legacyHeaders: false,// Disable the legacy X-RateLimit-* headers
+    // Custom function that runs when the rate limit is exceeded
+    handler: (req, res) => {
+        console.warn(`[WARN: middleware.js, generalRateLimiter] Rate limit exceeded for IP: ${req.ip}`);// Log a warning message in the console for debugging purposes
+        res.status(429).json({//Respond with a 429 (To many requests) status code and an error message
+            success: false,// Indicate the request was unsuccessful
+            message: 'Too many requests, please slow down',// User-friendly error message
+            /*Calculate approximately how many minutes remain until
+            the client can make requests again*/
+            retryAfter: Math.ceil(
+                (req.rateLimit.resetTime - Date.now()) / 1000 / 60
+            ) + ' minutes'// minutes until reset
+        });
+    },
+});
 /* Limits repeated attempts from one IP so the login endpoint cannot be used to
 guess passwords. Returns 429 (RFC 6585) once the quota is used up */
 const loginLimiter = rateLimit({
@@ -102,6 +127,26 @@ const exportLimiter = rateLimit({
     legacyHeaders: false,
     message: { success: false, message: 'Too many exports, please try again in 15 minutes' },
 });
+
+/*Rate limiter middleware to limit password updates*/
+const passwordUpdateRateLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 3, // Limit each IP to 3 password updates per hour
+    message: 'Too many password update attempts, please try again later',//Counts all password update attempts
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: (req, res) => {
+        console.warn(`[WARN: middleware.js, passwordUpdateRateLimiter] Rate limit exceeded for IP: ${req.ip}`);
+        res.status(429).json({//Respond with a 429 (To many requests) status code and an error message
+            success: false,// Indicate that the request was unsuccessful
+            message: 'Too many password update attempts, please try again in an hour',// User-friendly error message
+            retryAfter: Math.ceil(// Calculate how many minutes remain before another login attempt is allowed
+                (req.rateLimit.resetTime - Date.now()) / 1000 / 60
+            ) + ' minutes'// minutes until reset
+        });
+    },
+});
+
 
 /*====================
 ADMIN ONLY MIDDLEWARE
@@ -197,11 +242,43 @@ const checkPassword = (req, res, next) => {
     }
     return next();// Call the next middleware or route handler
 }
+
+/*Middleware to hash password before registration or password changes
+ * Expects req.body.password to be present*/
+const hashPassword = async (req, res, next) => {
+    try {
+        const {password, newPassword} = req.body || {};// Extract the password and newPassword from the request body
+        //Conditional rendering for password hashing
+        // Hash password for registration/login
+        if (password && !newPassword) {
+             const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS)// Generate a secure hash of the password using bcrypt
+            req.body.password = hashedPassword; // Replace the plain-text password with the hashed password
+            console.log('[INFO: middleware.js, hashPassword] Password hashed for registration/login'); // Log a message in the console for debugging purposes
+        }
+        // Conditional rendering to check if this is a password update request
+        // Hash new password for password changes
+        if (newPassword) {
+            const hashedNewPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);// Generate a secure hash of the new password
+            req.body.newPassword = hashedNewPassword;// Replace the plain-text new password with its hash
+            console.log('[INFO: hashPassword] New password hashed for update');// Log a message in the console for debugging purposes
+        }
+
+        next();// Call the next middleware or route handler
+    } catch (error) {
+        console.error('[ERROR: middleware.js, hashPassword] Error hashing password:', error.message);// Log an error message in the console for debugging purposes
+        return res.status(500).json({ // Return a 500 (Internal Server Error) status code with a message
+            message: 'Error processing password' //Message
+        });
+    }
+}
 //
+/*Middleware function to check that user age
+All users must be 18 or older; admin users must be 21 or older*/
 module.exports = {
     checkJwtToken,
     checkAdmin,
     checkPassword,
+    hashPassword,
     exportLimiter,
     loginLimiter,
     registerLimiter
