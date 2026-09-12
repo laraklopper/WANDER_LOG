@@ -27,6 +27,10 @@
 #budgetTableblock{
     width: 100%;
     display: flex;
+    flex-direction: column;
+    margin: 0px;
+    padding: 0px;
+    gap: 10px;
 }
 #budgetListBlock{
     width: 100%;
@@ -65,16 +69,28 @@
 #budgetListTable{
     width: 100%;
     margin: 0px;
-    padding: 0px;
+    padding: 5px;
     background-color: #c0c0c0;
+    border: solid 1px #000;
 }
-#budgetListTable tbody tr {
-    text-align: center;
-} 
- thead tr th{
+#budgetListTable thead{
+    border: solid 1px #000;   
+}
+#budgetListTable  thead tr th{
     margin: 0px;
-    padding: 0px;
+    border: solid 1px #000;
+    padding: 10px;
     text-align: center;
+    letter-spacing: 2px;
+}
+#budgetListTable  tbody tr td{
+    margin: 0px;
+    border: solid 1px #000;
+    padding: 10px;
+    text-align: center;
+}
+#budgetListTable  tbody tr td Button{
+    width: 150px;
 }
 #refreshBudgetsBtn{
     display: flex;

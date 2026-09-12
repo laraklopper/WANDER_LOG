@@ -6,6 +6,8 @@
     margin: 0px;
     padding: 10px 0px;
     gap: 10px;
+    border: solid #323A42;
+    border-radius: 8px;
     width: 100%;
 }
 #exportFormSelectBlock{
