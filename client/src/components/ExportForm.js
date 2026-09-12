@@ -5,8 +5,7 @@
 /exports/expenses
 /exports/budgets
 
-toggle form display under the lists where the data can be
-exported (trips, entries, expenses, budget)
+toggle form display under the lists where the data can be exported (trips, entries, expenses, budget)
 
 One form serves all four, because every export asks the same single question —
 CSV or Excel — and differs only in which endpoint answers it. The list that
@@ -20,37 +19,18 @@ read as a blob and saved through an object URL, which also means a refusal comes
 back as JSON this form can report instead of as a downloaded error page.
 */
 
+//IMPORT REQUIRED MODULES AND PACKAGES
 import React, { useCallback, useMemo, useState } from 'react'
+// IMPORT CSS STYLESHEETS
 import '../css/componentCss/ExportForm.css'
 import '../css/componentCss/FormSetup.css'
+// IMPORT BOOTSTRAP COMPONENTS
 import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button'
+// IMPORT ICONS FROM LUCIDE-REACT
 import { Bug, Download } from 'lucide-react';
-
-/* The four things that can be exported, keyed by the resource the list passes
-in. The key is also the path segment on the API and the middle of the filename,
-so a list only ever names its resource once.
-
-`title` is what the form calls itself, for the heading a screen reader reads on
-arriving at it. `noun` is the same thing in a sentence, for the messages. */
-const EXPORT_RESOURCES = {
-  trips: { title: 'EXPORT TRIPS', noun: 'trips' },
-  entries: { title: 'EXPORT JOURNAL ENTRIES', noun: 'journal entries' },
-  expenses: { title: 'EXPORT EXPENSES', noun: 'expenses' },
-  budgets: { title: 'EXPORT TRIP BUDGETS', noun: 'trip budgets' },
-};
-
-// The two formats the API builds, and the extension each file is saved with
-const EXPORT_FORMATS = ['csv', 'xlsx'];
-
-/* Used to name the download when the response's own name cannot be read. The
-server names every export, but Content-Disposition is only readable across
-origins because app.js exposes it, so a name is worked out here as well rather
-than leaving the browser to save the file as 'download' with no extension */
-const fallbackFilename = (resource, format) => {
-  const today = new Date().toISOString().slice(0, 10);// The date as 2025-03-01
-  return `wanderlog-${resource}-${today}.${format}`;
-}
+// IMPORT UTILITY FUNCTIONS FROM '../util/exportFunc.js'
+import { EXPORT_RESOURCES, EXPORT_FORMATS,  fallbackFilename} from '../util/exportFunc';
 
 /* The filename the server chose, read off the response. Both the plain and the
 encoded form of the header are matched, so a name is still found if the header is
@@ -94,15 +74,13 @@ const saveBlob = (blob, filename) => {
   setTimeout(() => window.URL.revokeObjectURL(url), 0);
 }
 
-export default function ExportForm({
+// ExportForm function component
+export default function ExportForm(
+  {//PROPS PASSED FROM PARENT COMPONENTS('ExpensesList.js, TripList.js, EntriesList')
   /* Which of the four lists this form sits under. Also the path segment on the
   API, so a list names what it exports once and nothing here has to translate it */
   resource = 'trips',
-  /* How many records the list is currently showing, when the page knows. Used
-  only to keep the button from asking for an export of an empty account, which
-  the API would answer with a 404 anyway. Left null by a list that does not pass
-  it, and the guard is then skipped */
-  count = null
+  count = null//How many records the list is currently showing, when the page knows
 }) {
   // ========STATE VARIABLES============
   const [format, setFormat] = useState('')// The selected export format, '' while the select is on its placeholder
