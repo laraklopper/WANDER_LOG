@@ -177,14 +177,27 @@ LAYOUT
    margin: 0px;
    padding: 10px 5px;
 }
-#dashBoardLinkRow{
+#dashboardImgRow{
+   display: flex;
    width: 100%;
    margin: 0px;
    padding: 0px;
 
 }
-#dashBoardLinkCol{
+#worldMap{
+   display: block;
+   width: 100%;
+   margin: 0px;
+   padding: 0px;
+   overflow: hidden;
+}
+#dashBoardImgCol{
      margin: 0px;
    padding: 0px;
-   
+   width: 100%;
+}
+#mapImgDiv{
+   width: 100%;
+   margin: 0px;
+   padding: 0px;
 }

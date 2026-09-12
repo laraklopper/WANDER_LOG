@@ -393,3 +393,4 @@ export default App;
 - https://www.w3schools.com/tags/ref_byfunc.asp
 - https://www.w3schools.com/css/css_link.asp
 - https://www.w3schools.com/css/css3_buttons.asp
+- https://create-react-app.dev/docs/adding-images-fonts-and-files/

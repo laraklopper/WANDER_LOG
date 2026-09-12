@@ -12,7 +12,7 @@ import Stack from 'react-bootstrap/Stack';
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { Link } from 'react-router-dom';
-
+import Map from '../css/images/High-Resolution-World-Map-2048x1024.jpg'
 // ============MAIN DASHBOARD COMPONENT============
 export default function Dashboard(//Export the default Dashboard.js function component
   {//PROPS PASSED FROM PARENT COMPONENT (App.js)
@@ -151,11 +151,15 @@ export default function Dashboard(//Export the default Dashboard.js function com
       ============== */}
       <section id='dashboardSection2'>
         <div id='dashBoardSec2-panal'>
-          <Row id='dashboardLinkRow'>
-            <Col md={12} id='dashBoardLinkCol'>
+          <Row id='dashboardImgRow'>
+       
+            <Col  md={12} id='dashBoardImgCol'>
+            <div id='mapImgDiv' >
+<img src={Map} alt='WorldMap' id='worldMap'/>
+            </div>
               
             </Col>
-            
+           
       </Row>
 
         </div>
