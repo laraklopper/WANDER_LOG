@@ -252,10 +252,15 @@ export default function ConversionsList(
       </div>
       <div className="p-2 ms-auto">
       <Button 
+      variant='light'
+      id='toggleUpdateConversionBtn'
       onClick={toggleUpdateConverter}
+      // ARIA ATTRIBUTES:
       aria-expanded={showConvertEdit}
+      aria-pressed={showConvertEdit}
+      aria-label={showConvertEdit ? 'HIDE FORM' : 'Edit conversion'}
       >
-        EDIT CONVERSION
+        {showConvertEdit ? 'HIDE FORM' : 'Edit conversion'}
       </Button>
       </div>
       <div className="vr" />

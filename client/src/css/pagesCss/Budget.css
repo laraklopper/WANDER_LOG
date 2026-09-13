@@ -315,7 +315,8 @@ LAYOUT
 Section 1 toggles above, and the reasoning behind the aria-expanded rules is
 written out there */
 #toggleVatCalculationsBtn,
-#toggleConversionsBtn{
+#toggleConversionsBtn,
+#toggleUpdateConversionBtn{
     width: 250px;
     height: 40px;
     margin: 0px;
@@ -330,19 +331,23 @@ written out there */
     border: solid 2px #323A42;
 }
 #toggleVatCalculationsBtn:hover,
+#toggleUpdateConversionBtn:hover,
 #toggleConversionsBtn:hover{
     color: #E8F0F6;
     background-color: #323A42;
 }
+
 /* While the mouse button is held down. Press feedback only - what is on screen
 is marked by the aria-expanded rules below */
 #toggleVatCalculationsBtn:active,
+#toggleUpdateConversionBtn:active,
 #toggleConversionsBtn:active{
     background-color: #1F2529;
     color: #E8F0F6;
 }
 /* WHAT IS CURRENTLY ON SCREEN: marked off the aria-expanded Budget.js already
 sets, by colour, a thicker border and an underline */
+#toggleUpdateConversionBtn[aria-expanded="true"],
 #toggleVatCalculationsBtn[aria-expanded="true"],
 #toggleConversionsBtn[aria-expanded="true"]{
     background-color: #323A42;
