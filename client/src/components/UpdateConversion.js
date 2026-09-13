@@ -200,8 +200,7 @@ export default function UpdateConversion(
         {/* STACK 1 */}
             <Stack gap={3} id='converterStack1'>
       <div className="p-2" id='convert-amount-block'>
-      {/* THE AMOUNT AS SAVED. value={toMoney(storedAmount, storedBase)}
-      Readonly: the amount is what identifies this conversion, and converting a different one is a new conversion  */}
+      {/* THE AMOUNT AS SAVED. value={toMoney(storedAmount, storedBase)} Readonly*/}
         <label className='converter-label' htmlFor='updateConvertAmount'>AMOUNT:</label>
         <div className='input-div'>
             <input
