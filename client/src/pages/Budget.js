@@ -26,6 +26,7 @@ import BudgetList from '../components/BudgetList'
 // IMPORT UTILITY FUNCTIONS
 import { EMPTY_CONVERT_FORM, FALLBACK_CURRENCIES } from '../util/currencyFunc';
 import ExpensesList from '../components/ExpensesList';
+import UpdateConversion from '../components/UpdateConversion'
 
 // ======MAIN BUDGET.js COMPONENT====================
 export default function Budget(//Export default Budget.js component
@@ -72,6 +73,7 @@ export default function Budget(//Export default Budget.js component
   const [showCalculator, setShowCaculator] = useState(false)
   const [showVatCalc, setShowVatCalc] = useState(false)
   const [showConverter, setShowConverter] = useState(false)
+  const [showConvertEdit, setShowConvertEdit] = useState(false)
   const [showVatCalculations, setShowVatCalculations] = useState(false)
   const [showConversions, setShowConversions] = useState(false)
 
@@ -706,6 +708,12 @@ setShowBudgetList(false)
     setShowVatCalc(false)
     setShowConverter(false)
   },[])
+  const toggleUpdateConverter = useCallback(() => {
+    setShowConvertEdit(prev => !prev)
+    setShowConverter(false)
+    setShowBudgetList(false)
+    setShowBudgetList(false)
+  },[])
 
   return (
     <div id='pageContainer'>
@@ -1026,6 +1034,8 @@ setShowBudgetList(false)
                   setError={setError}
                   fetchConversions={fetchConversions}
                   deleteConversion={deleteConversion}
+                  toggleUpdateConverter={toggleUpdateConverter}
+                  showConvertEdit={showConvertEdit}
                 />
               </div>
             </Col>
@@ -1033,6 +1043,19 @@ setShowBudgetList(false)
           </div>
         )}
         </div>
+        {showConvertEdit && (
+          <div id='editConverterPanal'>
+            <Row id='editConversionRow'>
+              <Col id='editConversionCol1'/>
+              <Col xs={6} id='editConversionCol'>
+                <div id='editConverterBlock'>
+                  <UpdateConversion/>
+                </div>
+              </Col>
+              <Col id='editConversionCol2'/>
+            </Row>
+          </div>
+        )}
         </div>
         </section>
       <Footer currentUser={currentUser} logout={logout}/>

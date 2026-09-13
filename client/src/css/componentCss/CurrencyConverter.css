@@ -59,6 +59,15 @@
     margin: 0px;
     padding: 0px;
 }
+#editConvertMsgBlock{
+    display: flex;
+    justify-content: center;
+    margin: 0px;
+    padding: 0px;
+}
+.editConverterMsg{
+    font-family: "Fira Sans", sans-serif;
+}
 #convertCurrencyBtn{
     display: flex;
     justify-content: center;

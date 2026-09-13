@@ -39,7 +39,9 @@ export default function ConversionsList(
     error,
     setError,
     fetchConversions,
-    deleteConversion
+    deleteConversion,
+    toggleUpdateConverter,
+    showConvertEdit
   }
 ) {
   /* Which record the display panel is showing, held as an id rather than as the
@@ -249,6 +251,12 @@ export default function ConversionsList(
         {selectedConversion.currency?.baseCurrency || NOT_AVAILABLE} TO {selectedConversion.currency?.targetCurrency || NOT_AVAILABLE}
       </div>
       <div className="p-2 ms-auto">
+      <Button 
+      onClick={toggleUpdateConverter}
+      aria-expanded={showConvertEdit}
+      >
+        EDIT CONVERSION
+      </Button>
       </div>
       <div className="vr" />
       <div className="p-2">

@@ -265,21 +265,37 @@ LAYOUT
     margin: 0px;
     padding: 0px;
 }
+#editConverterPanal{
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
+#editConverterBlock{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 0px;
+    padding: 0px;
+}
 /* BOOTSTRAP LAYOUT */
 /* GRID: https://react-bootstrap.netlify.app/docs/layout/grid */
 #toggle-calculations-row,
 #vatCalculationsRow,
-#conversions-list-Row{
+#conversions-list-Row,
+#editConversionRow{
     margin: 0px;
     padding: 0px;
     width: 100%;
 }
+#editConversionCol,
 #toggle-calculations-col{
     margin: 0px;
     padding: 0px;
     display: flex;
     justify-content: center;
 }
+#editConversionCol1,
+#editConversionCol2,
 #toggle-calculations-col1,
 #toggle-calculations-col2{
     margin: 0px;
