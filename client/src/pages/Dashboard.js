@@ -156,7 +156,7 @@ export default function Dashboard(//Export the default Dashboard.js function com
         </div>
       </section>
    
-      <Footer logout={logout}/>
+      <Footer currentUser={currentUser} logout={logout}/>
     </div>
   )
 }

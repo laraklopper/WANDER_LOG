@@ -1491,7 +1491,7 @@ export default function Expenses(//Export default Expenses.js component
                 </div>
             </section>
 
-        <Footer logout={logout}/>
+        <Footer currentUser={currentUser} logout={logout}/>
     </div>
   )
 }

@@ -413,7 +413,7 @@ export default function Journal(//Export default Journal.js component
       </div>
         </div>
       </section>
-      <Footer logout={logout}/>
+      <Footer currentUser={currentUser} logout={logout}/>
     </div>
   )
 }

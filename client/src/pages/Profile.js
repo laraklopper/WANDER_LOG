@@ -464,7 +464,7 @@ export default function Profile(//Export the default Profile.js function compone
           </section>
         )}
      {/* ==========FOOTER ================*/}
-      <Footer logout={logout}/>
+      <Footer currentUser={currentUser} logout={logout}/>
     </div>
   )
 }

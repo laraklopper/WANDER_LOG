@@ -48,7 +48,7 @@ export default function Users(///Export default Users.js component
 
         </div>
       </section>
-      <Footer logout={logout}/>
+      <Footer currentUser={currentUser} logout={logout}/>
     </div>
   )
 }

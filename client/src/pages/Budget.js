@@ -1035,7 +1035,7 @@ setShowBudgetList(false)
         </div>
         </div>
         </section>
-      <Footer logout={logout}/>
+      <Footer currentUser={currentUser} logout={logout}/>
     </div>
   )
 }

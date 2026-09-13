@@ -756,7 +756,7 @@ export default function TravelLog(//Export the default TravelLog.js function com
         </div>  
         </section>
       )}
-      <Footer logout={logout}/>
+      <Footer currentUser={currentUser} logout={logout}/>
     </div>
   )
 }

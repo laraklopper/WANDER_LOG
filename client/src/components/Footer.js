@@ -5,7 +5,7 @@ import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
 // IMPORT ICONS FROM LUCIDE-REACT
 import {  Copyright } from 'lucide-react';
-export default function Footer({logout}) {
+export default function Footer({logout, currentUser}) {
   return (
     <footer id='footer' role='banner' aria-describedby='footerDescrip'>
     {/* ------Footer Screen Reader Description--------- */}
