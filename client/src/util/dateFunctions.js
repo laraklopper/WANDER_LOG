@@ -63,7 +63,9 @@ export const toDateInputValue = (value, fallback = undefined) => {
 //-----------TIME FUNCTIONS-----------
 // Format time as hh:mm:ss
 export const timeDisplay = (dateObj) => {
-    return dateObj.toLocaleTimeString('en-GB', {
+    const date = new Date(dateObj);
+    if (isNaN(date.getTime())) return 'Invalid time';
+    return date.toLocaleTimeString('en-GB', {
         hour: '2-digit',// Display hour as two digits
         minute: '2-digit',// Display minute as two digits
         second: '2-digit',// Display second as two digits

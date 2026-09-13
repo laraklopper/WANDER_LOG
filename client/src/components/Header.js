@@ -11,7 +11,9 @@ import { Calendar, Clock8 } from 'lucide-react';
 import { dateDisplay, timeDisplay } from '../util/dateFunctions';
 
 export default function Header({heading, currentUser}) {
-  const [date, setDate] = useState(false)
+  // Start on the current time so the first render has a real Date to format,
+  // before the interval below takes over the updates
+  const [date, setDate] = useState(new Date())
 
   useEffect(() => {
     // Create an interval that updates the time every second
