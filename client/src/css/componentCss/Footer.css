@@ -73,6 +73,33 @@ LAYOUT
     margin: 0px;
     padding: 0px 5px;
 }
+#footerAdminStack{
+    display: flex;
+    align-items: baseline;
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+}
+#footerAdminSpan{
+    display: flex;
+    align-items: baseline;
+    margin: 0px;
+    padding: 0px;
+    justify-content: flex-start;
+    gap: 10px;
+}
+.footerAdminLabel{
+    font-family: "Fira Sans", sans-serif;
+    margin: 0px;
+    padding: 0px;
+    text-decoration: underline;
+}
+.footerAdminValue{
+    font-family: "Fira Sans", sans-serif;
+    margin: 0px;
+    padding: 0px;
+    font-style: italic;
+}
 /* TIME STACK: https://react-bootstrap.netlify.app/docs/layout/stack */
 #footerTimeStack{
     width: 100%;

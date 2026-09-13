@@ -14,6 +14,7 @@
     width: 100%;
     margin: 0px;
     padding: 0px;
+    height: 40px;
 }
 #header-row2{
     display: flex;
@@ -85,4 +86,51 @@
     padding: 0px;
     letter-spacing: 2px;
     text-decoration: underline;
+}
+/* ================
+CLOCK 
+===========*/
+#clockBlock{
+    display: flex;
+    justify-content: flex-start;
+    margin: 0px;
+    padding: 0px;
+    width: 100%;
+    
+}
+#headerClock{
+    display: flex;
+    margin: 0px;
+    padding: 0px;
+    background-color: transparent;
+}
+#headDateItem,
+#headTimeItem{
+    display: flex;  
+    align-items: center; 
+    gap: 5px;
+    background-color: transparent;
+    border: none;
+}
+.headerTimeStamp{
+    
+     display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 0px;
+    padding: 0px;
+}
+.headerClockText{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: "Fira Sans", sans-serif;
+    margin: 0px;
+    padding: 0px;
+    text-decoration: underline;
+}
+.headerClockItem{
+    font-family: "Fira Sans", sans-serif;
+    margin: 0px;
+    padding: 0px;
 }

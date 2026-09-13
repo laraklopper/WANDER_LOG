@@ -1,19 +1,52 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import '../css/componentCss/Header.css'
 import '../css/componentCss/Navbar.css'
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Stack from 'react-bootstrap/Stack';
+import ListGroup from 'react-bootstrap/ListGroup';
 import { NavLink } from 'react-router-dom';
+// IMPORT ICONS FROM LUCIDE-REACT
+import { Calendar, Clock8 } from 'lucide-react';
+import { dateDisplay, timeDisplay } from '../util/dateFunctions';
 
 export default function Header({heading, currentUser}) {
+  const [date, setDate] = useState(false)
+
+  useEffect(() => {
+    // Create an interval that updates the time every second
+    const timer = setInterval(() => {
+      setDate(new Date())
+    }, 1000);
+    // Cleanup function:
+    // Clears interval when component unmounts
+    // Prevents memory leaks and duplicate timers
+    return () => clearInterval(timer)
+  },[])
   return (
     <header id='page-header'>
         <Row id='header-row1'>
         <Col md={12}/>
       </Row>
          <Row id='header-row2'>
-        <Col id='heading-col1'/>
+        <Col id='heading-col1'>
+            <div id='clockBlock'>
+         <ListGroup id='headerClock'>
+      <ListGroup.Item id='headDateItem'>
+        <h5 className='headerClockText'>
+          <Calendar className='headerClockItem' aria-hidden='true' focusable='false'/>
+          {dateDisplay(date)}
+        </h5>
+      </ListGroup.Item>
+      <ListGroup.Item id='headTimeItem'>
+        <h5  className='headerClockText'>
+          <Clock8 className='headerClockItem' aria-hidden='true' focusable='false'/>
+          {timeDisplay(date)}
+        </h5>
+      </ListGroup.Item>
+    </ListGroup>
+      </div>
+        </Col>
         <Col xs={6} id='heading-col'>
         <Stack gap={3} id='heading-stack'>
             <div className="p-2" id='appHeadingBlock'>

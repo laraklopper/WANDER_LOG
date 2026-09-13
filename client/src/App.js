@@ -341,7 +341,7 @@ export default function App() {
         {/* FALL BACK ROUTE: Response 404 PAGE NOT FOUND */}
         <Route path='*' element={
           <span id='pageNotFound'>
-           <h2 id='pageNotFound-text'>404: Page Not Found</h2><GlobeOff fontSize={42} fontWeight={800} color='#470D09'/>
+           <h2 id='pageNotFound-text'>404: Page Not Found</h2><GlobeOff  id='errorIcon' color='#470D09'/>
           </span>
         }/>
         </Routes>

@@ -1,11 +1,19 @@
+// Footer.js
 import React from 'react'
+// IMPORT CSS STYLESHEETS
 import '../css/componentCss/Footer.css'
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import Stack from 'react-bootstrap/Stack';
 import Button from 'react-bootstrap/Button';
 // IMPORT ICONS FROM LUCIDE-REACT
 import {  Copyright } from 'lucide-react';
-export default function Footer({logout, currentUser}) {
+export default function Footer(
+  {
+    logout, 
+    currentUser
+  }) {
+    //===================JSX RENDERING=================
   return (
     <footer id='footer' role='banner' aria-describedby='footerDescrip'>
     {/* ------Footer Screen Reader Description--------- */}
@@ -13,7 +21,18 @@ export default function Footer({logout, currentUser}) {
       <p id='footerDescrip'>FOOTER IF USER IS LOGGED IN</p>
     </div>
     <Row id='footer-row1'>
-        <Col md={12} id='footer-col1'></Col>
+        <Col md={12} id='footer-col1'>
+          <Stack direction="horizontal" gap={3} id='footerAdminStack'>
+      <div className="p-2">
+        <span id='footerAdminSpan'>
+        <h5 className='footerAdminLabel'>LOGGED IN AS:</h5>
+          <h5 className='footerAdminValue'>{currentUser?.admin ? 'ADMIN' : 'USER'}</h5>
+        </span>
+      </div>
+      <div className="p-2 ms-auto"/>
+      <div className="p-2"/>
+    </Stack>
+        </Col>
     </Row>
     <Row id='footer-row2'>
         <Col xs={12} md={8} id='logout-col1'></Col>

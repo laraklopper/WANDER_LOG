@@ -37,3 +37,24 @@
     font-weight: 600;
 
 }
+#pageNotFound{
+    display: flex;
+    align-items: center;
+     margin: 30px;
+     padding: 0px;
+}
+#pageNotFound-text{
+  text-transform: uppercase;
+    font-weight: 900;
+    text-decoration: underline;
+     font-family: "Noto Serif", serif;
+     letter-spacing: 2px;
+     font-size: 42px;
+}
+#errorIcon{
+ font-weight: 900;
+    text-decoration: underline;
+     font-family: "Noto Serif", serif;
+     letter-spacing: 2px;
+     font-size: 42px;   
+}
