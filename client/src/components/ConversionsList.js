@@ -254,7 +254,11 @@ export default function ConversionsList(
       <Button 
       variant='light'
       id='toggleUpdateConversionBtn'
-      onClick={toggleUpdateConverter}
+      /* The conversion the panel is showing is passed up with the press, so the
+      form Budget.js renders opens on this record rather than on nothing: the
+      button is inside the panel, so it is the only place that knows which
+      conversion is being edited */
+      onClick={() => toggleUpdateConverter(selectedConversion)}
       // ARIA ATTRIBUTES:
       aria-expanded={showConvertEdit}
       aria-pressed={showConvertEdit}

@@ -36,21 +36,16 @@ export default function VatCalculator() {
   const saveButtonVariant =
     saveStatus === 'saved' ? 'success' : saveStatus === 'error' ? 'danger' : 'light';
   // Disabled while the request is running and after it has succeeded, so the
-  // same calculation cannot be written to the history twice
+  
   const saveDisabled = saveStatus === 'saving' || saveStatus === 'saved';
 
-  /* Clears the save button back to its unsaved state. Called whenever the
-  result on screen is replaced, so a 'Saved' label can never be left over from a
-  previous calculation. */
-  const resetSaveStatus = () => {
-    setSaveStatus(null);
+  /* Function to Clears the save button back to its unsaved state.  */
+  const resetSaveStatus = () => {// Called whenever the result on screen is replaced
+    setSaveStatus(null);//'Saved' label can never be left over from a previous calculation
     setSaveError('');
   };
 
   // Function to calculate VAT
-  /* The arithmetic is done by the server rather than repeated here, so the
-  figures on screen are worked out by the same vatCalculations.js that a saved
-  record is built from and the two can never disagree. */
   const calculateVat = useCallback(async () => {
     setError('')
     setResult(null)
@@ -119,12 +114,6 @@ export default function VatCalculator() {
   },[amount, mode, isZeroRated, ratePercent])
 
   // Function to save vat calculation
-  /* Only the inputs are sent, and they are taken from the RESULT rather than
-  from the form, so the rate saved is the one the figures on screen were worked
-  out at even if the field has since been retyped. The server recalculates from
-  them, so the figures cannot be edited on the way to the database, and the
-  record it returns is what was actually stored. Throws on failure so the button
-  that called it can report the outcome. */
   const saveVatCalculation = useCallback(async (calculation) => {
       const token = localStorage.getItem('token')
       const response = await fetch('http://localhost:3001/vat/save', {

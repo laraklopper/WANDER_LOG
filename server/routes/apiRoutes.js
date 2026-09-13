@@ -231,6 +231,138 @@ router.post('/save', checkJwtToken, async (req, res) => {
     }
 })
 
+/*──────────────────────────── PUT ROUTES ──────────────────────────────────────
+   PUT: UPDATE — Full replacement update of a resource on the database
+────────────────────────────────────────────────────────────────────────────────*/
+/*=====================================
+UPDATE A SAVED CONVERSION
+=======================================*/
+/* api/updateConversion/:id - Reprices one of the logged in user's saved
+conversions at the rate quoted today, and moves it onto a different target
+currency when the body names one.
+
+A PUT rather than a PATCH: a conversion is four figures, and three of them are
+the input the fourth was worked out from, so the whole thing is replaced rather
+than patched field by field — a body that changed the target currency on its own
+would leave the record holding a rate for a pair it was never quoted for. The
+body goes through the same parseConversionInput as POST /save, so a conversion
+cannot be updated into something a new one could not be saved as.
+
+The rate is FETCHED HERE rather than read from the body, exactly as it is on a
+save, so an updated record still holds a rate the provider actually quoted. What
+the record held before is returned alongside it as `previous`, because reporting
+whether the rate has moved is the whole point of this route and the old figures
+are gone from the database once it answers.
+
+The user and the username are left as they are stored: the owner is never taken
+from the body, and matching on the id and the user together means another
+account's conversion is not found at all rather than found and then refused. */
+router.put('/updateConversion/:id', checkJwtToken, async (req, res) => {
+    try {
+        const userId = req.user?.userId;// The token payload signed in authRoutes.js uses `userId`
+
+        // Conditional rendering to check if userId is present
+        if (!userId) {
+            console.error('[ERROR: apiRoutes.js, PUT /updateConversion/:id] userId missing from token');// Log an error message in the console for debugging purposes
+            return res.status(401).json({ success: false, message: 'Unauthorized' });// Respond with a 401 (Unauthorised) status code
+        }
+
+        const conversionId = String(req.params.id ?? '').trim();
+
+        /* Checked before the conversion is looked up, so a malformed id is
+        reported as a 400 rather than reaching Mongoose as a CastError and being
+        reported as a 500 */
+        if (!mongoose.Types.ObjectId.isValid(conversionId)) {
+            console.warn('[WARN: apiRoutes.js, PUT /updateConversion/:id] Invalid conversion id:', conversionId);// Log a warning message in the console for debugging purposes
+            return res.status(400).json({ success: false, message: 'Invalid conversion id' });// Send a 400 (Bad Request) status code with a message
+        }
+
+        /* The whole conversion is expected in the body, not only what moved:
+        this is a replacement, so it is parsed exactly as a save is */
+        const input = await parseConversionInput(req.body);
+
+        // Conditional rendering to check the submitted figures are usable
+        if (input.message) {
+            console.warn('[WARN: apiRoutes.js, PUT /updateConversion/:id]', input.message);// Log a warning message in the console for debugging purposes
+            return res.status(400).json({ success: false, message: input.message });// Send a 400 (Bad Request) status code with a message
+        }
+
+        const { fromCurrency, toCurrency, parsedAmount } = input;
+
+        /* Matched on the conversion and the owner together, so another account's
+        record is not found at all. Read whole rather than through a projection,
+        because it is saved again below and Mongoose does not validate the paths
+        a projection left out */
+        const conversion = await Conversion.findOne({ _id: conversionId, user: userId }).exec();
+
+        /* Conditional rendering to check a conversion with that id exists on this
+        account. Covers both a conversion that does not exist and one owned by
+        another user, the same as DELETE /history/:id */
+        if (!conversion) {
+            console.warn('[WARN: apiRoutes.js, PUT /updateConversion/:id] No conversion', conversionId, 'for user', userId);// Log a warning message in the console for debugging purposes
+            return res.status(404).json({ success: false, message: 'Conversion not found' });// Send a 404 (Not Found) status code with a message
+        }
+
+        /* Read off the record before anything is written over it, because the
+        response reports what the conversion used to hold and the document itself
+        no longer carries it once it has been set */
+        const previous = {
+            amount: conversion.amount,
+            baseCurrency: conversion.currency?.baseCurrency,
+            targetCurrency: conversion.currency?.targetCurrency,
+            rate: conversion.rate,
+        };
+
+        /* A conversion between a currency and itself is stored at a rate of 1,
+        matching the short-circuit in /convert and the same rule /save keeps,
+        rather than asking Frankfurter to price a pair it would reject */
+        let rate = 1;
+        if (fromCurrency !== toCurrency) {
+            const quote = await getConversionRate(fromCurrency, toCurrency);
+
+            if (!quote) {// Conditional rendering to check a usable rate came back
+                console.error('[ERROR: apiRoutes.js, PUT /updateConversion/:id] Missing exchange rate for', fromCurrency, toCurrency);// Log an error message in the console for debugging purposes
+                /* Answered before anything is written, so a provider that cannot
+                price the pair leaves the saved conversion exactly as it was */
+                return res.status(502).json({ success: false, message: 'Exchange rate unavailable for the requested currencies' });
+            }
+            rate = quote.rate;
+        }
+
+        /* Set on the document and saved rather than written in place, so the
+        schema's own validation runs on the replaced fields. convertedAmount is
+        not written here either: the schema exposes it as a virtual off the
+        amount and the rate, so there is no third figure to disagree with them */
+        conversion.set({
+            amount: parsedAmount,
+            currency: { baseCurrency: fromCurrency, targetCurrency: toCurrency },
+            rate,
+        });
+
+        await conversion.save();
+
+        console.log('[SUCCESS: apiRoutes.js, PUT /updateConversion/:id] Updated conversion', conversionId, 'for user', userId, 'at rate', rate);
+        return res.status(200).json({
+            success: true,
+            message: 'Conversion updated in your history',
+            updated: conversion,// Carries the `convertedAmount` virtual, so the client can show what was stored
+            previous,// What the record held before this call, which is gone from the database now
+            /* Compared here rather than left to the client, which would have to
+            know that a changed target currency prices a different pair and so is
+            not the same rate moving */
+            rateChanged: previous.rate !== rate || previous.targetCurrency !== toCurrency,
+        });// Respond with a 200 (OK) status code and the updated conversion
+    } catch (error) {
+        // A schema validation failure is the user's input, not a server fault
+        if (error.name === 'ValidationError') {
+            console.error('[ERROR: apiRoutes.js, PUT /updateConversion/:id] Validation failed:', error.message);// Log an error message in the console for debugging purposes
+            return res.status(400).json({ success: false, message: error.message });// Send a 400 (Bad Request) status code with a message
+        }
+        console.error('[ERROR: apiRoutes.js, PUT /updateConversion/:id]', error.message);// Log an error message in the console for debugging purposes
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });// Return a 500 (Internal Server Error) status code with a message
+    }
+})
+
 /*──────────────────────────── DELETE ROUTES ────────────────────────────────────
    DELETE: Used to remove an item from the database
 ────────────────────────────────────────────────────────────────────────────────*/

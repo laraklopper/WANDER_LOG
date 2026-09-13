@@ -1,6 +1,6 @@
 // Budget.js
 //IMPORT REQUIRED MODULES AND PACKAGES
-import React, { useCallback, useState, useEffect } from 'react'
+import React, { useCallback, useMemo, useState, useEffect } from 'react'
 // IMPORT ROUTING HOOKS
 /* The budget form lives on the expenses page, so the list's EDIT navigates there
 rather than opening a form this page does not hold */
@@ -37,16 +37,12 @@ export default function Budget(//Export default Budget.js component
     error,
     loggedIn
   }) {
- 
-
- 
   // ==========STATE VARIABLES===============
   // VAT CALCULATOR VARIABLES
   const [vatCalculations, setVatCalculations] = useState([])
   const [vatCalculationsTotal, setVatCalculationsTotal] = useState(0)
   const [vatCalculationsError, setVatCalculationsError] = useState('')
-  /* Whether the saved calculations request is in flight*/
-  const [loadingVatCalculations, setLoadingVatCalculations] = useState(false)
+  const [loadingVatCalculations, setLoadingVatCalculations] = useState(false)//Whether the saved calculations request is in flight
   // CURRENCY CONVERTER VARIABLES
   const [currencyOptions, setCurrencyOptions] = useState(FALLBACK_CURRENCIES)
   const [form, setForm] = useState(EMPTY_CONVERT_FORM)
@@ -54,10 +50,8 @@ export default function Budget(//Export default Budget.js component
   const [loading, setLoading] = useState(false)
   const [conversions, setConversions] = useState([])
   const [conversionsTotal, setConversionsTotal] = useState(0)
-  /* Whether the saved conversions request is in flight, for the same reason the
-  VAT list keeps one: an empty array is both a history with nothing in it and a
-  list that has not arrived, and ConversionsList.js has to say which. */
-  const [loadingConversions, setLoadingConversions] = useState(false)
+  const [loadingConversions, setLoadingConversions] = useState(false)//Whether the saved conversions request is in fligh
+  const [editingConversionId, setEditingConversionId] = useState(null)//Which saved conversion the update form is open on, held as an id
   // TRIP BUDGET LIST VARIABLES
   const [budgets, setBudgets] = useState([])//the logged in user's trip budgets
   const [loadingBudgets, setLoadingBudgets] = useState(false)//State to indicat whether the budgets request is in flight
@@ -87,9 +81,8 @@ export default function Budget(//Export default Budget.js component
 
       const loadCurrencies = async () => {
         const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
-        /* Nothing to fetch without a session, and the endpoint would answer
-        401. The dropdowns keep the local fallback list either way */
-        if (!token) return;
+        // Conditional rendering to check if JWT token exists
+        if (!token) return;//Nothing to fetch without a JWT, and the endpoint would answer 401.
 
         try {
           const response = await fetch(`http://localhost:3001/api/currencies`, {
@@ -283,8 +276,7 @@ export default function Budget(//Export default Budget.js component
         })
         data = await response.json().catch(() => ({}));//Parse the response as json
       } catch (error) {
-        /* A network level failure, so the request never reached the server.
-        Rethrown as a readable message rather than 'Failed to fetch' */
+        /* A network level failure, so the request never reached the server. */
         console.error('[ERROR: Budget.js, saveConversions]', error.message);//Log an error message in the console for debugging purposes
         throw new Error('Could not reach the server. Please try again.');
       }
@@ -297,10 +289,103 @@ export default function Budget(//Export default Budget.js component
       }
 
       console.log('[SUCCESS: Budget.js, saveConversions] Saved conversion', data.saved?._id);
-      /* Refresh the conversions list so a save is visible straight away.*/
-      fetchConversions();
+      fetchConversions();/* Refresh the conversions list so a save is visible straight away.*/
 
       return data;
+        },[fetchConversions])
+
+        /* The conversion the update form is open on */
+        const editingConversion = useMemo(
+          () => conversions.find(conversion => conversion._id === editingConversionId) || null,
+          [conversions, editingConversionId]
+        )
+
+        /* Quotes a saved conversion at today's rate for the update form, through
+        the same GET /api/convert the converter itself uses. Nothing is written:*/
+        const quoteConversion = useCallback(async ({ amount, from, to }) => {
+          const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
+          // Conditional rendering to check there is a session to quote against
+          if (!token) throw new Error('Please log in again to check this conversion.');
+
+          let response;
+          let data;
+          try {
+            const params = new URLSearchParams({ amount, from, to });
+            response = await fetch(`http://localhost:3001/api/convert?${params}`,{
+              method: 'GET',//HTTP request method
+              mode: 'cors',//Enable Cross-Origin Resource Sharing
+              headers: {
+                'Authorization': `Bearer ${token}`,// Attach the token in the Authorization header
+              }
+            })
+            data = await response.json().catch(() => ({}));//Parse the response as json
+          } catch (error) {
+            /* A network level failure, so the request never reached the server.
+            Rethrown as a readable message rather than 'Failed to fetch' */
+            console.error('[ERROR: Budget.js, quoteConversion]', error.message);//Log an error message in the console for debugging purposes
+            throw new Error('Could not reach the server. Please try again.');
+          }
+
+          //Conditional rendering to check the request succeeded
+          if (!response.ok) {
+            const message = data.message || 'Could not check the exchange rate.';
+            console.error('[ERROR: Budget.js, quoteConversion]', message);//Log an error message in the console for debugging purposes
+            throw new Error(message);
+          }
+
+          console.log('[SUCCESS: Budget.js, quoteConversion]', data.amount, data.from, '=', data.result, data.to, 'at', data.rate);
+          return data;
+        },[])
+
+        /* Sends a saved conversion to PUT /api/updateConversion/:id, which
+        reprices it at today's rate and moves it onto the target currency the
+        form chose. */
+        const updateConversion = useCallback(async (conversionId, conversion) => {
+          // Conditional rendering to check a conversion was identified
+          if (!conversionId) {
+            console.warn('[WARN: Budget.js, updateConversion] No conversion id given, cannot update the conversion');
+            throw new Error('No conversion is open for updating.');
+          }
+
+          const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
+          // Conditional rendering to check there is a session to update against
+          if (!token) throw new Error('Please log in again to update this conversion.');
+
+          let response;
+          let data;
+          try {
+            response = await fetch(`http://localhost:3001/api/updateConversion/${conversionId}`,{
+              method: 'PUT',//HTTP request method
+              mode: 'cors',//Enable Cross-Origin Resource Sharing
+              headers: {
+                'Content-Type': 'application/json',// Specify that we're sending JSON data in the request body
+                'Authorization': `Bearer ${token}`,// Attach the token in the Authorization header
+              },
+              body: JSON.stringify({// Send the whole conversion in the request body as JSON, the rate excepted
+                amount: conversion.amount,
+                from: conversion.from,
+                to: conversion.to,
+              })
+            })
+            data = await response.json().catch(() => ({}));//Parse the response as json
+          } catch (error) {
+            /* A network level failure, so the request never reached the server.
+            Rethrown as a readable message rather than 'Failed to fetch' */
+            console.error('[ERROR: Budget.js, updateConversion]', error.message);//Log an error message in the console for debugging purposes
+            throw new Error('Could not reach the server. Please try again.');
+          }
+
+          //Conditional rendering to check the request succeeded
+          if (!response.ok) {
+            const message = data.message || response.statusText || 'Could not update the conversion.';
+            console.error('[ERROR: Budget.js, updateConversion]', message);//Log an error message in the console for debugging purposes
+            throw new Error(message);
+          }
+
+          console.log('[SUCCESS: Budget.js, updateConversion] Updated conversion', data.updated?._id, 'from rate', data.previous?.rate, 'to', data.updated?.rate);
+          await fetchConversions();
+
+          return data;
         },[fetchConversions])
 
         /* Loads the logged in user's saved VAT calculations for the VAT calculations list. */
@@ -341,15 +426,12 @@ export default function Budget(//Export default Budget.js component
             console.error('[ERROR: Budget.js, fetchVatCalculations]', error.message);//Log an error message in the console for debugging purposes
             setVatCalculationsError(`Error fetching VAT calculations, ${error.message}`)
           } finally {
-            /* Cleared in a finally, so a failed or rejected request leaves the
-            list showing its error rather than a loading row that never ends */
+
             setLoadingVatCalculations(false)
           }
         },[])
 
-        /* Removes one of the user's saved VAT calculations. The list is
-        refetched rather than filtered in place, so what is on screen is what
-        the database holds. */
+        /* Removes one of the user's saved VAT calculations. */
         const deleteVatCalculation = useCallback(async (calculationId) => {
           try {
             const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
@@ -375,9 +457,7 @@ export default function Budget(//Export default Budget.js component
 
             setVatCalculationsError('');//Clear any previous error messages
             console.log('[SUCCESS: Budget.js, deleteVatCalculation] Deleted VAT calculation', calculationId);
-            /* Awaited, so the caller's delete stays busy until the refreshed
-            list has arrived rather than only until the DELETE answered. The
-            panel is closed by the record leaving the list, which happens here. */
+            /* Awaited, so the caller's delete stays busy until the refreshed list has arrived */
             await fetchVatCalculations();// Refresh the list so the removal is visible straight away
             return true;
           } catch (error) {
@@ -391,22 +471,13 @@ export default function Budget(//Export default Budget.js component
         THE TRIP BUDGET LIST
         =======================================*/
         /* Loads the logged in user's trip budgets from
-        GET /expense/fetchBudgets. The route is behind checkJwtToken and filters
-        on the userId it reads off that token, so the list can only ever hold
-        this account's own budgets, and no id is sent.
-
-        Each row carries four fields — the budget's id, its trip, its base
-        currency and its total — so the list's VIEW reads the whole budget back
-        by its id through fetchBudget below rather than opening the panel on the
-        part of it that is already on screen. */
+        GET /expense/fetchBudgets.  */
         const fetchBudgets = useCallback(async () => {
           const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
-          /* Nothing to fetch without a session, and the endpoint would answer
-          401. Returned before the loading flag is raised, so a signed out user
-          never sees the list report a request that was never sent */
-          if (!token) {
+          
+          if (!token) {/* Nothing to fetch without a JWT token */
             console.warn('[WARN: Budget.js, fetchBudgets] No token stored, cannot fetch the budgets');
-            return;
+            return;//Exit the function
           }
 
           try {
@@ -447,15 +518,7 @@ export default function Budget(//Export default Budget.js component
           }
         },[])
 
-        /* Loads every expense on the account from GET /expense/fetchExpenses,
-        for the list's EXPENSES column. An expense is embedded in the budget of
-        its trip, so the API gathers them out of the caller's budgets and returns
-        them as one list, each carrying the budgetId it came out of — which is
-        what the count per row is worked out from.
-
-        Failures are only logged: the column falls back to 0 for every row, which
-        is a great deal less than the list itself failing to load and is not
-        worth an error message over the whole table. */
+        /* Loads every expense on the account from GET /expense/fetchExpenses, */
         const fetchExpenses = useCallback(async () => {
           const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
           if (!token) return;
@@ -485,12 +548,7 @@ export default function Budget(//Export default Budget.js component
           }
         },[])
 
-        /* Loads the logged in user's trips from GET /trip/fetchTrips, for the
-        list's TRIP STATUS column: a budget row carries the title of its trip but
-        not its status, which is stored on the trip itself.
-
-        Failures are only logged, the same as the expenses above: the column
-        falls back to NOT AVAILABLE per row rather than the table failing. */
+        /* Function to load logged in user's trips from GET /trip/fetchTrips */
         const fetchTrips = useCallback(async () => {
           const token = localStorage.getItem('token');//Retrieve Jwt Token From LocalStorage
           if (!token) return;
@@ -548,9 +606,6 @@ export default function Budget(//Export default Budget.js component
 
             //Conditional rendering to check the request succeeded
             if (!response.ok) {
-              /* A 400 for a malformed id, a 404 for a budget that is not on this
-              account and a 401 once the session has gone all arrive with their
-              own message, so it is reported as it was given */
               const message = data.message || response.statusText || 'Could not load that budget.';
               console.error('[ERROR: Budget.js, fetchBudget]', message);//Log an error message in the console for debugging purposes
               setBudgetsError(message);// Set the error state to display the error above the list
@@ -615,10 +670,7 @@ export default function Budget(//Export default Budget.js component
             }
 
             setBudgetsError('');//Clear any previous error messages
-            /* Awaited so the caller's delete stays busy until the refreshed
-            lists have arrived rather than only until the DELETE answered, and
-            the row is gone from the table by the time the button reports itself
-            done */
+            
             await Promise.all([
               // The budget itself is gone, and this is what the table is built from
               fetchBudgets(),
@@ -660,6 +712,7 @@ export default function Budget(//Export default Budget.js component
   },[showBudgetList, fetchBudgets, fetchExpenses, fetchTrips])
 
   //================EVENT LISTENERS========================
+  // Function to toggle conversions
   const toggleExpensesList = useCallback(() => {
     setShowExpenses(prev => !prev)
     /* Hide calculation and conversions list but allow 
@@ -692,7 +745,9 @@ export default function Budget(//Export default Budget.js component
     setShowCaculator(false)
     setShowVatCalc(false)
 setShowBudgetList(false)
+setShowConversions(false)
   },[])
+  // Toggle Vat calculations
   const toggleVatCalculations = useCallback(() => {
     setShowVatCalculations(prev => (!prev))
     setShowConversions(false)
@@ -701,6 +756,7 @@ setShowBudgetList(false)
     setShowConverter(false)
 
   },[])
+  // Function to toggle conversions list
   const toggleConversions = useCallback(() => {
     setShowConversions(prev => (!prev))
     setShowVatCalculations(false)
@@ -708,16 +764,36 @@ setShowBudgetList(false)
     setShowVatCalc(false)
     setShowConverter(false)
   },[])
-  const toggleUpdateConverter = useCallback(() => {
-    setShowConvertEdit(prev => !prev)
+  /* Function to toggle update form for one saved conversion open on the panal*/
+  const toggleUpdateConverter = useCallback((conversion) => {
+    const conversionId = conversion?._id ?? null
+
+    // Conditional rendering to check the press is a move rather than a toggle
+    if (showConvertEdit && conversionId && conversionId !== editingConversionId) {
+      setEditingConversionId(conversionId)
+      return;
+    }
+
+    const opening = !showConvertEdit
+    setShowConvertEdit(opening)
+    /* Cleared on the way out, so the form cannot reopen on a conversion that
+    has since been deleted or on figures it was left showing */
+    setEditingConversionId(opening ? conversionId : null)
     setShowConverter(false)
     setShowBudgetList(false)
-    setShowBudgetList(false)
-  },[])
+  },[showConvertEdit, editingConversionId])
 
+  //==============JSX RENDERING==================
   return (
-    <div id='pageContainer'>
+    <div id='pageContainer' role='main' aria-labelledby='pageTitle'>
+    {/* -----Screen Reader Heading------------ */}
+    <p className='visually-hidden' id='pageTitle'>BUDGET PAGE</p>
+    {/* =========HEADER==================== */}
+    {/* Render the Header.js component with 'BUDGET' as the heading */}
       <Header currentUser={currentUser} heading={'BUDGET'}/>
+      {/* ==========================
+      SECTION 1
+      ========== */}
         <section id='budget-section1'>
           <div id='section-1-panal'>
           <div id='budgetPageExpList'>
@@ -755,14 +831,10 @@ setShowBudgetList(false)
           {showBudgetList ? 'Hide Travel Budgets': 'Show Travel Budgets'}
          </Button>
       </div>
-      
     </Stack>
-          
         </Col>
         <Col id='toggleExpListCol2'/>
       </Row>
-
-      
           </div>
       <div id='calculator-panal'>
    <Row id='toggle-btns-row'>
@@ -818,6 +890,7 @@ setShowBudgetList(false)
        </div>
        </div>
         </section>
+        {/* BUDGET PAGE LISTS SECTION */}
               <div id='budgetPage-list-panal'>
 {/* TOGGLE THE USER EXPENSES LIST */}
       {showExpenses && (
@@ -825,15 +898,13 @@ setShowBudgetList(false)
           <div id='expenses-list-panal'>
             <Row id='expenses-listRow'>
               <Col md={12} id='expListCol'>
-              
-                <ExpensesList/>
-                        
+                <ExpensesList/>      
               </Col>
             </Row>
          </div>
         </section>
-
       )}
+      {/* TOGGLE BUDGET LIST */}
       {showBudgetList && (
         <section className='budgetListSection'>
         <div id='budgetList-panal'>
@@ -885,7 +956,9 @@ setShowBudgetList(false)
         </section>
       )}
       </div>
-      {/* ======CALCULATORS + CURRENCY CONVERTER DISPLAY======= */}
+      {/* ===============
+      SECTION 2: CALCULATORS + CURRENCY CONVERTER DISPLAY
+      ===================== */}
       <div id='calculator-display-panal'>
       {/* TOGGLE THE CALCULATOR */}
       {showCalculator && (
@@ -902,7 +975,6 @@ setShowBudgetList(false)
       </Row>
         </div>
         </section>
-        
       )}
       {/* TOGGLE THE VAT CALCULATOR */}
       {showVatCalc && (
@@ -919,7 +991,6 @@ setShowBudgetList(false)
           </Row>
         </div>
         </section>
-       
       )}
       {/* TOGGLE THE CURRENCY CONVERTER */}
       {showConverter && (
@@ -1043,13 +1114,19 @@ setShowBudgetList(false)
           </div>
         )}
         </div>
+        {/* TOGGLE EDIT CONVERSION FORM */}
         {showConvertEdit && (
           <div id='editConverterPanal'>
             <Row id='editConversionRow'>
               <Col id='editConversionCol1'/>
               <Col xs={6} id='editConversionCol'>
                 <div id='editConverterBlock'>
-                  <UpdateConversion/>
+                  <UpdateConversion
+                    conversion={editingConversion}//The conversion the list's details panel was showing
+                    currencyOptions={currencyOptions}
+                    quoteConversion={quoteConversion}//Reads today's rate for the conversion
+                    updateConversion={updateConversion}//Writes the conversion back at today's rate
+                  />
                 </div>
               </Col>
               <Col id='editConversionCol2'/>
