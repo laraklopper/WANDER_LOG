@@ -26,16 +26,7 @@ export default function Login(//Export the default Login function component
   on the login button cannot spend two of the server's rate limited attempts */
   const [submitting, setSubmitting] = useState(false)
 
-    /* Clear any half-finished session. Called whenever a login attempt does not
-  end in a usable token, so a stale token from an earlier session is never left
-  behind for the authenticated requests in App.js to pick up. */
-  const clearStoredSession = useCallback(() => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('email');
-    localStorage.removeItem('loggedIn');
-    setLoggedIn(false);
-  }, [setLoggedIn])
-
+   
   const submitLogin = useCallback(async () => {
     if (submitting) return;
 
@@ -83,7 +74,6 @@ export default function Login(//Export the default Login function component
         console.error(`[ERROR: Login.js] Login failed with status ${response.status}`);
       }
     } catch (error) {
-      clearStoredSession();
       // Only a network level failure reaches here, a 4xx or 5xx is handled above
       setError('Could not reach the server. Please check your connection and try again.');
       console.error('[ERROR: Login.js] Login request failed:', error.message);
@@ -91,7 +81,7 @@ export default function Login(//Export the default Login function component
     } finally {
       setSubmitting(false)
     }
-  },[submitting,clearStoredSession, setError, userData, setUserData, setLoggedIn, setCurrentUser])
+  },[submitting, setError, userData, setUserData, setLoggedIn, setCurrentUser])
 
   //================JSX RENDERING=====================
   return (
